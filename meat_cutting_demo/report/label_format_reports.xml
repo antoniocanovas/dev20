@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Label formats offered by the cutting screen: any report on meat.cutting.line -->
+    <record id="paperformat_label_compact" model="report.paperformat">
+        <field name="name">Etiqueta 60x40</field>
+        <field name="format">custom</field>
+        <field name="page_height">40</field>
+        <field name="page_width">60</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">1</field>
+        <field name="margin_bottom">1</field>
+        <field name="margin_left">1</field>
+        <field name="margin_right">1</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+    <record id="paperformat_label_box" model="report.paperformat">
+        <field name="name">Etiqueta de caja 100x150</field>
+        <field name="format">custom</field>
+        <field name="page_height">150</field>
+        <field name="page_width">100</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">3</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_label_compact" model="ir.actions.report">
+        <field name="name">Etiqueta compacta</field>
+        <field name="model">meat.cutting.line</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meat_cutting_demo.report_label_compact</field>
+        <field name="print_report_name">'Etiqueta - %s' % object.output_product_id.display_name</field>
+        <field name="paperformat_id" ref="paperformat_label_compact"/>
+        <field name="binding_model_id" ref="meat_cutting.model_meat_cutting_line"/>
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_report_label_box" model="ir.actions.report">
+        <field name="name">Etiqueta de caja</field>
+        <field name="model">meat.cutting.line</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meat_cutting_demo.report_label_box</field>
+        <field name="print_report_name">'Etiqueta caja - %s' % object.output_product_id.display_name</field>
+        <field name="paperformat_id" ref="paperformat_label_box"/>
+        <field name="binding_model_id" ref="meat_cutting.model_meat_cutting_line"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Small label for trays: name, weight, lot and barcode -->
+    <template id="report_label_compact">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="line">
+                <t t-set="label" t-value="line._get_label_values()"/>
+                <t t-set="dates" t-value="line._get_label_dates()"/>
+                <div style="page-break-after: always; font-family: sans-serif; font-size: 10px;">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="font-size: 14px; font-weight: bold; line-height: 1.1;" t-out="label['product_name']"/>
+                            <td style="text-align: right; font-size: 18px; font-weight: bold; white-space: nowrap;">
+                                <span t-field="line.weight"/> <span t-out="line.uom_id.name"/>
+                            </td>
+                        </tr>
+                    </table>
+                    <div>Lote: <strong t-out="line.lot_name"/><strong t-if="line.session_id.crotal_id.halal"> · HALAL</strong></div>
+                    <div t-if="line.package_id">Pieza: <strong t-out="line.package_id.name"/></div>
+                    <div>Fab.: <span t-out="dates['production_date']" t-options="{'widget': 'date'}"/>
+                        <t t-if="dates['expiration_date']"> · <strong>Cad.: <span t-out="dates['expiration_date']" t-options="{'widget': 'date'}"/></strong></t>
+                    </div>
+                    <div t-if="label['note']" style="font-weight: bold;" t-out="label['note']"/>
+                    <t t-set="barcode_value" t-value="line._get_label_barcode_value()"/>
+                    <div t-if="barcode_value" style="text-align: center; margin-top: 2px;">
+                        <div t-out="barcode_value" t-options="{'widget': 'barcode', 'symbology': 'Code128', 'width': 600, 'height': 100, 'img_style': 'width:56mm;height:10mm;'}"/>
+                        <div style="font-size: 8px;" t-out="line._get_label_barcode_text()"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- Box label: full traceability of the animal -->
+    <template id="report_label_box">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="line">
+                <t t-set="label" t-value="line._get_label_values()"/>
+                <t t-set="dates" t-value="line._get_label_dates()"/>
+                <t t-set="crotal" t-value="line.session_id.crotal_id"/>
+                <div style="page-break-after: always; font-family: sans-serif; font-size: 13px;">
+                    <div style="font-size: 26px; font-weight: bold; line-height: 1.1;" t-out="label['product_name']"/>
+                    <div style="font-size: 44px; font-weight: bold; margin: 6px 0;">
+                        <span t-field="line.weight"/> <span t-out="line.uom_id.name"/>
+                    </div>
+                    <table style="width: 100%; border-top: 2px solid #000; border-bottom: 2px solid #000; margin-bottom: 6px;">
+                        <tr><td style="width: 40%;">Lote</td><td><strong t-out="line.lot_name"/></td></tr>
+                        <tr t-if="line.package_id"><td>Pieza</td><td><strong t-out="line.package_id.name"/></td></tr>
+                        <tr t-if="crotal"><td>Nº de referencia</td><td><strong t-out="crotal.name"/></td></tr>
+                        <tr t-if="label['birth_country']"><td>Nacido en</td><td t-out="label['birth_country']"/></tr>
+                        <tr t-if="label['reared_country']"><td>Criado en</td><td t-out="label['reared_country']"/></tr>
+                        <tr t-if="label['slaughter_date']"><td>Sacrificado</td><td><span t-out="label['slaughter_date']" t-options="{'widget': 'date'}"/></td></tr>
+                        <tr t-if="crotal.supplier_health_code"><td>Matadero</td><td t-out="crotal.supplier_health_code"/></tr>
+                        <tr t-if="crotal.breed"><td>Raza</td><td t-out="crotal.breed"/></tr>
+                        <tr t-if="crotal.halal"><td>Sacrificio</td><td><strong>HALAL</strong> <span t-if="crotal.halal_certificate" t-out="'(%s)' % crotal.halal_certificate"/></td></tr>
+                        <tr><td>Fecha de fabricación</td><td><span t-out="dates['production_date']" t-options="{'widget': 'date'}"/></td></tr>
+                        <tr t-if="dates['expiration_date']"><td>Fecha de caducidad</td><td><strong t-out="dates['expiration_date']" t-options="{'widget': 'date'}"/></td></tr>
+                        <tr t-if="label['origin']"><td>Procedencia</td><td t-out="label['origin']"/></tr>
+                        <tr t-if="label['supplier']"><td>Proveedor</td><td t-out="label['supplier']"/></tr>
+                    </table>
+                    <div t-if="label['note']" style="font-size: 16px; font-weight: bold; margin-bottom: 6px;" t-out="label['note']"/>
+                    <div>
+                        <strong t-out="line.company_id.name"/>
+                        <div style="white-space: pre-line;" t-out="line.company_id.partner_id._display_address(without_name=True)"/>
+                    </div>
+                    <t t-set="barcode_value" t-value="line._get_label_barcode_value()"/>
+                    <div t-if="barcode_value" style="text-align: center; margin-top: 8px;">
+                        <div t-out="barcode_value" t-options="{'widget': 'barcode', 'symbology': 'Code128', 'width': 600, 'height': 150, 'img_style': 'width:90mm;height:22mm;'}"/>
+                        <div style="font-size: 11px;" t-out="line._get_label_barcode_text()"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

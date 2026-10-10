@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.meat_cutting</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_register_carcasses" string="Register Carcasses" type="object"
+                        class="btn-primary" groups="stock.group_production_lot"
+                        invisible="picking_type_code != 'incoming' or state in ('draft', 'done', 'cancel')"/>
+                <button name="action_open_cutting_screen" string="Cutting Screen" type="object"
+                        class="btn-primary" groups="mrp.group_mrp_user"
+                        invisible="picking_type_code != 'incoming' or state != 'done'"/>
+            </xpath>
+            <div name="button_box" position="inside">
+                <button name="action_view_cutting_sessions" type="object" class="oe_stat_button" icon="content_cut"
+                        groups="mrp.group_mrp_user" invisible="not cutting_session_count">
+                    <field name="cutting_session_count" string="Cuttings" widget="statinfo"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

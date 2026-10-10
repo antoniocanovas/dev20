@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Filter and group the stock by the data of the animal (crotal) of its lot -->
+    <record id="quant_search_view" model="ir.ui.view">
+        <field name="name">stock.quant.search.inherit.meat_cutting</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view"/>
+        <field name="arch" type="xml">
+            <field name="lot_id" position="after">
+                <field name="crotal_id"/>
+                <field name="crotal_partner_id"/>
+                <field name="crotal_breed"/>
+                <field name="crotal_birth_country"/>
+                <field name="crotal_reared_country"/>
+                <filter name="crotal_halal" string="Halal" domain="[('crotal_halal', '=', True)]"/>
+                <filter name="crotal_not_halal" string="Not Halal" domain="[('crotal_id', '!=', False), ('crotal_halal', '=', False)]"/>
+                <separator/>
+                <filter name="crotal_male" string="Male" domain="[('crotal_sex', '=', 'male')]"/>
+                <filter name="crotal_female" string="Female" domain="[('crotal_sex', '=', 'female')]"/>
+                <separator/>
+                <filter name="crotal_slaughter_date" string="Slaughter Date" date="crotal_slaughter_date"/>
+                <filter name="crotal_birth_date" string="Birth Date" date="crotal_birth_date"/>
+            </field>
+            <filter name="Lot_Serial_number" position="after">
+                    <filter name="group_crotal" string="Crotal" context="{'group_by': 'crotal_id'}"/>
+                    <filter name="group_crotal_partner" string="Animal Supplier" context="{'group_by': 'crotal_partner_id'}"/>
+                    <filter name="group_crotal_sex" string="Sex" context="{'group_by': 'crotal_sex'}"/>
+                    <filter name="group_crotal_halal" string="Halal" context="{'group_by': 'crotal_halal'}"/>
+                    <filter name="group_crotal_breed" string="Breed" context="{'group_by': 'crotal_breed'}"/>
+                    <filter name="group_crotal_quality" string="Quality" context="{'group_by': 'crotal_quality'}"/>
+                    <filter name="group_crotal_birth_country" string="Born In" context="{'group_by': 'crotal_birth_country'}"/>
+                    <filter name="group_crotal_reared_country" string="Reared In" context="{'group_by': 'crotal_reared_country'}"/>
+                    <filter name="group_crotal_birth_date" string="Birth Date" context="{'group_by': 'crotal_birth_date'}"/>
+                    <filter name="group_crotal_slaughter_date" string="Slaughter Date" context="{'group_by': 'crotal_slaughter_date'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_tree_editable" model="ir.ui.view">
+        <field name="name">stock.quant.list.editable.inherit.meat_cutting</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
+        <field name="arch" type="xml">
+            <field name="lot_id" position="after">
+                <field name="crotal_id" optional="show"/>
+                <field name="crotal_halal" optional="show"/>
+                <field name="crotal_sex" optional="hide"/>
+                <field name="crotal_partner_id" optional="hide"/>
+                <field name="crotal_breed" optional="hide"/>
+                <field name="crotal_birth_date" optional="hide"/>
+                <field name="crotal_slaughter_date" optional="hide"/>
+                <field name="crotal_birth_country" optional="hide"/>
+                <field name="crotal_reared_country" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_tree_inventory_editable" model="ir.ui.view">
+        <field name="name">stock.quant.list.inventory.inherit.meat_cutting</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+        <field name="arch" type="xml">
+            <field name="lot_id" position="after">
+                <field name="crotal_id" optional="show"/>
+                <field name="crotal_halal" optional="show"/>
+                <field name="crotal_sex" optional="hide"/>
+                <field name="crotal_partner_id" optional="hide"/>
+                <field name="crotal_breed" optional="hide"/>
+                <field name="crotal_birth_date" optional="hide"/>
+                <field name="crotal_slaughter_date" optional="hide"/>
+                <field name="crotal_birth_country" optional="hide"/>
+                <field name="crotal_reared_country" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Freeze fresh stock that is already cut -->
+    <record id="action_server_quant_meat_freeze" model="ir.actions.server">
+        <field name="name">Freeze</field>
+        <field name="model_id" ref="stock.model_stock_quant"/>
+        <field name="binding_model_id" ref="stock.model_stock_quant"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[Command.link(ref('stock.group_stock_user'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = records.action_meat_freeze()</field>
+    </record>
+
+    <record id="view_production_lot_form_freeze" model="ir.ui.view">
+        <field name="name">stock.lot.form.meat_cutting.freeze</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_meat_freeze" type="object" class="oe_stat_button" icon="ac_unit"
+                        invisible="not can_meat_freeze" groups="stock.group_stock_user"
+                        confirm="Freeze the whole stock of this lot? It becomes the frozen product, with the frozen shelf life from today.">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Freeze</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

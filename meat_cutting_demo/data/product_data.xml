@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="product_category_meat" model="product.category">
+        <field name="name">Cárnicos</field>
+        <field name="parent_id" ref="product.product_category_goods"/>
+    </record>
+    <record id="product_category_carcass" model="product.category">
+        <field name="name">Canales</field>
+        <field name="parent_id" ref="product_category_meat"/>
+    </record>
+    <record id="product_category_cut" model="product.category">
+        <field name="name">Piezas frescas</field>
+        <field name="parent_id" ref="product_category_meat"/>
+    </record>
+    <record id="product_category_frozen" model="product.category">
+        <field name="name">Piezas congeladas</field>
+        <field name="parent_id" ref="product_category_meat"/>
+    </record>
+
+    <!-- Shelf life as a general rule: 30 days fresh, 180 days frozen; alert 2 days before -->
+
+    <!-- Carcasses -->
+    <record id="product_canal_cerdo" model="product.product">
+        <field name="name">Canal de cerdo</field>
+        <field name="default_code">CAN-CER</field>
+        <field name="categ_id" ref="product_category_carcass"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="standard_price">2.10</field>
+    </record>
+    <record id="product_canal_ternera" model="product.product">
+        <field name="name">Media canal de ternera</field>
+        <field name="default_code">CAN-TER</field>
+        <field name="categ_id" ref="product_category_carcass"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="standard_price">5.40</field>
+    </record>
+
+    <!-- Frozen cuts: same raw material as the fresh ones, with their own price and shelf life.
+         The cutting screen produces them instead of the fresh cut when it is marked to freeze. -->
+    <record id="product_cerdo_jamon_congelado" model="product.product">
+        <field name="name">Jamón de cerdo congelado</field>
+        <field name="default_code">CER-JAM-C</field>
+        <field name="barcode">8437000100188</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">4.21</field>
+    </record>
+    <record id="product_cerdo_paleta_congelado" model="product.product">
+        <field name="name">Paleta de cerdo congelada</field>
+        <field name="default_code">CER-PAL-C</field>
+        <field name="barcode">8437000100195</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">3.57</field>
+    </record>
+    <record id="product_cerdo_lomo_congelado" model="product.product">
+        <field name="name">Lomo de cerdo congelado</field>
+        <field name="default_code">CER-LOM-C</field>
+        <field name="barcode">8437000100201</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">6.71</field>
+    </record>
+    <record id="product_cerdo_solomillo_congelado" model="product.product">
+        <field name="name">Solomillo de cerdo congelado</field>
+        <field name="default_code">CER-SOL-C</field>
+        <field name="barcode">8437000100218</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">9.78</field>
+    </record>
+    <record id="product_cerdo_panceta_congelado" model="product.product">
+        <field name="name">Panceta de cerdo congelada</field>
+        <field name="default_code">CER-PAN-C</field>
+        <field name="barcode">8437000100225</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">4.76</field>
+    </record>
+    <record id="product_cerdo_costillas_congelado" model="product.product">
+        <field name="name">Costillas de cerdo congeladas</field>
+        <field name="default_code">CER-COS-C</field>
+        <field name="barcode">8437000100232</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">4.46</field>
+    </record>
+    <record id="product_cerdo_papada_congelado" model="product.product">
+        <field name="name">Papada de cerdo congelada</field>
+        <field name="default_code">CER-PAP-C</field>
+        <field name="barcode">8437000100249</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">2.63</field>
+    </record>
+    <record id="product_cerdo_chuletas_congelado" model="product.product">
+        <field name="name">Chuletas de cerdo congeladas</field>
+        <field name="default_code">CER-CHU-C</field>
+        <field name="barcode">8437000100256</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">5.44</field>
+    </record>
+    <record id="product_cerdo_magro_congelado" model="product.product">
+        <field name="name">Magro de cerdo congelado</field>
+        <field name="default_code">CER-MAG-C</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">3.82</field>
+    </record>
+    <record id="product_ternera_solomillo_congelado" model="product.product">
+        <field name="name">Solomillo de ternera congelado</field>
+        <field name="default_code">TER-SOL-C</field>
+        <field name="barcode">8437000100263</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">27.20</field>
+    </record>
+    <record id="product_ternera_lomo_alto_congelado" model="product.product">
+        <field name="name">Lomo alto de ternera congelado</field>
+        <field name="default_code">TER-LAL-C</field>
+        <field name="barcode">8437000100270</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">20.82</field>
+    </record>
+    <record id="product_ternera_lomo_bajo_congelado" model="product.product">
+        <field name="name">Lomo bajo de ternera congelado</field>
+        <field name="default_code">TER-LBA-C</field>
+        <field name="barcode">8437000100287</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">19.46</field>
+    </record>
+    <record id="product_ternera_babilla_congelado" model="product.product">
+        <field name="name">Babilla de ternera congelada</field>
+        <field name="default_code">TER-BAB-C</field>
+        <field name="barcode">8437000100294</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">13.43</field>
+    </record>
+    <record id="product_ternera_tapa_congelado" model="product.product">
+        <field name="name">Tapa de ternera congelada</field>
+        <field name="default_code">TER-TAP-C</field>
+        <field name="barcode">8437000100300</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">12.92</field>
+    </record>
+    <record id="product_ternera_aguja_congelado" model="product.product">
+        <field name="name">Aguja de ternera congelada</field>
+        <field name="default_code">TER-AGU-C</field>
+        <field name="barcode">8437000100317</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">10.12</field>
+    </record>
+    <record id="product_ternera_falda_congelado" model="product.product">
+        <field name="name">Falda de ternera congelada</field>
+        <field name="default_code">TER-FAL-C</field>
+        <field name="barcode">8437000100324</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">7.22</field>
+    </record>
+    <record id="product_ternera_morcillo_congelado" model="product.product">
+        <field name="name">Morcillo de ternera congelado</field>
+        <field name="default_code">TER-MOR-C</field>
+        <field name="barcode">8437000100331</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">7.99</field>
+    </record>
+    <record id="product_ternera_picada_congelado" model="product.product">
+        <field name="name">Carne picada de ternera congelada</field>
+        <field name="default_code">TER-PIC-C</field>
+        <field name="barcode">8437000100348</field>
+        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">6.76</field>
+    </record>
+
+    <!-- Fresh cuts -->
+    <record id="product_cerdo_jamon" model="product.product">
+        <field name="name">Jamón de cerdo</field>
+        <field name="default_code">CER-JAM</field>
+        <field name="barcode">8437000100010</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">4.95</field>
+        <field name="frozen_product_id" ref="product_cerdo_jamon_congelado"/>
+    </record>
+    <record id="product_cerdo_paleta" model="product.product">
+        <field name="name">Paleta de cerdo</field>
+        <field name="default_code">CER-PAL</field>
+        <field name="barcode">8437000100027</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">4.20</field>
+        <field name="frozen_product_id" ref="product_cerdo_paleta_congelado"/>
+    </record>
+    <record id="product_cerdo_lomo" model="product.product">
+        <field name="name">Lomo de cerdo</field>
+        <field name="default_code">CER-LOM</field>
+        <field name="barcode">8437000100034</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">7.90</field>
+        <field name="frozen_product_id" ref="product_cerdo_lomo_congelado"/>
+    </record>
+    <record id="product_cerdo_solomillo" model="product.product">
+        <field name="name">Solomillo de cerdo</field>
+        <field name="default_code">CER-SOL</field>
+        <field name="barcode">8437000100041</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">11.50</field>
+        <field name="frozen_product_id" ref="product_cerdo_solomillo_congelado"/>
+    </record>
+    <record id="product_cerdo_panceta" model="product.product">
+        <field name="name">Panceta de cerdo</field>
+        <field name="default_code">CER-PAN</field>
+        <field name="barcode">8437000100058</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">5.60</field>
+        <field name="frozen_product_id" ref="product_cerdo_panceta_congelado"/>
+    </record>
+    <record id="product_cerdo_costillas" model="product.product">
+        <field name="name">Costillas de cerdo</field>
+        <field name="default_code">CER-COS</field>
+        <field name="barcode">8437000100065</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">5.25</field>
+        <field name="frozen_product_id" ref="product_cerdo_costillas_congelado"/>
+    </record>
+    <record id="product_cerdo_papada" model="product.product">
+        <field name="name">Papada de cerdo</field>
+        <field name="default_code">CER-PAP</field>
+        <field name="barcode">8437000100072</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">3.10</field>
+        <field name="frozen_product_id" ref="product_cerdo_papada_congelado"/>
+    </record>
+    <record id="product_cerdo_chuletas" model="product.product">
+        <field name="name">Chuletas de cerdo</field>
+        <field name="default_code">CER-CHU</field>
+        <field name="barcode">8437000100171</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">6.40</field>
+        <field name="frozen_product_id" ref="product_cerdo_chuletas_congelado"/>
+    </record>
+    <!-- Without barcode: its label falls back to the lot -->
+    <record id="product_cerdo_magro" model="product.product">
+        <field name="name">Magro de cerdo</field>
+        <field name="default_code">CER-MAG</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">4.50</field>
+        <field name="frozen_product_id" ref="product_cerdo_magro_congelado"/>
+    </record>
+    <record id="product_ternera_solomillo" model="product.product">
+        <field name="name">Solomillo de ternera</field>
+        <field name="default_code">TER-SOL</field>
+        <field name="barcode">8437000100089</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">32.00</field>
+        <field name="frozen_product_id" ref="product_ternera_solomillo_congelado"/>
+    </record>
+    <record id="product_ternera_lomo_alto" model="product.product">
+        <field name="name">Lomo alto de ternera</field>
+        <field name="default_code">TER-LAL</field>
+        <field name="barcode">8437000100096</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">24.50</field>
+        <field name="frozen_product_id" ref="product_ternera_lomo_alto_congelado"/>
+    </record>
+    <record id="product_ternera_lomo_bajo" model="product.product">
+        <field name="name">Lomo bajo de ternera</field>
+        <field name="default_code">TER-LBA</field>
+        <field name="barcode">8437000100102</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">22.90</field>
+        <field name="frozen_product_id" ref="product_ternera_lomo_bajo_congelado"/>
+    </record>
+    <record id="product_ternera_babilla" model="product.product">
+        <field name="name">Babilla de ternera</field>
+        <field name="default_code">TER-BAB</field>
+        <field name="barcode">8437000100119</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">15.80</field>
+        <field name="frozen_product_id" ref="product_ternera_babilla_congelado"/>
+    </record>
+    <record id="product_ternera_tapa" model="product.product">
+        <field name="name">Tapa de ternera</field>
+        <field name="default_code">TER-TAP</field>
+        <field name="barcode">8437000100126</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">15.20</field>
+        <field name="frozen_product_id" ref="product_ternera_tapa_congelado"/>
+    </record>
+    <record id="product_ternera_aguja" model="product.product">
+        <field name="name">Aguja de ternera</field>
+        <field name="default_code">TER-AGU</field>
+        <field name="barcode">8437000100133</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">11.90</field>
+        <field name="frozen_product_id" ref="product_ternera_aguja_congelado"/>
+    </record>
+    <record id="product_ternera_falda" model="product.product">
+        <field name="name">Falda de ternera</field>
+        <field name="default_code">TER-FAL</field>
+        <field name="barcode">8437000100140</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">8.50</field>
+        <field name="frozen_product_id" ref="product_ternera_falda_congelado"/>
+    </record>
+    <record id="product_ternera_morcillo" model="product.product">
+        <field name="name">Morcillo de ternera</field>
+        <field name="default_code">TER-MOR</field>
+        <field name="barcode">8437000100157</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">9.40</field>
+        <field name="frozen_product_id" ref="product_ternera_morcillo_congelado"/>
+    </record>
+    <record id="product_ternera_picada" model="product.product">
+        <field name="name">Carne picada de ternera</field>
+        <field name="default_code">TER-PIC</field>
+        <field name="barcode">8437000100164</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">7.95</field>
+        <field name="frozen_product_id" ref="product_ternera_picada_congelado"/>
+    </record>
+</odoo>

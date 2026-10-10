@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_meat_cutting_session" model="ir.sequence">
+        <field name="name">Meat Cutting Session</field>
+        <field name="code">meat.cutting.session</field>
+        <field name="prefix">DSP/%(year)s/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <!-- Serial reference of the SSCC of the packages (see the package types) -->
+    <record id="seq_meat_package_sscc" model="ir.sequence">
+        <field name="name">Package SSCC Serial Reference</field>
+        <field name="code">meat.package.sscc</field>
+        <field name="padding">1</field>
+        <field name="company_id" eval="False"/>
+    </record>
+</odoo>

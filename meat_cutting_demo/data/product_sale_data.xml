@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Whole pieces: the customer orders pieces of the "Pieza completa" packaging
+         (estimated weight), each piece is weighed and packed when cut, the line keeps
+         the kg price and the real weight delivered is invoiced. Chops, lean meat and
+         minced meat are only sold by weight. -->
+    <record id="uom_pieza_cerdo_jamon" model="uom.uom">
+        <field name="name">Pieza completa (jamón de cerdo)</field>
+        <field name="relative_factor">11.0</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_cerdo_paleta" model="uom.uom">
+        <field name="name">Pieza completa (paleta de cerdo)</field>
+        <field name="relative_factor">7.0</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_cerdo_lomo" model="uom.uom">
+        <field name="name">Pieza completa (lomo de cerdo)</field>
+        <field name="relative_factor">4.5</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_cerdo_solomillo" model="uom.uom">
+        <field name="name">Pieza completa (solomillo de cerdo)</field>
+        <field name="relative_factor">0.6</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_cerdo_panceta" model="uom.uom">
+        <field name="name">Pieza completa (panceta de cerdo)</field>
+        <field name="relative_factor">5.5</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_cerdo_costillas" model="uom.uom">
+        <field name="name">Pieza completa (costillar de cerdo)</field>
+        <field name="relative_factor">3.5</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_cerdo_papada" model="uom.uom">
+        <field name="name">Pieza completa (papada de cerdo)</field>
+        <field name="relative_factor">1.4</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_solomillo" model="uom.uom">
+        <field name="name">Pieza completa (solomillo de ternera)</field>
+        <field name="relative_factor">3.2</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_lomo_alto" model="uom.uom">
+        <field name="name">Pieza completa (lomo alto de ternera)</field>
+        <field name="relative_factor">8.0</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_lomo_bajo" model="uom.uom">
+        <field name="name">Pieza completa (lomo bajo de ternera)</field>
+        <field name="relative_factor">7.5</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_babilla" model="uom.uom">
+        <field name="name">Pieza completa (babilla de ternera)</field>
+        <field name="relative_factor">6.5</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_tapa" model="uom.uom">
+        <field name="name">Pieza completa (tapa de ternera)</field>
+        <field name="relative_factor">8.5</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_aguja" model="uom.uom">
+        <field name="name">Pieza completa (aguja de ternera)</field>
+        <field name="relative_factor">9.0</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_falda" model="uom.uom">
+        <field name="name">Pieza completa (falda de ternera)</field>
+        <field name="relative_factor">4.0</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_pieza_ternera_morcillo" model="uom.uom">
+        <field name="name">Pieza completa (morcillo de ternera)</field>
+        <field name="relative_factor">2.8</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+
+    <record id="product_cerdo_jamon" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_jamon'))]"/>
+    </record>
+    <record id="product_cerdo_jamon_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_jamon'))]"/>
+    </record>
+    <record id="product_cerdo_paleta" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_paleta'))]"/>
+    </record>
+    <record id="product_cerdo_paleta_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_paleta'))]"/>
+    </record>
+    <record id="product_cerdo_lomo" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_lomo'))]"/>
+    </record>
+    <record id="product_cerdo_lomo_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_lomo'))]"/>
+    </record>
+    <record id="product_cerdo_solomillo" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_solomillo'))]"/>
+    </record>
+    <record id="product_cerdo_solomillo_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_solomillo'))]"/>
+    </record>
+    <record id="product_cerdo_panceta" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_panceta'))]"/>
+    </record>
+    <record id="product_cerdo_panceta_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_panceta'))]"/>
+    </record>
+    <record id="product_cerdo_costillas" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_costillas'))]"/>
+    </record>
+    <record id="product_cerdo_costillas_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_costillas'))]"/>
+    </record>
+    <record id="product_cerdo_papada" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_papada'))]"/>
+    </record>
+    <record id="product_cerdo_papada_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_papada'))]"/>
+    </record>
+    <record id="product_ternera_solomillo" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_solomillo'))]"/>
+    </record>
+    <record id="product_ternera_solomillo_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_solomillo'))]"/>
+    </record>
+    <record id="product_ternera_lomo_alto" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_lomo_alto'))]"/>
+    </record>
+    <record id="product_ternera_lomo_alto_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_lomo_alto'))]"/>
+    </record>
+    <record id="product_ternera_lomo_bajo" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_lomo_bajo'))]"/>
+    </record>
+    <record id="product_ternera_lomo_bajo_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_lomo_bajo'))]"/>
+    </record>
+    <record id="product_ternera_babilla" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_babilla'))]"/>
+    </record>
+    <record id="product_ternera_babilla_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_babilla'))]"/>
+    </record>
+    <record id="product_ternera_tapa" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_tapa'))]"/>
+    </record>
+    <record id="product_ternera_tapa_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_tapa'))]"/>
+    </record>
+    <record id="product_ternera_aguja" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_aguja'))]"/>
+    </record>
+    <record id="product_ternera_aguja_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_aguja'))]"/>
+    </record>
+    <record id="product_ternera_falda" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_falda'))]"/>
+    </record>
+    <record id="product_ternera_falda_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_falda'))]"/>
+    </record>
+    <record id="product_ternera_morcillo" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_morcillo'))]"/>
+    </record>
+    <record id="product_ternera_morcillo_congelado" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_ternera_morcillo'))]"/>
+    </record>
+
+    <!-- Presentation prepared when the order is served: no variant, no stock of its
+         own, a price extra per kg; the warehouse reads it on the delivery -->
+    <record id="attribute_presentacion" model="product.attribute">
+        <field name="name">Presentación</field>
+        <field name="create_variant">no_variant</field>
+        <field name="display_type">radio</field>
+    </record>
+    <record id="attribute_presentacion_entera" model="product.attribute.value">
+        <field name="name">Pieza entera</field>
+        <field name="attribute_id" ref="attribute_presentacion"/>
+        <field name="default_extra_price">0.0</field>
+    </record>
+    <record id="attribute_presentacion_fileteado" model="product.attribute.value">
+        <field name="name">Fileteado</field>
+        <field name="attribute_id" ref="attribute_presentacion"/>
+        <field name="default_extra_price">1.2</field>
+    </record>
+    <record id="attribute_presentacion_troceado" model="product.attribute.value">
+        <field name="name">Troceado</field>
+        <field name="attribute_id" ref="attribute_presentacion"/>
+        <field name="default_extra_price">0.8</field>
+    </record>
+    <record id="attribute_presentacion_vacio" model="product.attribute.value">
+        <field name="name">Envasado al vacío</field>
+        <field name="attribute_id" ref="attribute_presentacion"/>
+        <field name="default_extra_price">0.6</field>
+    </record>
+    <record id="product_cerdo_jamon" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_cerdo_paleta" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_cerdo_lomo" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_cerdo_solomillo" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_cerdo_panceta" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_cerdo_costillas" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_cerdo_papada" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_solomillo" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_lomo_alto" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_lomo_bajo" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_babilla" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_tapa" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_aguja" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_falda" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_ternera_morcillo" model="product.product">
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_entera'), ref('attribute_presentacion_fileteado'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+
+    <!-- Presentation kept in stock: its own product, with its own shelf life,
+         made from the fresh cut (see its bill of materials) -->
+    <record id="product_cerdo_solomillo_vacio" model="product.product">
+        <field name="name">Solomillo de cerdo envasado al vacío</field>
+        <field name="default_code">CER-SOL-V</field>
+        <field name="barcode">8437000100478</field>
+        <field name="categ_id" ref="product_category_cut"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">45</field>
+        <field name="alert_time">5</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">12.30</field>
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_pieza_cerdo_solomillo'))]"/>
+    </record>
+
+    <!-- Invoice the real weight delivered, not the estimated pieces ordered -->
+    <record id="product_canal_cerdo" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_canal_ternera" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_jamon_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_paleta_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_lomo_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_solomillo_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_panceta_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_costillas_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_papada_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_chuletas_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_magro_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_solomillo_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_lomo_alto_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_lomo_bajo_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_babilla_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_tapa_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_aguja_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_falda_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_morcillo_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_picada_congelado" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_jamon" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_paleta" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_lomo" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_solomillo" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_panceta" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_costillas" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_papada" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_chuletas" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_magro" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_solomillo" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_lomo_alto" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_lomo_bajo" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_babilla" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_tapa" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_aguja" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_falda" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_morcillo" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_ternera_picada" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+    <record id="product_cerdo_solomillo_vacio" model="product.product">
+        <field name="invoice_policy">delivery</field>
+    </record>
+
+    <!-- Shipping boxes, named with a SSCC printed on their content label -->
+    <record id="package_type_caja" model="stock.package.type">
+        <field name="name">Caja de expedición</field>
+        <field name="meat_sscc_prefix">8437000</field>
+        <field name="packaging_length">400</field>
+        <field name="width">300</field>
+        <field name="height">200</field>
+        <field name="max_weight">25</field>
+    </record>
+</odoo>

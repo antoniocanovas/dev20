@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_meat_cutting_label">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="line">
+                <t t-set="label" t-value="line._get_label_values()"/>
+                <t t-set="dates" t-value="line._get_label_dates()"/>
+                <t t-set="crotal" t-value="line.session_id.crotal_id"/>
+                <div class="o_meat_cutting_label" style="page-break-after: always; font-family: sans-serif;">
+                    <div style="font-size: 20px; font-weight: bold; line-height: 1.1;" t-out="label['product_name']"/>
+                    <table style="width: 100%; margin-top: 4px;">
+                        <tr>
+                            <td style="width: 55%; vertical-align: top; font-size: 12px;">
+                                <div>Lot: <strong t-out="line.lot_name"/></div>
+                                <div t-if="line.package_id">Piece: <strong t-out="line.package_id.name"/></div>
+                                <div t-if="crotal">Crotal: <strong t-out="crotal.name"/></div>
+                                <div t-if="crotal.halal"><strong>HALAL</strong></div>
+                                <div t-if="label['birth_country']">Born in: <span t-out="label['birth_country']"/></div>
+                                <div t-if="label['reared_country']">Reared in: <span t-out="label['reared_country']"/></div>
+                                <div t-if="label['slaughter_date']">Slaughtered: <span t-out="label['slaughter_date']" t-options="{'widget': 'date'}"/></div>
+                                <div>Production date: <span t-out="dates['production_date']" t-options="{'widget': 'date'}"/></div>
+                                <div t-if="dates['expiration_date']" style="font-weight: bold;">
+                                    Expiry date: <span t-out="dates['expiration_date']" t-options="{'widget': 'date'}"/>
+                                </div>
+                                <div t-if="label['origin']">Origin: <span t-out="label['origin']"/></div>
+                                <div t-if="label['supplier']">Supplier: <span t-out="label['supplier']"/></div>
+                                <div t-out="line.company_id.name"/>
+                                <div t-if="label['note']" style="font-weight: bold;" t-out="label['note']"/>
+                            </td>
+                            <td style="width: 45%; text-align: right; vertical-align: top;">
+                                <div style="font-size: 30px; font-weight: bold;">
+                                    <span t-field="line.weight"/> <span t-out="line.uom_id.name"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <t t-set="barcode_value" t-value="line._get_label_barcode_value()"/>
+                    <div t-if="barcode_value" style="text-align: center; margin-top: 4px;">
+                        <div t-out="barcode_value" t-options="{'widget': 'barcode', 'symbology': 'Code128', 'width': 600, 'height': 100, 'img_style': 'width:90mm;height:14mm;'}"/>
+                        <div style="font-size: 10px;" t-out="line._get_label_barcode_text()"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- Label of a piece (or lot) in stock, to relabel it out of the cutting, e.g. once frozen -->
+    <template id="report_meat_piece_label">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="quant">
+                <t t-set="label" t-value="quant._get_meat_label_values()"/>
+                <t t-set="crotal" t-value="label['crotal']"/>
+                <div class="o_meat_piece_label" style="page-break-after: always; font-family: sans-serif;">
+                    <div style="font-size: 20px; font-weight: bold; line-height: 1.1;" t-out="label['product_name']"/>
+                    <table style="width: 100%; margin-top: 4px;">
+                        <tr>
+                            <td style="width: 55%; vertical-align: top; font-size: 12px;">
+                                <div t-if="label['lot_name']">Lot: <strong t-out="label['lot_name']"/></div>
+                                <div t-if="label['package_name']">Piece: <strong t-out="label['package_name']"/></div>
+                                <div t-if="crotal">Crotal: <strong t-out="crotal.name"/></div>
+                                <div t-if="crotal.halal"><strong>HALAL</strong></div>
+                                <div t-if="label['birth_country']">Born in: <span t-out="label['birth_country']"/></div>
+                                <div t-if="label['reared_country']">Reared in: <span t-out="label['reared_country']"/></div>
+                                <div t-if="label['slaughter_date']">Slaughtered: <span t-out="label['slaughter_date']" t-options="{'widget': 'date'}"/></div>
+                                <div t-if="label['date']">
+                                    <t t-if="label['frozen']">Freezing date:</t>
+                                    <t t-else="">Production date:</t>
+                                    <span t-out="label['date']" t-options="{'widget': 'date'}"/>
+                                </div>
+                                <div t-if="label['expiration_date']" style="font-weight: bold;">
+                                    Expiry date: <span t-out="label['expiration_date']" t-options="{'widget': 'date'}"/>
+                                </div>
+                                <div t-if="label['frozen']" style="font-weight: bold;">Keep at -18 °C or below. Do not refreeze once thawed.</div>
+                                <div t-if="label['supplier']">Supplier: <span t-out="label['supplier']"/></div>
+                                <div t-out="quant.company_id.name"/>
+                            </td>
+                            <td style="width: 45%; text-align: right; vertical-align: top;">
+                                <div style="font-size: 30px; font-weight: bold;">
+                                    <t t-out="label['weight']" t-options="{'widget': 'float', 'decimal_precision': 'Product Unit'}"/>
+                                    <t t-out="label['uom'].name"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <t t-set="barcode_value" t-value="quant._get_meat_label_barcode_value()"/>
+                    <div t-if="barcode_value" style="text-align: center; margin-top: 4px;">
+                        <div t-out="barcode_value" t-options="{'widget': 'barcode', 'symbology': 'Code128', 'width': 600, 'height': 100, 'img_style': 'width:90mm;height:14mm;'}"/>
+                        <div style="font-size: 10px;" t-out="quant._get_meat_label_barcode_text()"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

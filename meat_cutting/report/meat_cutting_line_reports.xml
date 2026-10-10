@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_meat_cutting_label" model="report.paperformat">
+        <field name="name">Meat Cutting Label 100x60</field>
+        <field name="format">custom</field>
+        <field name="page_height">60</field>
+        <field name="page_width">100</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">2</field>
+        <field name="margin_bottom">2</field>
+        <field name="margin_left">2</field>
+        <field name="margin_right">2</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_meat_cutting_label" model="ir.actions.report">
+        <field name="name">Cut Label</field>
+        <field name="model">meat.cutting.line</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meat_cutting.report_meat_cutting_label</field>
+        <field name="print_report_name">'Label - %s' % object.output_product_id.display_name</field>
+        <field name="paperformat_id" ref="paperformat_meat_cutting_label"/>
+        <field name="binding_model_id" ref="model_meat_cutting_line"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_meat_piece_label" model="ir.actions.report">
+        <field name="name">Piece Label</field>
+        <field name="model">stock.quant</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meat_cutting.report_meat_piece_label</field>
+        <field name="print_report_name">'Label - %s' % object.product_id.display_name</field>
+        <field name="paperformat_id" ref="paperformat_meat_cutting_label"/>
+        <field name="binding_model_id" ref="stock.model_stock_quant"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="paperformat_meat_box_label" model="report.paperformat">
+        <field name="name">Meat Box Label 100x150</field>
+        <field name="format">custom</field>
+        <field name="page_height">150</field>
+        <field name="page_width">100</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">3</field>
+        <field name="margin_bottom">3</field>
+        <field name="margin_left">3</field>
+        <field name="margin_right">3</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_meat_box_label" model="ir.actions.report">
+        <field name="name">Box Label</field>
+        <field name="model">stock.package</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meat_cutting.report_meat_box_label</field>
+        <field name="print_report_name">'Box - %s' % object.name</field>
+        <field name="paperformat_id" ref="paperformat_meat_box_label"/>
+        <field name="binding_model_id" ref="stock.model_stock_package"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_picking_meat_box_label" model="ir.actions.report">
+        <field name="name">Box Labels</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">meat_cutting.report_picking_meat_box_label</field>
+        <field name="print_report_name">'Boxes - %s' % object.name</field>
+        <field name="paperformat_id" ref="paperformat_meat_box_label"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

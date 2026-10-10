@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_crotal_view_list" model="ir.ui.view">
+        <field name="name">stock.crotal.list</field>
+        <field name="model">stock.crotal</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="product_id" optional="show"/>
+                <field name="slaughter_date"/>
+                <field name="slaughter_order" optional="show"/>
+                <field name="partner_id" optional="show"/>
+                <field name="sex" optional="show"/>
+                <field name="halal" optional="show"/>
+                <field name="breed" optional="show"/>
+                <field name="quality" optional="hide"/>
+                <field name="birth_date" optional="hide"/>
+                <field name="birth_country" optional="hide"/>
+                <field name="reared_country" optional="hide"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="stock_crotal_view_form" model="ir.ui.view">
+        <field name="name">stock.crotal.form</field>
+        <field name="model">stock.crotal</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_lots" type="object" class="oe_stat_button" icon="barcode" invisible="not lot_count">
+                            <field name="lot_count" string="Lots" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="e.g. ES041234567890"/></h1>
+                    </div>
+                    <group>
+                        <group name="animal" string="Animal">
+                            <field name="product_id"/>
+                            <field name="sex"/>
+                            <field name="breed"/>
+                            <field name="birth_date"/>
+                            <field name="birth_country"/>
+                            <field name="reared_country"/>
+                            <field name="quality"/>
+                            <field name="label"/>
+                        </group>
+                        <group name="slaughter" string="Slaughter">
+                            <field name="slaughter_date"/>
+                            <field name="slaughter_order"/>
+                            <field name="partner_id"/>
+                            <field name="supplier_health_code"/>
+                            <field name="supplier_city"/>
+                            <field name="supplier_vat"/>
+                            <field name="halal"/>
+                            <field name="halal_certifier" invisible="not halal"/>
+                            <field name="halal_certificate" invisible="not halal"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="stock_crotal_view_search" model="ir.ui.view">
+        <field name="name">stock.crotal.search</field>
+        <field name="model">stock.crotal</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="slaughter_order"/>
+                <field name="product_id"/>
+                <field name="partner_id"/>
+                <field name="breed"/>
+                <field name="birth_country"/>
+                <field name="reared_country"/>
+                <filter name="halal" string="Halal" domain="[('halal', '=', True)]"/>
+                <filter name="not_halal" string="Not Halal" domain="[('halal', '=', False)]"/>
+                <separator/>
+                <filter name="male" string="Male" domain="[('sex', '=', 'male')]"/>
+                <filter name="female" string="Female" domain="[('sex', '=', 'female')]"/>
+                <separator/>
+                <filter name="slaughter_date" string="Slaughter Date" date="slaughter_date"/>
+                <filter name="birth_date" string="Birth Date" date="birth_date"/>
+                <group>
+                    <filter name="group_partner" string="Supplier" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_sex" string="Sex" context="{'group_by': 'sex'}"/>
+                    <filter name="group_halal" string="Halal" context="{'group_by': 'halal'}"/>
+                    <filter name="group_breed" string="Breed" context="{'group_by': 'breed'}"/>
+                    <filter name="group_quality" string="Quality" context="{'group_by': 'quality'}"/>
+                    <filter name="group_birth_country" string="Born In" context="{'group_by': 'birth_country'}"/>
+                    <filter name="group_reared_country" string="Reared In" context="{'group_by': 'reared_country'}"/>
+                    <filter name="group_birth_date" string="Birth Date" context="{'group_by': 'birth_date'}"/>
+                    <filter name="group_slaughter_date" string="Slaughter Date" context="{'group_by': 'slaughter_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="stock_crotal_action" model="ir.actions.act_window">
+        <field name="name">Crotals</field>
+        <field name="res_model">stock.crotal</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_production_lot_form" model="ir.ui.view">
+        <field name="name">stock.lot.form.inherit.meat_cutting</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <field name="ref" position="after">
+                <field name="crotal_id"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_production_lot_tree" model="ir.ui.view">
+        <field name="name">stock.lot.list.inherit.meat_cutting</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <field name="ref" position="after">
+                <field name="crotal_id" optional="show"/>
+                <field name="crotal_halal" optional="show"/>
+                <field name="crotal_sex" optional="hide"/>
+                <field name="crotal_partner_id" optional="hide"/>
+                <field name="crotal_breed" optional="hide"/>
+                <field name="crotal_birth_date" optional="hide"/>
+                <field name="crotal_slaughter_date" optional="hide"/>
+                <field name="crotal_birth_country" optional="hide"/>
+                <field name="crotal_reared_country" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="search_product_lot_filter" model="ir.ui.view">
+        <field name="name">stock.lot.search.inherit.meat_cutting</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="crotal_id"/>
+                <field name="crotal_partner_id"/>
+                <field name="crotal_breed"/>
+                <field name="crotal_birth_country"/>
+                <field name="crotal_reared_country"/>
+                <filter name="crotal_halal" string="Halal" domain="[('crotal_halal', '=', True)]"/>
+                <filter name="crotal_not_halal" string="Not Halal" domain="[('crotal_id', '!=', False), ('crotal_halal', '=', False)]"/>
+                <separator/>
+                <filter name="crotal_male" string="Male" domain="[('crotal_sex', '=', 'male')]"/>
+                <filter name="crotal_female" string="Female" domain="[('crotal_sex', '=', 'female')]"/>
+                <separator/>
+                <filter name="crotal_slaughter_date" string="Slaughter Date" date="crotal_slaughter_date"/>
+                <filter name="crotal_birth_date" string="Birth Date" date="crotal_birth_date"/>
+            </field>
+            <filter name="group_by_product" position="after">
+                    <filter name="group_crotal" string="Crotal" context="{'group_by': 'crotal_id'}"/>
+                    <filter name="group_crotal_partner" string="Animal Supplier" context="{'group_by': 'crotal_partner_id'}"/>
+                    <filter name="group_crotal_sex" string="Sex" context="{'group_by': 'crotal_sex'}"/>
+                    <filter name="group_crotal_halal" string="Halal" context="{'group_by': 'crotal_halal'}"/>
+                    <filter name="group_crotal_breed" string="Breed" context="{'group_by': 'crotal_breed'}"/>
+                    <filter name="group_crotal_quality" string="Quality" context="{'group_by': 'crotal_quality'}"/>
+                    <filter name="group_crotal_birth_country" string="Born In" context="{'group_by': 'crotal_birth_country'}"/>
+                    <filter name="group_crotal_reared_country" string="Reared In" context="{'group_by': 'crotal_reared_country'}"/>
+                    <filter name="group_crotal_birth_date" string="Birth Date" context="{'group_by': 'crotal_birth_date'}"/>
+                    <filter name="group_crotal_slaughter_date" string="Slaughter Date" context="{'group_by': 'crotal_slaughter_date'}"/>
+            </filter>
+        </field>
+    </record>
+</odoo>

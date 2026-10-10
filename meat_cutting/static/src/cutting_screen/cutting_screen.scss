@@ -1,0 +1,42 @@
+.o_meat_cutting_screen {
+    touch-action: manipulation;
+
+    .o_meat_cutting_weight_input {
+        width: 11rem;
+    }
+
+    .o_meat_cutting_search {
+        max-width: 32rem;
+    }
+
+    .o_meat_cutting_keypad {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .o_meat_cutting_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+        gap: map-get($spacers, 3);
+    }
+
+    .o_meat_cutting_tile {
+        min-height: 6rem;
+        white-space: normal;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .o_meat_cutting_component {
+        min-height: 7rem;
+    }
+
+    .o_meat_cutting_weighed {
+        opacity: 0.6;
+    }
+}
+
+.o_meat_cutting_label_dialog .o_meat_cutting_label_changed {
+    border-color: $warning;
+    background-color: rgba($warning, 0.08);
+}

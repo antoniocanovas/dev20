@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="meat_carcass_register_view_form" model="ir.ui.view">
+        <field name="name">meat.carcass.register.form</field>
+        <field name="model">meat.carcass.register</field>
+        <field name="arch" type="xml">
+            <form>
+                <field name="product_ids" invisible="1"/>
+                <field name="default_product_id" invisible="1"/>
+                <group>
+                    <group name="slaughter" string="Slaughter">
+                        <field name="picking_id"/>
+                        <field name="partner_id"/>
+                        <field name="supplier_health_code"/>
+                        <field name="slaughter_date"/>
+                        <field name="slaughter_order"/>
+                    </group>
+                    <group name="defaults" string="Defaults of the carcasses">
+                        <field name="birth_country"/>
+                        <field name="reared_country"/>
+                        <field name="halal"/>
+                        <field name="halal_certifier" invisible="not halal"/>
+                        <field name="halal_certificate" invisible="not halal"/>
+                    </group>
+                </group>
+                <field name="line_ids" context="{
+                    'default_product_id': default_product_id,
+                    'default_birth_country': birth_country,
+                    'default_reared_country': reared_country,
+                    'default_halal': halal,
+                }">
+                    <list editable="bottom">
+                        <field name="product_id" domain="[('id', 'in', parent.product_ids)]"
+                               options="{'no_create': True}" column_invisible="parent.default_product_id"/>
+                        <field name="name" placeholder="e.g. ES041234567890"/>
+                        <field name="weight"/>
+                        <field name="uom_id" string="Unit" groups="uom.group_uom"/>
+                        <field name="sex"/>
+                        <field name="breed"/>
+                        <field name="quality"/>
+                        <field name="birth_date" optional="show"/>
+                        <field name="birth_country" optional="show"/>
+                        <field name="reared_country" optional="show"/>
+                        <field name="halal"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_confirm" string="Confirm" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

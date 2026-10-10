@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Carcasses are ordered by number in the "Canal" packaging (estimated weight) at
+         the price per kg of the slaughterhouse. Each carcass is registered on receipt with
+         its crotal and real weight, and the real weight received is billed. -->
+    <record id="uom_canal_cerdo" model="uom.uom">
+        <field name="name">Canal (cerdo)</field>
+        <field name="relative_factor">90.0</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="uom_canal_ternera" model="uom.uom">
+        <field name="name">Media canal (ternera)</field>
+        <field name="relative_factor">160.0</field>
+        <field name="relative_uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+
+    <record id="product_canal_cerdo" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_canal_cerdo'))]"/>
+        <field name="purchase_method">receive</field>
+    </record>
+    <record id="product_canal_ternera" model="product.product">
+        <field name="meat_piece" eval="True"/>
+        <field name="uom_ids" eval="[Command.link(ref('uom_canal_ternera'))]"/>
+        <field name="purchase_method">receive</field>
+    </record>
+
+    <record id="supplierinfo_canal_cerdo" model="product.supplierinfo">
+        <field name="partner_id" ref="partner_matadero_sur"/>
+        <field name="product_id" ref="product_canal_cerdo"/>
+        <field name="price">2.10</field>
+    </record>
+    <record id="supplierinfo_canal_ternera" model="product.supplierinfo">
+        <field name="partner_id" ref="partner_carnes_sierra"/>
+        <field name="product_id" ref="product_canal_ternera"/>
+        <field name="price">5.40</field>
+    </record>
+</odoo>

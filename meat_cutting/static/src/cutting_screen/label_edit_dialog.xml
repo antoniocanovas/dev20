@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="meat_cutting.LabelEditDialog">
+        <Dialog title="this.title" size="'md'">
+            <div t-if="this.state.data" class="o_meat_cutting_label_dialog">
+                <div class="alert alert-light d-flex flex-wrap gap-3 mb-3 py-2">
+                    <span>Lot <strong t-out="this.state.data.lot_name"/></span>
+                    <span t-if="this.state.data.crotal_name">Crotal <strong t-out="this.state.data.crotal_name"/></span>
+                    <span><strong t-out="this.weight"/> <t t-out="this.state.data.uom_name"/></span>
+                    <span class="text-muted small w-100">These data carry the traceability and the barcode of the cut: they cannot be edited.</span>
+                </div>
+                <div t-foreach="this.fields" t-as="field" t-key="field.key" class="mb-2">
+                    <label class="form-label fw-bold mb-1" t-att-for="'o_meat_cutting_label_' + field.key" t-out="field.label"/>
+                    <div class="input-group input-group-lg">
+                        <input t-att-id="'o_meat_cutting_label_' + field.key"
+                               t-att-type="field.type or 'text'"
+                               t-att-class="'form-control' + (this.isChanged(field.key) ? ' o_meat_cutting_label_changed' : '')"
+                               t-att-name="field.key"
+                               t-att-placeholder="field.placeholder or ''"
+                               t-att-value="this.state.values[field.key] or ''"
+                               t-on-input="(ev) => this.onInput(field.key, ev)"/>
+                        <button t-if="this.isChanged(field.key)" class="btn btn-light" title="Restore"
+                                t-on-click="() => this.restoreField(field.key)">
+                            <i class="oi" data-icon="undo"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="text-muted small mt-3">
+                    Changes only apply to the label of this cut; the crotal is not modified.
+                    An emptied text is not printed.
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary btn-lg o_meat_cutting_label_print" t-att-disabled="this.state.busy"
+                        t-on-click="this.onSaveAndPrint">
+                    <i class="oi me-1" data-icon="print"/>Save &amp; print
+                </button>
+                <button class="btn btn-secondary btn-lg o_meat_cutting_label_save" t-att-disabled="this.state.busy"
+                        t-on-click="this.onSave">Save</button>
+                <button class="btn btn-link btn-lg" t-att-disabled="this.state.busy" t-on-click="this.onRestoreAll">
+                    Restore all
+                </button>
+                <button class="btn btn-link btn-lg" t-on-click="this.props.close">Discard</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

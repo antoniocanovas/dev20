@@ -1,0 +1,11 @@
+id,name,model_id,group_id/id,operation,domain
+access_meat_cutting_session_user,meat.cutting.session.user,meat.cutting.session,mrp.group_mrp_user,cru,
+access_meat_cutting_session_manager,meat.cutting.session.manager,meat.cutting.session,mrp.group_mrp_manager,crud,
+access_meat_cutting_line_user,meat.cutting.line.user,meat.cutting.line,mrp.group_mrp_user,crud,
+access_meat_cutting_session_company,meat.cutting.session.company,meat.cutting.session,,crud,"[('company_id', 'in', company_ids)]"
+access_meat_cutting_line_company,meat.cutting.line.company,meat.cutting.line,,crud,"[('company_id', 'in', company_ids)]"
+access_stock_crotal_user,stock.crotal.user,stock.crotal,stock.group_stock_user,cru,
+access_stock_crotal_manager,stock.crotal.manager,stock.crotal,stock.group_stock_manager,crud,
+access_stock_crotal_company,stock.crotal.company,stock.crotal,,crud,"[('company_id', 'in', company_ids)]"
+access_meat_carcass_register_user,meat.carcass.register.user,meat.carcass.register,stock.group_stock_user,crud,
+access_meat_carcass_register_line_user,meat.carcass.register.line.user,meat.carcass.register.line,stock.group_stock_user,crud,

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="partner_matadero_sur" model="res.partner">
+        <field name="name">Matadero del Sureste, S.L.</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">Polígono Industrial Oeste, Parcela 14</field>
+        <field name="city">Alcantarilla</field>
+        <field name="zip">30820</field>
+        <field name="state_id" ref="base.state_es_mu"/>
+        <field name="country_id" ref="base.es"/>
+        <field name="vat">ESB30123459</field>
+        <field name="phone">+34 968 000 101</field>
+    </record>
+    <record id="partner_carnes_sierra" model="res.partner">
+        <field name="name">Carnes de la Sierra, S.L.</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">Carretera de Ávila, km 3</field>
+        <field name="city">El Barco de Ávila</field>
+        <field name="zip">05600</field>
+        <field name="state_id" ref="base.state_es_av"/>
+        <field name="country_id" ref="base.es"/>
+        <field name="vat">ESB04987657</field>
+        <field name="phone">+34 920 000 202</field>
+    </record>
+    <record id="partner_carniceria_plaza" model="res.partner">
+        <field name="name">Carnicería La Plaza</field>
+        <field name="is_company" eval="True"/>
+        <field name="street">Plaza de las Flores, 7</field>
+        <field name="city">Murcia</field>
+        <field name="zip">30004</field>
+        <field name="state_id" ref="base.state_es_mu"/>
+        <field name="country_id" ref="base.es"/>
+        <field name="phone">+34 968 000 303</field>
+    </record>
+</odoo>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- One crotal (ear tag) per animal, one lot per carcass named after it.
+         The carcasses expire 30 days after the slaughter. -->
+    <record id="crotal_cerdo_01" model="stock.crotal">
+        <field name="name">ES300125400118</field>
+        <field name="product_id" ref="product_canal_cerdo"/>
+        <field name="partner_id" ref="partner_matadero_sur"/>
+        <field name="supplier_health_code">ES 10.04512/MU CE</field>
+        <field name="slaughter_date" eval="(DateTime.today() - relativedelta(days=3)).strftime('%Y-%m-%d')"/>
+        <field name="slaughter_order">SAC-2026-4471</field>
+        <field name="birth_date" eval="(DateTime.today() - relativedelta(months=7)).strftime('%Y-%m-%d')"/>
+        <field name="sex">male</field>
+        <field name="breed">Duroc</field>
+        <field name="quality">E</field>
+        <field name="label">Cebo</field>
+        <field name="birth_country">España</field>
+        <field name="reared_country">España</field>
+    </record>
+    <record id="crotal_cerdo_02" model="stock.crotal">
+        <field name="name">ES300125400119</field>
+        <field name="product_id" ref="product_canal_cerdo"/>
+        <field name="partner_id" ref="partner_matadero_sur"/>
+        <field name="supplier_health_code">ES 10.04512/MU CE</field>
+        <field name="slaughter_date" eval="(DateTime.today() - relativedelta(days=3)).strftime('%Y-%m-%d')"/>
+        <field name="slaughter_order">SAC-2026-4471</field>
+        <field name="birth_date" eval="(DateTime.today() - relativedelta(months=7)).strftime('%Y-%m-%d')"/>
+        <field name="sex">female</field>
+        <field name="breed">Duroc x Large White</field>
+        <field name="quality">U</field>
+        <field name="label">Cebo</field>
+        <field name="birth_country">España</field>
+        <field name="reared_country">España</field>
+    </record>
+    <record id="crotal_ternera_01" model="stock.crotal">
+        <field name="name">ES050812345678</field>
+        <field name="product_id" ref="product_canal_ternera"/>
+        <field name="partner_id" ref="partner_carnes_sierra"/>
+        <field name="supplier_health_code">ES 10.02231/AV CE</field>
+        <field name="slaughter_date" eval="(DateTime.today() - relativedelta(days=6)).strftime('%Y-%m-%d')"/>
+        <field name="slaughter_order">SAC-2026-1187</field>
+        <field name="birth_date" eval="(DateTime.today() - relativedelta(months=11)).strftime('%Y-%m-%d')"/>
+        <field name="sex">male</field>
+        <field name="breed">Avileña-Negra Ibérica</field>
+        <field name="quality">R3</field>
+        <field name="label">IGP Carne de Ávila</field>
+        <field name="halal" eval="True"/>
+        <field name="halal_certifier">Certificadora Halal Demo</field>
+        <field name="halal_certificate">HAL-2026-0412</field>
+        <field name="birth_country">España</field>
+        <field name="reared_country">España</field>
+    </record>
+    <record id="crotal_ternera_02" model="stock.crotal">
+        <field name="name">FR4402987654</field>
+        <field name="product_id" ref="product_canal_ternera"/>
+        <field name="partner_id" ref="partner_carnes_sierra"/>
+        <field name="supplier_health_code">ES 10.02231/AV CE</field>
+        <field name="slaughter_date" eval="(DateTime.today() - relativedelta(days=6)).strftime('%Y-%m-%d')"/>
+        <field name="slaughter_order">SAC-2026-1187</field>
+        <field name="birth_date" eval="(DateTime.today() - relativedelta(months=10)).strftime('%Y-%m-%d')"/>
+        <field name="sex">female</field>
+        <field name="breed">Limusina</field>
+        <field name="quality">U2</field>
+        <field name="birth_country">Francia</field>
+        <field name="reared_country">Francia, España</field>
+        <field name="notes">Cebada en España los últimos 4 meses.</field>
+    </record>
+
+    <record id="lot_cerdo_01" model="stock.lot">
+        <field name="name">ES300125400118</field>
+        <field name="product_id" ref="product_canal_cerdo"/>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="crotal_id" ref="crotal_cerdo_01"/>
+        <field name="expiration_date" eval="(DateTime.today() + relativedelta(days=27)).strftime('%Y-%m-%d 23:59:59')"/>
+    </record>
+    <record id="lot_cerdo_02" model="stock.lot">
+        <field name="name">ES300125400119</field>
+        <field name="product_id" ref="product_canal_cerdo"/>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="crotal_id" ref="crotal_cerdo_02"/>
+        <field name="expiration_date" eval="(DateTime.today() + relativedelta(days=27)).strftime('%Y-%m-%d 23:59:59')"/>
+    </record>
+    <!-- Received without crotal: it is created from the lot when the carcass is cut -->
+    <record id="lot_cerdo_03" model="stock.lot">
+        <field name="name">ES300125400120</field>
+        <field name="product_id" ref="product_canal_cerdo"/>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="expiration_date" eval="(DateTime.today() + relativedelta(days=27)).strftime('%Y-%m-%d 23:59:59')"/>
+    </record>
+    <record id="lot_ternera_01" model="stock.lot">
+        <field name="name">ES050812345678</field>
+        <field name="product_id" ref="product_canal_ternera"/>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="crotal_id" ref="crotal_ternera_01"/>
+        <field name="expiration_date" eval="(DateTime.today() + relativedelta(days=24)).strftime('%Y-%m-%d 23:59:59')"/>
+    </record>
+    <record id="lot_ternera_02" model="stock.lot">
+        <field name="name">FR4402987654</field>
+        <field name="product_id" ref="product_canal_ternera"/>
+        <field name="company_id" ref="base.main_company"/>
+        <field name="crotal_id" ref="crotal_ternera_02"/>
+        <field name="expiration_date" eval="(DateTime.today() + relativedelta(days=24)).strftime('%Y-%m-%d 23:59:59')"/>
+    </record>
+</odoo>

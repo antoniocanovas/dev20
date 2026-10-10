@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Sticker of a box: whom it is for and everything it contains -->
+    <template id="meat_box_label">
+        <t t-set="box_values" t-value="box._get_meat_box_label_values()"/>
+        <div class="o_meat_box_label" style="page-break-after: always; font-family: sans-serif; font-size: 12px;">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="vertical-align: top;">
+                        <div style="font-size: 18px; font-weight: bold;" t-out="box_values['partner'].name or ''"/>
+                        <div t-if="box_values['partner'].city" t-out="', '.join(filter(None, [box_values['partner'].zip, box_values['partner'].city]))"/>
+                        <div t-if="box_values['origin']">Order: <strong t-out="box_values['origin']"/></div>
+                        <div t-if="box_values['picking']">Delivery: <strong t-out="box_values['picking'].name"/></div>
+                    </td>
+                    <td style="vertical-align: top; text-align: right;">
+                        <div style="font-size: 16px; font-weight: bold;" t-out="box.name"/>
+                        <div t-if="box.pack_date">Packed: <span t-field="box.pack_date"/></div>
+                        <div t-if="box_values['halal']" style="font-size: 16px; font-weight: bold;">HALAL</div>
+                    </td>
+                </tr>
+            </table>
+            <table style="width: 100%; margin-top: 6px; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid black;">
+                        <th style="text-align: left;">Product</th>
+                        <th style="text-align: left;">Lot</th>
+                        <th style="text-align: right;">Pieces</th>
+                        <th style="text-align: right;">Quantity</th>
+                        <th style="text-align: right;">Expiry</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="box_values['lines']" t-as="box_line" style="border-bottom: 1px solid #ccc;">
+                        <td t-out="box_line['product'].name"/>
+                        <td>
+                            <t t-out="box_line['lot'].name or ''"/>
+                            <div t-if="box_line['crotal'] and box_line['crotal'].name != box_line['lot'].name" style="font-size: 10px;">
+                                Crotal <t t-out="box_line['crotal'].name"/>
+                            </div>
+                        </td>
+                        <td style="text-align: right;" t-out="box_line['pieces'] or ''"/>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <t t-out="box_line['quantity']" t-options="{'widget': 'float', 'decimal_precision': 'Product Unit'}"/>
+                            <t t-out="box_line['uom'].name"/>
+                        </td>
+                        <td style="text-align: right;">
+                            <t t-if="box_line['expiration_date']" t-out="box_line['expiration_date']" t-options="{'widget': 'date'}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table style="width: 100%; margin-top: 6px; font-size: 16px; font-weight: bold;">
+                <tr>
+                    <td><t t-if="box_values['pieces']"><t t-out="box_values['pieces']"/> pieces</t></td>
+                    <td style="text-align: right;">
+                        Net weight:
+                        <t t-out="box_values['net_weight']" t-options="{'widget': 'float', 'precision': 3}"/> kg
+                    </td>
+                </tr>
+                <tr t-if="box_values['expiration_date']">
+                    <td colspan="2" style="font-size: 13px;">
+                        Use before: <t t-out="box_values['expiration_date']" t-options="{'widget': 'date'}"/>
+                    </td>
+                </tr>
+            </table>
+            <div style="margin-top: 4px;" t-out="box.company_id.name or env.company.name"/>
+            <div style="text-align: center; margin-top: 6px;">
+                <div t-out="box._get_meat_box_barcode_value()" t-options="{'widget': 'barcode', 'symbology': 'Code128', 'width': 600, 'height': 150, 'img_style': 'width:90mm;height:20mm;'}"/>
+                <div style="font-size: 11px;" t-out="box._get_meat_box_barcode_text()"/>
+            </div>
+        </div>
+    </template>
+
+    <template id="report_meat_box_label">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="box">
+                <t t-call="meat_cutting.meat_box_label"/>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_picking_meat_box_label">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="picking">
+                <t t-foreach="picking._get_meat_boxes()" t-as="box">
+                    <t t-call="meat_cutting.meat_box_label"/>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

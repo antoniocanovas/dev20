@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="meat_cutting.CuttingScreen">
+        <div class="o_action o_meat_cutting_screen d-flex flex-column h-100 bg-view">
+            <!-- Header: source on the left, weight on the top right -->
+            <div class="o_meat_cutting_header d-flex align-items-center gap-3 p-3 border-bottom">
+                <div class="flex-grow-1 min-w-0">
+                    <t t-if="this.state.session">
+                        <div class="fs-3 fw-bold text-truncate">
+                            <t t-out="this.state.session.product_name"/>
+                            <span class="fs-5 fw-normal text-muted o_meat_cutting_bom_name"> · <t t-out="this.state.session.bom_name"/></span>
+                        </div>
+                        <div class="text-muted">
+                            <span t-out="this.state.session.name"/>
+                            <span t-if="this.state.session.lot_name"> · Lot <strong t-out="this.state.session.lot_name"/></span>
+                            <span t-if="this.state.session.picking_name"> · <t t-out="this.state.session.picking_name"/></span>
+                            <span> · Available <t t-out="this.formatQty(this.state.session.available_qty)"/> <t t-out="this.state.session.uom_name"/></span>
+                        </div>
+                        <div t-if="this.state.session.crotal" class="o_meat_cutting_crotal small">
+                            <span>Crotal <strong t-out="this.state.session.crotal.name"/></span>
+                            <span t-if="this.state.session.crotal.halal" class="badge text-bg-success ms-1 o_meat_cutting_halal">Halal</span>
+                            <span t-if="this.state.session.crotal.breed"> · <t t-out="this.state.session.crotal.breed"/></span>
+                            <span t-if="this.state.session.crotal.sex"> · <t t-out="this.state.session.crotal.sex"/></span>
+                            <span t-if="this.state.session.crotal.slaughter_date"> · Slaughtered <t t-out="this.state.session.crotal.slaughter_date"/></span>
+                        </div>
+                    </t>
+                    <div t-else="" class="d-flex align-items-center gap-3">
+                        <div class="fs-3 fw-bold">Cutting</div>
+                        <div class="input-group input-group-lg o_meat_cutting_search">
+                            <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                            <input type="search" class="form-control o_meat_cutting_search_input" autocomplete="off"
+                                   placeholder="Receipt, product, lot or crotal"
+                                   t-att-value="this.state.search"
+                                   t-on-input="this.onSearchInput" t-on-keydown="this.onSearchKeydown"/>
+                            <button t-if="this.state.search" class="btn btn-light" title="Clear" t-on-click="this.clearSearch">
+                                <i class="oi" data-icon="close"/>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button t-if="this.state.session" class="btn btn-secondary btn-lg" t-on-click="this.onChangeSource">
+                    <i class="oi me-1" data-icon="swap_horiz"/>Change
+                </button>
+                <button t-if="this.state.session" class="btn btn-secondary btn-lg o_meat_cutting_format_button"
+                        title="Label format" t-on-click="this.toggleFormats">
+                    <i class="oi me-1" data-icon="label"/><t t-out="this.labelFormatName"/>
+                </button>
+                <div t-if="this.state.session and this.state.session.can_freeze and this.state.session.state === 'draft'"
+                     class="form-check form-switch fs-5 mb-0" title="Freeze the new cuts by default">
+                    <input id="o_meat_cutting_freeze" class="form-check-input" type="checkbox"
+                           t-att-checked="this.state.session.freeze" t-on-change="this.toggleSessionFreeze"/>
+                    <label class="form-check-label" for="o_meat_cutting_freeze">Freeze</label>
+                </div>
+                <div class="o_meat_cutting_weight d-flex align-items-center gap-2">
+                    <label for="o_meat_cutting_weight_input" class="fs-5 fw-bold mb-0">Weight</label>
+                    <input id="o_meat_cutting_weight_input" type="text" inputmode="decimal" autocomplete="off"
+                           class="form-control form-control-lg text-end fs-2 fw-bold o_meat_cutting_weight_input"
+                           placeholder="0.000"
+                           t-att-value="this.state.weight" t-on-input="this.onWeightInput"/>
+                    <button class="btn btn-light btn-lg" title="Keypad" t-on-click="this.toggleKeypad">
+                        <i class="oi" data-icon="dialpad"/>
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="this.state.session and this.state.showFormats" class="o_meat_cutting_formats p-3 border-bottom">
+                <h4 class="mb-2">Label format</h4>
+                <div class="o_meat_cutting_grid">
+                    <button t-foreach="this.state.session.label_formats" t-as="format" t-key="format.id"
+                            t-att-class="'btn o_meat_cutting_tile o_meat_cutting_format ' + (format.id === this.state.session.label_report_id ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => this.onSelectFormat(format)">
+                        <div class="fs-5 fw-bold" t-out="format.name"/>
+                        <div t-if="format.paper" class="small" t-out="format.paper"/>
+                    </button>
+                </div>
+            </div>
+
+            <div t-if="this.state.showKeypad" class="o_meat_cutting_keypad d-grid gap-2 p-2 border-bottom">
+                <button t-foreach="this.keypadKeys" t-as="key" t-key="key"
+                        class="btn btn-light btn-lg fs-3" t-on-click="() => this.onKeypad(key)" t-out="key"/>
+            </div>
+
+            <div class="flex-grow-1 overflow-auto p-3">
+                <!-- Step 1: receipt / product / lot -->
+                <t t-if="!this.state.session">
+                    <t t-if="this.state.bomChoice">
+                        <h3 class="mb-3">Cutting method of <t t-out="this.state.bomChoice.product.name"/></h3>
+                        <div class="o_meat_cutting_grid">
+                            <button t-foreach="this.state.bomChoice.product.boms" t-as="bom" t-key="bom.id"
+                                    class="btn btn-outline-primary o_meat_cutting_tile o_meat_cutting_bom"
+                                    t-on-click="() => this.startSession(this.state.bomChoice.product, this.state.bomChoice.lotId, bom.id)">
+                                <div class="fs-4 fw-bold" t-out="bom.name"/>
+                                <div><t t-out="bom.cut_count"/> cuts</div>
+                            </button>
+                        </div>
+                        <button class="btn btn-link btn-lg mt-3" t-on-click="this.onBackFromBoms">Back</button>
+                    </t>
+                    <t t-elif="this.state.product">
+                        <h3 class="mb-3">Lot of <t t-out="this.state.product.name"/></h3>
+                        <div class="o_meat_cutting_grid">
+                            <button t-foreach="this.getVisibleLots(this.state.product)" t-as="lot" t-key="lot.id"
+                                    class="btn btn-outline-primary o_meat_cutting_tile"
+                                    t-on-click="() => this.onSelectLot(this.state.product, lot.id)">
+                                <div class="fs-4 fw-bold" t-out="lot.name"/>
+                                <div t-if="lot.crotal_name and lot.crotal_name !== lot.name" class="small">Crotal <t t-out="lot.crotal_name"/></div>
+                                <div t-out="this.formatQty(lot.qty) + ' ' + this.state.product.uom_name"/>
+                            </button>
+                        </div>
+                        <button class="btn btn-link btn-lg mt-3" t-on-click="this.onBackToProducts">Back</button>
+                    </t>
+                    <t t-else="">
+                        <t t-if="this.visiblePickings.length">
+                            <h3 class="mb-3">Receipt <small class="text-muted">(optional)</small></h3>
+                            <div class="o_meat_cutting_grid mb-4">
+                                <button t-foreach="this.visiblePickings" t-as="picking" t-key="picking.id"
+                                        t-att-class="'btn o_meat_cutting_tile ' + (picking.id === this.state.pickingId ? 'btn-primary' : 'btn-outline-secondary')"
+                                        t-on-click="() => this.onSelectPicking(picking.id)">
+                                    <div class="fs-5 fw-bold" t-out="picking.name"/>
+                                    <div class="small" t-out="picking.partner_name"/>
+                                </button>
+                            </div>
+                        </t>
+                        <h3 class="mb-3">Product to cut</h3>
+                        <div t-if="!this.state.products.length" class="alert alert-info">
+                            No product in stock with a bill of materials.
+                        </div>
+                        <div t-elif="!this.visibleProducts.length" class="alert alert-warning o_meat_cutting_no_match">
+                            Nothing matches "<t t-out="this.state.search"/>".
+                        </div>
+                        <div class="o_meat_cutting_grid">
+                            <button t-foreach="this.visibleProducts" t-as="product" t-key="product.id"
+                                    class="btn btn-outline-primary o_meat_cutting_tile"
+                                    t-on-click="() => this.onSelectProduct(product)">
+                                <div class="fs-4 fw-bold" t-out="product.name"/>
+                                <div t-out="this.formatQty(product.qty) + ' ' + product.uom_name"/>
+                                <div t-if="product.lots.length" class="small text-muted">
+                                    <t t-out="product.lots.length"/> lot(s)
+                                </div>
+                            </button>
+                        </div>
+                    </t>
+                </t>
+
+                <!-- Step 2: cuts -->
+                <t t-else="">
+                    <div class="row g-3">
+                        <div class="col-lg-7">
+                            <div class="d-flex align-items-center mb-2">
+                                <h3 class="flex-grow-1 mb-0">Cuts</h3>
+                                <div class="form-check form-switch fs-5" t-if="this.state.session.state === 'draft'">
+                                    <input id="o_meat_cutting_autoprint" class="form-check-input" type="checkbox"
+                                           t-att-checked="this.state.autoPrint" t-on-change="this.toggleAutoPrint"/>
+                                    <label class="form-check-label" for="o_meat_cutting_autoprint">Print label</label>
+                                </div>
+                            </div>
+                            <div t-if="this.state.session.state === 'draft'" class="o_meat_cutting_grid">
+                                <button t-foreach="this.state.session.components" t-as="component" t-key="component.bom_line_id"
+                                        t-att-class="'btn o_meat_cutting_tile o_meat_cutting_component ' + (component.weighed_count ? 'btn-outline-primary o_meat_cutting_weighed' : 'btn-primary')"
+                                        t-att-disabled="this.state.busy"
+                                        t-on-click="() => this.onComponentClick(component)">
+                                    <div class="fs-4 fw-bold" t-out="component.name"/>
+                                    <div class="small">
+                                        <t t-if="component.weighed_count">
+                                            <i class="oi me-1" data-icon="check"/>
+                                            <t t-if="component.piece"><t t-out="component.weighed_count"/> pcs · </t>
+                                            <t t-out="this.formatQty(component.weighed_qty)"/> <t t-out="component.uom_name"/>
+                                        </t>
+                                        <t t-else="">
+                                            <t t-out="component.uom_name"/><t t-if="component.piece"> · whole pieces</t>
+                                        </t>
+                                    </div>
+                                </button>
+                            </div>
+                            <div t-else="" class="alert alert-success fs-5">
+                                Cutting <strong t-out="this.state.session.name"/> is validated.
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <h3>Weighed <small class="text-muted">(<t t-out="this.formatQty(this.state.session.total_weight)"/>)</small></h3>
+                            <div t-if="!this.state.session.lines.length" class="text-muted">
+                                Type the weight and press a cut.
+                            </div>
+                            <ul class="list-group o_meat_cutting_lines">
+                                <li t-foreach="this.state.session.lines" t-as="line" t-key="line.id"
+                                    class="list-group-item d-flex align-items-center gap-2">
+                                    <div class="flex-grow-1 min-w-0">
+                                        <div class="fw-bold text-truncate" t-out="line.product_name"/>
+                                        <div class="small text-muted">
+                                            <t t-out="line.lot_name"/>
+                                            <t t-if="line.package_name"> · <i class="oi" data-icon="package_2"/> <span class="o_meat_cutting_package" t-out="line.package_name"/></t>
+                                        </div>
+                                    </div>
+                                    <div class="fs-5 fw-bold text-nowrap">
+                                        <t t-out="this.formatQty(line.weight)"/> <t t-out="line.uom_name"/>
+                                    </div>
+                                    <button t-if="line.can_freeze and this.state.session.state === 'draft'"
+                                            t-att-class="'btn btn-lg o_meat_cutting_line_freeze ' + (line.freeze ? 'btn-info' : 'btn-outline-secondary')"
+                                            title="Produce the frozen product" t-on-click="() => this.toggleLineFreeze(line)">
+                                        Freeze
+                                    </button>
+                                    <span t-elif="line.freeze" class="badge text-bg-info">Frozen</span>
+                                    <button t-att-class="'btn btn-lg o_meat_cutting_edit_label ' + (line.label_custom ? 'btn-warning' : 'btn-light')"
+                                            t-att-title="line.label_custom ? 'Edit label (edited)' : 'Edit label'"
+                                            t-on-click="() => this.onEditLabel(line)">
+                                        <i class="oi" data-icon="edit"/>
+                                    </button>
+                                    <button class="btn btn-light btn-lg" title="Print label" t-on-click="() => this.printLabel(line.id)">
+                                        <i class="oi" data-icon="print"/>
+                                    </button>
+                                    <button t-if="this.state.session.state === 'draft'" class="btn btn-light btn-lg text-danger"
+                                            title="Delete" t-on-click="() => this.onDeleteLine(line)">
+                                        <i class="oi" data-icon="delete"/>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Footer: finish the session through an unbuild order -->
+            <div t-if="this.state.session" class="o_meat_cutting_footer d-flex flex-wrap align-items-center gap-3 p-3 border-top">
+                <t t-if="this.state.session.state === 'draft'">
+                    <div class="fs-5">
+                        Weighed <strong t-out="this.formatQty(this.state.session.total_weight)"/>
+                        · Consumes <strong t-out="this.formatQty(this.state.session.consumed_qty)"/>
+                        <t t-out="this.state.session.uom_name"/>
+                        <span t-if="this.state.session.lot_name" class="text-muted">(whole lot)</span>
+                    </div>
+                    <div class="flex-grow-1"/>
+                    <button class="btn btn-light btn-lg" t-on-click="this.onOpenSession">Details</button>
+                    <button class="btn btn-success btn-lg px-5" t-att-disabled="!this.state.session.lines.length"
+                            t-on-click="this.onValidate">
+                        <i class="oi me-1" data-icon="check"/>Finish
+                    </button>
+                </t>
+                <t t-else="">
+                    <div class="flex-grow-1"/>
+                    <button class="btn btn-light btn-lg" t-on-click="this.onOpenSession">Details</button>
+                    <button class="btn btn-primary btn-lg px-5" t-on-click="this.onNewSession">New cutting</button>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Expected yield per kg of carcass: the cutting screen records the real weights.
+         Several BoMs of a carcass are several cutting methods, chosen on the screen. -->
+    <record id="bom_canal_cerdo" model="mrp.bom">
+        <field name="code">Despiece estándar</field>
+        <field name="sequence">1</field>
+        <field name="product_tmpl_id" ref="product_canal_cerdo_product_template"/>
+        <field name="product_qty">1.0</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="type">normal</field>
+    </record>
+    <record id="bom_line_cerdo_jamon" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_cerdo_jamon"/>
+        <field name="product_qty">0.24</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_paleta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_cerdo_paleta"/>
+        <field name="product_qty">0.15</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_lomo" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_cerdo_lomo"/>
+        <field name="product_qty">0.1</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_solomillo" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">40</field>
+        <field name="product_id" ref="product_cerdo_solomillo"/>
+        <field name="product_qty">0.015</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <!-- Presentation kept in stock: weighed and vacuum packed when cut -->
+    <record id="bom_line_cerdo_solomillo_vacio" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">41</field>
+        <field name="product_id" ref="product_cerdo_solomillo_vacio"/>
+        <field name="product_qty">0.01</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_panceta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">50</field>
+        <field name="product_id" ref="product_cerdo_panceta"/>
+        <field name="product_qty">0.12</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_costillas" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">60</field>
+        <field name="product_id" ref="product_cerdo_costillas"/>
+        <field name="product_qty">0.08</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_papada" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">70</field>
+        <field name="product_id" ref="product_cerdo_papada"/>
+        <field name="product_qty">0.03</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_magro" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo"/>
+        <field name="sequence">80</field>
+        <field name="product_id" ref="product_cerdo_magro"/>
+        <field name="product_qty">0.1</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_canal_cerdo_chuletas" model="mrp.bom">
+        <field name="code">Despiece para chuletas</field>
+        <field name="sequence">2</field>
+        <field name="product_tmpl_id" ref="product_canal_cerdo_product_template"/>
+        <field name="product_qty">1.0</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="type">normal</field>
+    </record>
+    <record id="bom_line_cerdo_chuletas_jamon" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo_chuletas"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_cerdo_jamon"/>
+        <field name="product_qty">0.24</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_chuletas_paleta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo_chuletas"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_cerdo_paleta"/>
+        <field name="product_qty">0.15</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_chuletas_chuletas" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo_chuletas"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_cerdo_chuletas"/>
+        <field name="product_qty">0.17</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_chuletas_solomillo" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo_chuletas"/>
+        <field name="sequence">40</field>
+        <field name="product_id" ref="product_cerdo_solomillo"/>
+        <field name="product_qty">0.015</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_chuletas_panceta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo_chuletas"/>
+        <field name="sequence">50</field>
+        <field name="product_id" ref="product_cerdo_panceta"/>
+        <field name="product_qty">0.12</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_chuletas_papada" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo_chuletas"/>
+        <field name="sequence">60</field>
+        <field name="product_id" ref="product_cerdo_papada"/>
+        <field name="product_qty">0.03</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_cerdo_chuletas_magro" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_cerdo_chuletas"/>
+        <field name="sequence">70</field>
+        <field name="product_id" ref="product_cerdo_magro"/>
+        <field name="product_qty">0.11</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_canal_ternera" model="mrp.bom">
+        <field name="code">Despiece estándar</field>
+        <field name="sequence">3</field>
+        <field name="product_tmpl_id" ref="product_canal_ternera_product_template"/>
+        <field name="product_qty">1.0</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="type">normal</field>
+    </record>
+    <record id="bom_line_ternera_solomillo" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_ternera_solomillo"/>
+        <field name="product_qty">0.02</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_lomo_alto" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_ternera_lomo_alto"/>
+        <field name="product_qty">0.05</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_lomo_bajo" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_ternera_lomo_bajo"/>
+        <field name="product_qty">0.04</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_babilla" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">40</field>
+        <field name="product_id" ref="product_ternera_babilla"/>
+        <field name="product_qty">0.05</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_tapa" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">50</field>
+        <field name="product_id" ref="product_ternera_tapa"/>
+        <field name="product_qty">0.06</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_aguja" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">60</field>
+        <field name="product_id" ref="product_ternera_aguja"/>
+        <field name="product_qty">0.08</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_falda" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">70</field>
+        <field name="product_id" ref="product_ternera_falda"/>
+        <field name="product_qty">0.07</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_morcillo" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">80</field>
+        <field name="product_id" ref="product_ternera_morcillo"/>
+        <field name="product_qty">0.05</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_ternera_picada" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_canal_ternera"/>
+        <field name="sequence">90</field>
+        <field name="product_id" ref="product_ternera_picada"/>
+        <field name="product_qty">0.15</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+</odoo>
