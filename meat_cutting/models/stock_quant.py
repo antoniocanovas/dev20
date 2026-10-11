@@ -42,13 +42,16 @@ class StockQuant(models.Model):
         # The pieces changed of product and shelf life: relabel them
         return self.env.ref('meat_cutting.action_report_meat_piece_label').report_action(frozen_quants)
 
-    def _meat_freeze(self):
+    def _meat_freeze(self, frozen_lot=None):
+        """ Freeze the quant, into the given lot of the frozen product or else
+        a new one named after the fresh lot. """
         self.ensure_one()
         product = self.product_id
         frozen_product = product.frozen_product_id
         company = self.company_id or self.env.company
         quantity = self.quantity
-        frozen_lot = self._meat_get_frozen_lot()
+        if frozen_lot is None:
+            frozen_lot = self._meat_get_frozen_lot()
         Move = self.env['stock.move']
         common_vals = {
             'uom_id': product.uom_id.id,
@@ -120,7 +123,8 @@ class StockQuant(models.Model):
         crotal = lot.crotal_id
         product = self.product_id
         return {
-            'product_name': product.name,
+            'product_name': product.name + (
+                f' ({self.package_id.meat_presentation_id.name})' if self.package_id.meat_presentation_id else ''),
             'lot_name': lot.name or '',
             'package_name': self.package_id.name or '',
             'crotal': crotal,

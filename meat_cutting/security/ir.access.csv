@@ -9,3 +9,5 @@ access_stock_crotal_manager,stock.crotal.manager,stock.crotal,stock.group_stock_
 access_stock_crotal_company,stock.crotal.company,stock.crotal,,crud,"[('company_id', 'in', company_ids)]"
 access_meat_carcass_register_user,meat.carcass.register.user,meat.carcass.register,stock.group_stock_user,crud,
 access_meat_carcass_register_line_user,meat.carcass.register.line.user,meat.carcass.register.line,stock.group_stock_user,crud,
+access_meat_cutting_consumption_user,meat.cutting.consumption.user,meat.cutting.consumption,mrp.group_mrp_user,crud,
+access_meat_cutting_consumption_company,meat.cutting.consumption.company,meat.cutting.consumption,,crud,"[('company_id', 'in', company_ids)]"

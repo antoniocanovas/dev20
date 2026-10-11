@@ -12,7 +12,7 @@ Funcionan en Odoo 20 Community; no requieren Enterprise.
 
 | Módulo | Depende de | Qué aporta |
 |---|---|---|
-| `meat_cutting` | `mrp`, `product_expiry` | Crotales, registro de canales en la recepción, pantalla de despiece, etiquetas GS1-128, piezas en paquetes, fresco y congelado, etiqueta de caja con SSCC, recepciones y entregas por pieza (reserva de piezas enteras, sin pedidos pendientes) |
+| `meat_cutting` | `mrp`, `product_expiry` | Crotales, registro de canales en la recepción, pantalla de fábrica (despiece de canales, segundo corte, preparación con presentación, elaborados y cajas), etiquetas GS1-128, piezas en paquetes, fresco y congelado, etiqueta de caja con SSCC, recepciones y entregas por pieza (reserva de piezas enteras, sin pedidos pendientes) |
 | `meat_cutting_sale` | `meat_cutting`, `sale_stock` | Factura en kg reales a precio por kilo las líneas vendidas en piezas. Se instala solo cuando están los dos módulos |
 | `meat_cutting_purchase` | `meat_cutting`, `purchase_stock` | Factura en kg reales a precio por kilo las canales compradas por número. Se instala solo cuando están los dos módulos |
 | `meat_cutting_demo` | `meat_cutting_sale`, `meat_cutting_purchase`, `sale_management` | Datos de ejemplo: canales, compras, despieces, crotales, recepciones, sesiones, ventas, cajas y formatos de etiqueta |
@@ -57,8 +57,18 @@ Las canales se reciben con lote. El lote es el animal y puede llevar su **crotal
 
 Si el lote no tiene crotal, se crea uno al despiezar. Los datos del crotal se guardan también en lotes y stock, así que se puede **filtrar y agrupar el stock** por cualquiera de ellos; por ejemplo, el stock halal por país de engorde.
 
-### 2. Despiece (*Meat Cutting → Cutting Screen*)
-La pantalla está pensada para tablet:
+### 2. Pantalla de fábrica (*Meat Cutting → Cutting Screen*)
+La pantalla está pensada para tablet. Arriba se elige el proceso:
+
+- **Receipts:** despiece de las canales recibidas (abajo).
+- **Cutting:** segundo corte de un paquete en stock; por ejemplo, un lomo en chuletas.
+- **Preparation:** divide un paquete en varios del mismo producto, cada uno con su presentación (entera, fileteado…). Lo que sobra queda en el original. Los paquetes que se guardan en stock se pueden congelar.
+- **Production:** elaborados (longanizas, morcillas…). Se indica cuánto se va a elaborar y la pantalla recomienda la cantidad de cada ingrediente según la receta. Los ingredientes se pesan de sus paquetes y el producto sale en un lote nuevo que caduca con el ingrediente que caduca antes, con su presentación y, si se quiere, congelado.
+
+Los paquetes y productos se eligen por familia (la categoría del producto), por ejemplo *Cerdo fresco* o *Elaborado congelado*.
+- **Packing:** mete en cajas las piezas de una entrega, con su etiqueta resumen.
+
+Los detalles de cada uno están en el README de `meat_cutting`. El despiece de canales:
 
 1. **Buscar.** Un buscador filtra por albarán, producto, lote o crotal.
 2. **Elegir.** Se selecciona el albarán, la canal y el lote.
@@ -168,19 +178,27 @@ Lleva FNC1 al principio y como separador tras los campos de longitud variable, a
 ## Datos de demostración (`meat_cutting_demo`)
 
 - **Proveedores y canales:** dos mataderos, canales de cerdo y de ternera con dos métodos de despiece, y cuatro crotales (uno halal).
+- **Familias:** *Canales*, *Vacuno fresco*, *Vacuno congelado*, *Cerdo fresco*, *Cerdo congelado*, *Elaborado fresco*, *Elaborado congelado* y *Otros ingredientes*.
 - **Cortes:** fresco (30 días) y congelado (180 días), con embalaje de pieza completa.
 - **Presentaciones:** pieza entera, fileteado, troceado y envasado al vacío. Hay además un solomillo envasado al vacío como producto propio (45 días).
 - **Recepciones:** de cinco canales, con crotales y lotes cargados de antemano.
 - **Compras:**
   - P00001 a Matadero del Sureste: tres canales de cerdo recibidas con *Register Carcasses*. Pesan 268,9 kg de los 270 estimados y no queda pedido pendiente. Está pendiente de facturar: al hacerlo se ven los kg reales.
-  - P00002 a Carnes de la Sierra: dos medias canales de ternera, confirmado y pendiente de recibir, para probar el registro de canales.
+  - P00002 a Carnes de la Sierra: dos medias canales de ternera recibidas (una halal y otra nacida en Francia), pendiente de facturar.
+  - P00003 a Matadero del Sureste: dos canales de cerdo, confirmado y pendiente de recibir, para probar el registro de canales.
 - **Despieces:**
-  - Uno terminado, pieza a pieza, con dos cortes congelados y una etiqueta editada.
+  - Uno terminado, pieza a pieza, con dos cortes congelados (costillas y solomillo) y una etiqueta editada.
   - Otro en curso que congela por defecto.
 - **Stock:** una paleta fresca congelada después desde el stock.
 - **Ventas a Carnicería La Plaza:**
   - S00001: presupuesto en piezas (lomo fileteado y jamones) y en kg (chuletas).
   - S00002: pedido entregado en una caja con SSCC. Incluye una paleta más ligera que la estimada, entregada sin pedido pendiente, y está pendiente de facturar: al hacerlo se ven los kg reales.
+- **Segundo corte:** el lomo se corta en chuletas.
+- **Elaborados:** longaniza fresca y morcilla de cebolla, con receta para 100 kg, su producto congelado y las presentaciones *En ristra*, *Troceado* y *Envasado al vacío*.
+  - Longaniza: magro y panceta de cerdo, sal, pimentón, pimienta y ajo.
+  - Morcilla: papada y panceta de cerdo, cebolla pochada, sal, pimentón y pimienta.
+- **Otros ingredientes:** sal, pimentón dulce, pimienta negra, ajo picado y cebolla pochada en stock, por lotes con caducidad. Hay dos lotes de cebolla, para ver que se propone antes el que caduca antes.
+- **Actualización:** al actualizar una base con la demo ya instalada, una migración aplica las familias, las recetas por 100 kg, los congelados y las presentaciones de los elaborados, y carga el stock de ingredientes.
 - **Formatos de etiqueta:** compacto y de caja.
 
 ## Tests

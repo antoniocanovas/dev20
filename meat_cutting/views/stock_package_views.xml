@@ -10,4 +10,16 @@
             </field>
         </field>
     </record>
+
+    <record id="view_package_form" model="ir.ui.view">
+        <field name="name">stock.package.form.meat_cutting</field>
+        <field name="model">stock.package</field>
+        <field name="inherit_id" ref="stock.stock_package_view_form"/>
+        <field name="arch" type="xml">
+            <field name="package_type_id" position="after">
+                <field name="meat_piece" invisible="not meat_piece"/>
+                <field name="meat_presentation_id" options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
 </odoo>

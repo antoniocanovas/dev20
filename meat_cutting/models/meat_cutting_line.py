@@ -29,6 +29,8 @@ class MeatCuttingLine(models.Model):
     lot_name = fields.Char(related='session_id.output_lot_name', string='Lot')
     # One package per weighed piece of the cuts sold as whole pieces
     package_id = fields.Many2one('stock.package', 'Piece', readonly=True, copy=False)
+    # Presentation of a prepared package (attribute value that creates no variant)
+    presentation_id = fields.Many2one('product.attribute.value', 'Presentation')
     source_product_id = fields.Many2one(related='session_id.product_id', string='Source Product')
     user_id = fields.Many2one('res.users', 'Operator', default=lambda self: self.env.user)
     date = fields.Datetime(default=fields.Datetime.now, required=True)
@@ -78,6 +80,18 @@ class MeatCuttingLine(models.Model):
                 line.label_product_name = line.output_product_id.name
         return True
 
+    def action_set_presentation(self, presentation_id):
+        """ Presentation of a prepared package, kept on its package too. """
+        presentation = self.env['product.attribute.value'].browse(presentation_id)
+        for line in self:
+            if line.session_id.state != 'draft':
+                raise UserError(self.env._("This cutting session is already closed."))
+            if presentation and presentation not in line.session_id._get_presentations(line.product_id):
+                raise UserError(self.env._("%s is not a presentation of this product.", presentation.name))
+            line.presentation_id = presentation
+            line.package_id.meat_presentation_id = presentation
+        return True
+
     @api.ondelete(at_uninstall=False)
     def _unlink_except_done(self):
         if any(line.session_id.state == 'done' for line in self):
@@ -94,12 +108,16 @@ class MeatCuttingLine(models.Model):
         """ Label texts taken from the cut, its session and the crotal. """
         self.ensure_one()
         crotal = self.session_id.crotal_id
+        product_name = self.output_product_id.name or ''
+        if self.presentation_id:
+            product_name = f'{product_name} ({self.presentation_id.name})'
         return {
-            'product_name': self.output_product_id.name or '',
+            'product_name': product_name,
             'birth_country': crotal.birth_country or '',
             'reared_country': crotal.reared_country or '',
             'slaughter_date': crotal.slaughter_date or False,
-            'origin': self.source_product_id.name or '',
+            # The product cut, not itself when prepared or made
+            'origin': self.source_product_id != self.output_product_id and self.source_product_id.name or '',
             'supplier': self.session_id.picking_id.partner_id.name or '',
             'note': '',
         }
@@ -147,12 +165,23 @@ class MeatCuttingLine(models.Model):
         return True
 
     def _get_default_expiration_date(self):
-        """ The shelf life of a cut starts when it is weighed. """
+        """ The shelf life of a cut starts when it is weighed, without going
+        beyond the one of the package cut again. A product made expires with
+        its ingredient closest to expiry, unless frozen: the shelf life of the
+        frozen product starts when it is weighed. """
         self.ensure_one()
         product = self.output_product_id
         if not product.use_expiration_date:
             return False
-        return self.date + timedelta(days=product.expiration_time)
+        session = self.session_id
+        if session.mode == 'production' and not self.freeze:
+            expiration = session._get_production_expiration_date()
+            if expiration:
+                return expiration
+        expiration = self.date + timedelta(days=product.expiration_time)
+        if session.mode == 'cutting' and session.lot_id.expiration_date and not self.freeze:
+            expiration = min(expiration, session.lot_id.expiration_date)
+        return expiration
 
     def _get_output_lot(self):
         self.ensure_one()
@@ -214,6 +243,8 @@ class MeatCuttingLine(models.Model):
             'uom_name': line.uom_id.name,
             'lot_name': line.lot_name or '',
             'package_name': line.package_id.name or '',
+            'presentation_id': line.presentation_id.id,
+            'presentation_name': line.presentation_id.name or '',
             'date': fields.Datetime.to_string(line.date),
             'label_custom': line.label_custom,
         } for line in self]

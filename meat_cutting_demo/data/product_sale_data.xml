@@ -280,7 +280,7 @@
         <field name="name">Solomillo de cerdo envasado al vacío</field>
         <field name="default_code">CER-SOL-V</field>
         <field name="barcode">8437000100478</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>

@@ -58,6 +58,7 @@ class MrpUnbuild(models.Model):
             'uom_id': consume_move.uom_id.id,
             'quantity': consume_move.product_uom_qty,
             'lot_id': session.lot_id.id,
+            'package_id': session.package_id.id,
             'location_id': consume_move.location_id.id,
             'location_dest_id': consume_move.location_dest_id.id,
         }]

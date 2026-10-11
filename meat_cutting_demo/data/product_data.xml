@@ -8,13 +8,35 @@
         <field name="name">Canales</field>
         <field name="parent_id" ref="product_category_meat"/>
     </record>
+    <!-- Families of the factory screen: species, fresh or frozen -->
     <record id="product_category_cut" model="product.category">
-        <field name="name">Piezas frescas</field>
+        <field name="name">Vacuno fresco</field>
         <field name="parent_id" ref="product_category_meat"/>
     </record>
     <record id="product_category_frozen" model="product.category">
-        <field name="name">Piezas congeladas</field>
+        <field name="name">Vacuno congelado</field>
         <field name="parent_id" ref="product_category_meat"/>
+    </record>
+    <record id="product_category_pork" model="product.category">
+        <field name="name">Cerdo fresco</field>
+        <field name="parent_id" ref="product_category_meat"/>
+    </record>
+    <record id="product_category_pork_frozen" model="product.category">
+        <field name="name">Cerdo congelado</field>
+        <field name="parent_id" ref="product_category_meat"/>
+    </record>
+    <record id="product_category_elaborados" model="product.category">
+        <field name="name">Elaborado fresco</field>
+        <field name="parent_id" ref="product_category_meat"/>
+    </record>
+    <record id="product_category_elaborados_frozen" model="product.category">
+        <field name="name">Elaborado congelado</field>
+        <field name="parent_id" ref="product_category_meat"/>
+    </record>
+    <!-- Ingredients of the productions that are not cuts: salt, spices... -->
+    <record id="product_category_ingredients" model="product.category">
+        <field name="name">Otros ingredientes</field>
+        <field name="parent_id" ref="product.product_category_goods"/>
     </record>
 
     <!-- Shelf life as a general rule: 30 days fresh, 180 days frozen; alert 2 days before -->
@@ -53,7 +75,7 @@
         <field name="name">Jamón de cerdo congelado</field>
         <field name="default_code">CER-JAM-C</field>
         <field name="barcode">8437000100188</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -67,7 +89,7 @@
         <field name="name">Paleta de cerdo congelada</field>
         <field name="default_code">CER-PAL-C</field>
         <field name="barcode">8437000100195</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -81,7 +103,7 @@
         <field name="name">Lomo de cerdo congelado</field>
         <field name="default_code">CER-LOM-C</field>
         <field name="barcode">8437000100201</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -95,7 +117,7 @@
         <field name="name">Solomillo de cerdo congelado</field>
         <field name="default_code">CER-SOL-C</field>
         <field name="barcode">8437000100218</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -109,7 +131,7 @@
         <field name="name">Panceta de cerdo congelada</field>
         <field name="default_code">CER-PAN-C</field>
         <field name="barcode">8437000100225</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -123,7 +145,7 @@
         <field name="name">Costillas de cerdo congeladas</field>
         <field name="default_code">CER-COS-C</field>
         <field name="barcode">8437000100232</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -137,7 +159,7 @@
         <field name="name">Papada de cerdo congelada</field>
         <field name="default_code">CER-PAP-C</field>
         <field name="barcode">8437000100249</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -151,7 +173,7 @@
         <field name="name">Chuletas de cerdo congeladas</field>
         <field name="default_code">CER-CHU-C</field>
         <field name="barcode">8437000100256</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -164,7 +186,7 @@
     <record id="product_cerdo_magro_congelado" model="product.product">
         <field name="name">Magro de cerdo congelado</field>
         <field name="default_code">CER-MAG-C</field>
-        <field name="categ_id" ref="product_category_frozen"/>
+        <field name="categ_id" ref="product_category_pork_frozen"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -306,7 +328,7 @@
         <field name="name">Jamón de cerdo</field>
         <field name="default_code">CER-JAM</field>
         <field name="barcode">8437000100010</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -321,7 +343,7 @@
         <field name="name">Paleta de cerdo</field>
         <field name="default_code">CER-PAL</field>
         <field name="barcode">8437000100027</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -336,7 +358,7 @@
         <field name="name">Lomo de cerdo</field>
         <field name="default_code">CER-LOM</field>
         <field name="barcode">8437000100034</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -351,7 +373,7 @@
         <field name="name">Solomillo de cerdo</field>
         <field name="default_code">CER-SOL</field>
         <field name="barcode">8437000100041</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -366,7 +388,7 @@
         <field name="name">Panceta de cerdo</field>
         <field name="default_code">CER-PAN</field>
         <field name="barcode">8437000100058</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -381,7 +403,7 @@
         <field name="name">Costillas de cerdo</field>
         <field name="default_code">CER-COS</field>
         <field name="barcode">8437000100065</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -396,7 +418,7 @@
         <field name="name">Papada de cerdo</field>
         <field name="default_code">CER-PAP</field>
         <field name="barcode">8437000100072</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -411,7 +433,7 @@
         <field name="name">Chuletas de cerdo</field>
         <field name="default_code">CER-CHU</field>
         <field name="barcode">8437000100171</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>
@@ -426,7 +448,7 @@
     <record id="product_cerdo_magro" model="product.product">
         <field name="name">Magro de cerdo</field>
         <field name="default_code">CER-MAG</field>
-        <field name="categ_id" ref="product_category_cut"/>
+        <field name="categ_id" ref="product_category_pork"/>
         <field name="type">consu</field>
         <field name="is_storable" eval="True"/>
         <field name="tracking">lot</field>

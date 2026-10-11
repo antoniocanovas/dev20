@@ -1,5 +1,7 @@
+from . import meat_cutting_consumption
 from . import meat_cutting_line
 from . import meat_cutting_session
+from . import mrp_bom
 from . import mrp_unbuild
 from . import product_template
 from . import stock_crotal

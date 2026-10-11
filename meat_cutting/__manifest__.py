@@ -1,6 +1,6 @@
 {
     'name': 'Meat Cutting',
-    'version': '20.0.1.2.0',
+    'version': '20.0.1.3.0',
     'summary': "Pantalla de despiece para tablet: pesar, etiquetar y desmontar canales en piezas",
     'author': 'Antonio Cánovas',
     'license': 'LGPL-3',
@@ -16,6 +16,7 @@
         'views/stock_crotal_views.xml',
         'views/meat_cutting_session_views.xml',
         'views/mrp_unbuild_views.xml',
+        'views/mrp_bom_views.xml',
         'views/stock_picking_views.xml',
         'views/stock_quant_views.xml',
         'views/stock_package_views.xml',

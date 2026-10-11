@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Second cut: a loin in stock is cut again into chops -->
+    <record id="bom_lomo_chuletas" model="mrp.bom">
+        <field name="code">Chuletas</field>
+        <field name="product_tmpl_id" ref="product_cerdo_lomo_product_template"/>
+        <field name="product_qty">1.0</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="type">normal</field>
+        <field name="meat_use">cutting</field>
+    </record>
+    <record id="bom_line_lomo_chuletas" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_lomo_chuletas"/>
+        <field name="product_id" ref="product_cerdo_chuletas"/>
+        <field name="product_qty">0.92</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+
+    <!-- Ingredients that are not cuts (family "Otros ingredientes") -->
+    <record id="product_sal" model="product.product">
+        <field name="name">Sal</field>
+        <field name="default_code">ING-SAL</field>
+        <field name="categ_id" ref="product_category_ingredients"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="expiration_time">730</field>
+        <field name="alert_time">73</field>
+        <field name="standard_price">0.40</field>
+    </record>
+    <record id="product_pimenton" model="product.product">
+        <field name="name">Pimentón dulce</field>
+        <field name="default_code">ING-PIM</field>
+        <field name="categ_id" ref="product_category_ingredients"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="expiration_time">365</field>
+        <field name="alert_time">36</field>
+        <field name="standard_price">9.50</field>
+    </record>
+    <record id="product_pimienta" model="product.product">
+        <field name="name">Pimienta negra molida</field>
+        <field name="default_code">ING-PNE</field>
+        <field name="categ_id" ref="product_category_ingredients"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="expiration_time">365</field>
+        <field name="alert_time">36</field>
+        <field name="standard_price">14.00</field>
+    </record>
+    <record id="product_ajo" model="product.product">
+        <field name="name">Ajo picado</field>
+        <field name="default_code">ING-AJO</field>
+        <field name="categ_id" ref="product_category_ingredients"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="expiration_time">30</field>
+        <field name="alert_time">3</field>
+        <field name="standard_price">4.20</field>
+    </record>
+    <record id="product_cebolla" model="product.product">
+        <field name="name">Cebolla pochada</field>
+        <field name="default_code">ING-CEB</field>
+        <field name="categ_id" ref="product_category_ingredients"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="expiration_time">10</field>
+        <field name="alert_time">1</field>
+        <field name="standard_price">2.80</field>
+    </record>
+
+    <!-- Products made on the production screen from weighed ingredients; their
+         frozen product, and the presentations of the packages made -->
+    <record id="attribute_presentacion_ristra" model="product.attribute.value">
+        <field name="name">En ristra</field>
+        <field name="attribute_id" ref="attribute_presentacion"/>
+        <field name="default_extra_price">0.0</field>
+    </record>
+    <record id="product_longaniza_congelada" model="product.product">
+        <field name="name">Longaniza congelada</field>
+        <field name="default_code">ELA-LON-C</field>
+        <field name="categ_id" ref="product_category_elaborados_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">10</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">7.00</field>
+    </record>
+    <record id="product_morcilla_congelada" model="product.product">
+        <field name="name">Morcilla de cebolla congelada</field>
+        <field name="default_code">ELA-MOR-C</field>
+        <field name="categ_id" ref="product_category_elaborados_frozen"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">180</field>
+        <field name="alert_time">10</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">6.30</field>
+    </record>
+    <record id="product_longaniza" model="product.product">
+        <field name="name">Longaniza fresca</field>
+        <field name="default_code">ELA-LON</field>
+        <field name="categ_id" ref="product_category_elaborados"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">15</field>
+        <field name="alert_time">2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">7.20</field>
+        <field name="frozen_product_id" ref="product_longaniza_congelada"/>
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_ristra'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+    <record id="product_morcilla" model="product.product">
+        <field name="name">Morcilla de cebolla</field>
+        <field name="default_code">ELA-MOR</field>
+        <field name="categ_id" ref="product_category_elaborados"/>
+        <field name="type">consu</field>
+        <field name="is_storable" eval="True"/>
+        <field name="tracking">lot</field>
+        <field name="use_expiration_date" eval="True"/>
+        <field name="expiration_time">20</field>
+        <field name="alert_time">3</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="list_price">6.50</field>
+        <field name="frozen_product_id" ref="product_morcilla_congelada"/>
+        <field name="attribute_line_ids" eval="[Command.create({'attribute_id': ref('attribute_presentacion'), 'value_ids': [Command.set([ref('attribute_presentacion_ristra'), ref('attribute_presentacion_troceado'), ref('attribute_presentacion_vacio')])]})]"/>
+    </record>
+
+    <!-- Recipes for a batch of 100 kg: the spices are weighed in grams -->
+    <record id="bom_longaniza" model="mrp.bom">
+        <field name="code">Receta tradicional</field>
+        <field name="product_tmpl_id" ref="product_longaniza_product_template"/>
+        <field name="product_qty">100.0</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="type">normal</field>
+        <field name="meat_use">production</field>
+    </record>
+    <record id="bom_line_longaniza_magro" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_longaniza"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_cerdo_magro"/>
+        <field name="product_qty">68</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_longaniza_panceta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_longaniza"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_cerdo_panceta"/>
+        <field name="product_qty">28</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+
+    <record id="bom_line_longaniza_sal" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_longaniza"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_sal"/>
+        <field name="product_qty">1.8</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_longaniza_pimenton" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_longaniza"/>
+        <field name="sequence">40</field>
+        <field name="product_id" ref="product_pimenton"/>
+        <field name="product_qty">1.2</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_longaniza_pimienta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_longaniza"/>
+        <field name="sequence">50</field>
+        <field name="product_id" ref="product_pimienta"/>
+        <field name="product_qty">0.3</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_longaniza_ajo" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_longaniza"/>
+        <field name="sequence">60</field>
+        <field name="product_id" ref="product_ajo"/>
+        <field name="product_qty">0.7</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+
+    <record id="bom_morcilla" model="mrp.bom">
+        <field name="code">Receta de la casa</field>
+        <field name="product_tmpl_id" ref="product_morcilla_product_template"/>
+        <field name="product_qty">100.0</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="type">normal</field>
+        <field name="meat_use">production</field>
+    </record>
+    <record id="bom_line_morcilla_papada" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_morcilla"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_cerdo_papada"/>
+        <field name="product_qty">40</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_morcilla_panceta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_morcilla"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_cerdo_panceta"/>
+        <field name="product_qty">20</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_morcilla_cebolla" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_morcilla"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_cebolla"/>
+        <field name="product_qty">35</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_morcilla_sal" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_morcilla"/>
+        <field name="sequence">40</field>
+        <field name="product_id" ref="product_sal"/>
+        <field name="product_qty">1.5</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_morcilla_pimenton" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_morcilla"/>
+        <field name="sequence">50</field>
+        <field name="product_id" ref="product_pimenton"/>
+        <field name="product_qty">2.5</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+    <record id="bom_line_morcilla_pimienta" model="mrp.bom.line">
+        <field name="bom_id" ref="bom_morcilla"/>
+        <field name="sequence">60</field>
+        <field name="product_id" ref="product_pimienta"/>
+        <field name="product_qty">1.0</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+    </record>
+</odoo>

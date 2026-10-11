@@ -31,7 +31,8 @@ DONE_SESSION = ('meat_cutting_demo.lot_cerdo_01', 0, {
     'meat_cutting_demo.product_cerdo_magro': [5.10, 4.10],
 })
 # Cuts of the done session produced frozen
-FROZEN_CUTS = ['meat_cutting_demo.product_cerdo_costillas', 'meat_cutting_demo.product_cerdo_panceta']
+# (the bacon and the jowl are left fresh for the sausages)
+FROZEN_CUTS = ['meat_cutting_demo.product_cerdo_costillas', 'meat_cutting_demo.product_cerdo_solomillo']
 # Label of the done session edited before printing: (cut, texts)
 EDITED_LABEL = ('meat_cutting_demo.product_cerdo_jamon', {
     'product_name': "Jamón fresco de cerdo Duroc",
@@ -45,6 +46,16 @@ DRAFT_SESSION = ('meat_cutting_demo.lot_ternera_01', 1, {
 })
 # Fresh piece frozen afterwards, from the stock: (cut, weight)
 FROZEN_LATER = ('meat_cutting_demo.product_cerdo_paleta', 7.18)
+# Stock of the ingredients that are not cuts: (product, lot, kg, days to expiry).
+# Two lots of onion, to see the one closest to expiry proposed first
+INGREDIENTS = [
+    ('meat_cutting_demo.product_sal', 'SAL-2609', 25.0, 600),
+    ('meat_cutting_demo.product_pimenton', 'PIM-2608', 5.0, 300),
+    ('meat_cutting_demo.product_pimienta', 'PNE-2607', 2.0, 280),
+    ('meat_cutting_demo.product_ajo', 'AJO-2610', 3.0, 20),
+    ('meat_cutting_demo.product_cebolla', 'CEB-2610A', 8.0, 4),
+    ('meat_cutting_demo.product_cebolla', 'CEB-2610B', 10.0, 9),
+]
 
 
 def _create_demo_operations(env):
@@ -112,6 +123,28 @@ def _create_demo_operations(env):
     _create_demo_sales(env)
     _freeze_demo_stock(env)
     _create_demo_purchases(env)
+    _create_demo_ingredients(env)
+
+
+def _create_demo_ingredients(env):
+    """ Stock of salt, spices and onion for the productions, in lots that
+    expire. """
+    warehouse = env['stock.warehouse'].search([('company_id', '=', env.company.id)], limit=1)
+    now = fields.Datetime.now()
+    for product_xmlid, lot_name, quantity, days in INGREDIENTS:
+        product = env.ref(product_xmlid)
+        lot = env['stock.lot'].create({
+            'product_id': product.id,
+            'name': lot_name,
+            'company_id': env.company.id,
+            'expiration_date': now + relativedelta(days=days),
+        })
+        env['stock.quant'].with_context(inventory_mode=True).create({
+            'product_id': product.id,
+            'location_id': warehouse.lot_stock_id.id,
+            'lot_id': lot.id,
+            'inventory_quantity': quantity,
+        }).action_apply_inventory()
 
 
 def _find_piece(env, product_xmlid, weight):

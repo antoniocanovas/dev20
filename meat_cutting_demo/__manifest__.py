@@ -1,7 +1,7 @@
 {
     'name': 'Meat Cutting Demo',
-    'version': '20.0.1.1.0',
-    'summary': "Datos de ejemplo para Meat Cutting: canales, despieces, crotales, recepciones, sesiones y productos frescos y congelados, formatos de etiqueta, caducidades, venta por pieza completa y compra de canales con crotal y peso real",
+    'version': '20.0.1.3.0',
+    'summary': "Datos de ejemplo para Meat Cutting: canales, despieces, crotales, recepciones, sesiones y productos frescos y congelados, formatos de etiqueta, caducidades, venta por pieza completa, compra de canales con crotal y peso real, elaborados con sus ingredientes y familias por especie, fresco o congelado",
     'author': 'Antonio Cánovas',
     'license': 'LGPL-3',
     'category': 'Supply Chain/Manufacturing',
@@ -13,6 +13,7 @@
         'data/product_sale_data.xml',
         'data/product_purchase_data.xml',
         'data/mrp_bom_data.xml',
+        'data/mrp_production_data.xml',
         'data/stock_crotal_data.xml',
         'report/label_format_reports.xml',
     ],

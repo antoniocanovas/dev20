@@ -2,6 +2,52 @@ from odoo import models
 from odoo.tools import float_round
 
 
+class StockMoveLine(models.Model):
+    _inherit = 'stock.move.line'
+
+    def _get_meat_packing_box(self):
+        """ Box the line is packed in on the packing screen, if any. """
+        self.ensure_one()
+        package = self.result_package_id
+        if not package:
+            return package
+        box = package._get_meat_box()
+        # A piece, or a package moved whole, is not a box by itself
+        if box.meat_piece or box == self.package_id:
+            return self.env['stock.package']
+        return box
+
+    def _is_meat_whole_package(self):
+        """ The line takes all its package: the package itself is moved. """
+        self.ensure_one()
+        if not self.package_id:
+            return False
+        content = sum(self.package_id.quant_ids.filtered(lambda q: q.product_id == self.product_id).mapped('quantity'))
+        return self.product_id.uom_id.compare(self.quantity_product_uom, content) >= 0 \
+            and self.package_id.quant_ids.product_id == self.product_id
+
+    def _meat_box(self, box):
+        """ A whole piece goes in the box in its package, anything else
+        directly in the box. """
+        for move_line in self:
+            if move_line._is_meat_whole_package():
+                move_line.result_package_id = move_line.package_id
+                if move_line.package_id != box:
+                    move_line.package_id.package_dest_id = box
+            else:
+                move_line.result_package_id = box
+            move_line.picked = True
+
+    def _meat_unbox(self):
+        for move_line in self:
+            box = move_line._get_meat_packing_box()
+            if move_line.result_package_id == box:
+                move_line.result_package_id = move_line.package_id if move_line._is_meat_whole_package() else False
+            else:
+                move_line.result_package_id.package_dest_id = False
+            move_line.picked = False
+
+
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
@@ -24,6 +70,11 @@ class StockMove(models.Model):
             move_lines = self.move_line_ids
         move_lines = move_lines.filtered(lambda ml: ml.product_id.uom_id.compare(ml.quantity, 0) > 0)
         return len(move_lines.package_id) + len(move_lines.filtered(lambda ml: not ml.package_id))
+
+    def _get_meat_ordered_presentation(self):
+        """ Presentation the customer ordered, shown when packing. """
+        self.ensure_one()
+        return ''
 
     def _has_meat_pieces_reserved(self):
         self.ensure_one()

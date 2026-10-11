@@ -31,7 +31,10 @@
                 </thead>
                 <tbody>
                     <tr t-foreach="box_values['lines']" t-as="box_line" style="border-bottom: 1px solid #ccc;">
-                        <td t-out="box_line['product'].name"/>
+                        <td>
+                            <t t-out="box_line['product'].name"/>
+                            <div t-if="box_line['presentation']" style="font-size: 10px;" t-out="box_line['presentation'].name"/>
+                        </td>
                         <td>
                             <t t-out="box_line['lot'].name or ''"/>
                             <div t-if="box_line['crotal'] and box_line['crotal'].name != box_line['lot'].name" style="font-size: 10px;">

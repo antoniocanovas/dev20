@@ -34,6 +34,8 @@ class StockPackage(models.Model):
     _inherit = 'stock.package'
 
     meat_piece = fields.Boolean('Whole Piece', readonly=True, help="Package of a single piece, weighed when cut.")
+    meat_presentation_id = fields.Many2one(
+        'product.attribute.value', 'Presentation', help="How the product of the package was prepared.")
 
     def _get_meat_box(self):
         """ Outermost container of the package, planned or current. """
@@ -69,15 +71,18 @@ class StockPackage(models.Model):
         kg = self.env.ref('uom.product_uom_kgm')
         rows = defaultdict(lambda: {'quantity': 0.0, 'packages': self.browse()})
         for move_line in move_lines:
-            row = rows[move_line.product_id, move_line.lot_id]
+            presentation = move_line.result_package_id.meat_presentation_id if move_line.result_package_id != self \
+                else self.env['product.attribute.value']
+            row = rows[move_line.product_id, move_line.lot_id, presentation]
             row['quantity'] += move_line.uom_id._compute_quantity(
                 move_line.quantity, move_line.product_id.uom_id, round=False)
             if move_line.product_id.meat_piece and move_line.result_package_id != self:
                 row['packages'] |= move_line.result_package_id
         lines = []
-        for (product, lot), row in rows.items():
+        for (product, lot, presentation), row in rows.items():
             lines.append({
                 'product': product,
+                'presentation': presentation,
                 'lot': lot,
                 'crotal': lot.crotal_id,
                 'quantity': row['quantity'],
@@ -86,7 +91,7 @@ class StockPackage(models.Model):
                 'expiration_date': lot.expiration_date and fields.Datetime.context_timestamp(
                     self, lot.expiration_date).date(),
             })
-        lines.sort(key=lambda line: (line['product'].display_name, line['lot'].name or ''))
+        lines.sort(key=lambda line: (line['product'].display_name, line['presentation'].name or '', line['lot'].name or ''))
         weighed = [line for line in lines if line['uom']._has_common_reference(kg)]
         lots = move_lines.lot_id
         picking = move_lines.picking_id

@@ -9,6 +9,11 @@
         max-width: 32rem;
     }
 
+    .o_meat_cutting_ingredient_search {
+        width: 18rem;
+        flex-shrink: 1;
+    }
+
     .o_meat_cutting_keypad {
         grid-template-columns: repeat(6, 1fr);
     }

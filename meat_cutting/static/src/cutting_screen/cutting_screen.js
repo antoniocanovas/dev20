@@ -8,7 +8,10 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_plugin
 import { LabelEditDialog } from "./label_edit_dialog";
 
 const SESSION_MODEL = "meat.cutting.session";
+const PICKING_MODEL = "stock.picking";
 const LABEL_REPORT = "meat_cutting.action_report_meat_cutting_label";
+const BOX_LABEL_REPORT = "meat_cutting.action_report_meat_box_label";
+const PICKING_BOX_LABEL_REPORT = "meat_cutting.action_report_picking_meat_box_label";
 const KEYPAD_KEYS = ["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", ".", "C"];
 
 /** Lowercase without accents, so that "jamon" finds "Jamón". */
@@ -29,13 +32,38 @@ export class CuttingScreen extends Component {
         this.dialog = useService("dialog");
         this.notification = useService("notification");
         this.keypadKeys = KEYPAD_KEYS;
+        this.modes = [
+            { key: "receipt", name: _t("Receipts"), icon: "local_shipping", help: _t("Cut the received carcasses") },
+            { key: "cutting", name: _t("Cutting"), icon: "content_cut", help: _t("Cut a package in stock again") },
+            { key: "preparation", name: _t("Preparation"), icon: "fork_right", help: _t("Split a package with a presentation") },
+            { key: "production", name: _t("Production"), icon: "factory", help: _t("Make a product from ingredients") },
+            { key: "packing", name: _t("Packing"), icon: "package_2", help: _t("Put the pieces of a delivery in boxes") },
+        ];
         const context = this.props.action.context || {};
         this.state = proxy({
+            mode: "receipt",
+            // Receipts
             pickings: [],
             products: [],
             pickingId: context.meat_cutting_picking_id || false,
             product: null,
             bomChoice: null,
+            // Cutting, preparation and production: family, then package or product
+            families: [],
+            familyId: false,
+            packages: [],
+            productionProducts: [],
+            // Production: ingredient whose stock is shown
+            ingredient: null,
+            ingredientPackages: [],
+            // Production: packages of any ingredient found by a scan
+            foundPackages: [],
+            presentationId: false,
+            // Packing
+            deliveries: [],
+            packing: null,
+            boxId: false,
+            newBox: null,
             search: "",
             session: null,
             weight: "",
@@ -47,6 +75,7 @@ export class CuttingScreen extends Component {
         onWillStart(async () => {
             if (context.meat_cutting_session_id) {
                 await this.loadSession(context.meat_cutting_session_id);
+                this.state.mode = this.state.session.mode;
             } else {
                 await this.loadSelection();
             }
@@ -56,14 +85,73 @@ export class CuttingScreen extends Component {
     // ---- Data loading ----
 
     async loadSelection() {
-        const [pickings, products] = await Promise.all([
-            this.orm.call(SESSION_MODEL, "get_cutting_pickings", []),
-            this.orm.call(SESSION_MODEL, "get_cutting_products", [], {
-                picking_id: this.state.pickingId,
-            }),
-        ]);
-        this.state.pickings = pickings;
-        this.state.products = products;
+        const mode = this.state.mode;
+        if (mode === "receipt") {
+            const [pickings, products] = await Promise.all([
+                this.orm.call(SESSION_MODEL, "get_cutting_pickings", []),
+                this.orm.call(SESSION_MODEL, "get_cutting_products", [], {
+                    picking_id: this.state.pickingId,
+                }),
+            ]);
+            this.state.pickings = pickings;
+            this.state.products = products;
+        } else if (mode === "packing") {
+            this.state.deliveries = await this.orm.call(PICKING_MODEL, "get_meat_packing_pickings", []);
+        } else {
+            this.state.families = await this.orm.call(SESSION_MODEL, "get_cutting_families", [mode]);
+            if (this.state.familyId) {
+                await this.loadFamily();
+            }
+        }
+    }
+
+    async loadFamily() {
+        if (this.state.mode === "production") {
+            this.state.productionProducts = await this.orm.call(SESSION_MODEL, "get_production_products", [
+                this.state.familyId,
+            ]);
+        } else {
+            this.state.packages = await this.orm.call(SESSION_MODEL, "get_cutting_packages", [
+                this.state.mode,
+                this.state.familyId,
+            ]);
+        }
+    }
+
+    // ---- Mode ----
+
+    get currentMode() {
+        return this.modes.find((mode) => mode.key === this.state.mode);
+    }
+
+    get searchPlaceholder() {
+        if (this.state.packing) {
+            return _t("Scan or type a package");
+        }
+        return {
+            receipt: _t("Receipt, product, lot or crotal"),
+            cutting: _t("Product, package, lot or crotal"),
+            preparation: _t("Product, package, lot or crotal"),
+            production: _t("Product"),
+            packing: _t("Delivery or customer; scan a package"),
+        }[this.state.mode];
+    }
+
+    async onSelectMode(mode) {
+        if (this.state.busy) {
+            return;
+        }
+        this.state.mode = mode;
+        this.state.familyId = false;
+        this.state.packing = null;
+        this.state.boxId = false;
+        this.state.newBox = null;
+        this.state.busy = true;
+        try {
+            await this.onChangeSource();
+        } finally {
+            this.state.busy = false;
+        }
     }
 
     async loadSession(sessionId) {
@@ -73,6 +161,15 @@ export class CuttingScreen extends Component {
 
     setSession(session) {
         this.state.session = session;
+        const presentations = session.presentations || [];
+        if (!presentations.some((presentation) => presentation.id === this.state.presentationId)) {
+            this.state.presentationId = presentations[0]?.id || false;
+        }
+        if (this.state.ingredient) {
+            this.state.ingredient = session.components.find(
+                (component) => component.product_id === this.state.ingredient.product_id
+            );
+        }
     }
 
     // ---- Selection step ----
@@ -104,24 +201,134 @@ export class CuttingScreen extends Component {
         );
     }
 
+    get visiblePackages() {
+        return this.state.packages.filter((pack) =>
+            this.matches(pack.product_name, pack.package_name, pack.lot_name, pack.crotal_name)
+        );
+    }
+
+    get visibleProductionProducts() {
+        return this.state.productionProducts.filter((product) => this.matches(product.name));
+    }
+
+    /** Production: packages of the ingredient matching the search. A scanned
+     * label (GS1) is longer than the lot or package it carries: it matches
+     * when it contains it. */
+    get visibleIngredientPackages() {
+        const search = normalize(this.state.search.trim());
+        return this.state.ingredientPackages.filter(
+            (pack) =>
+                this.matches(pack.product_name, pack.package_name, pack.lot_name, pack.crotal_name) ||
+                [pack.package_name, pack.lot_name].some((name) => name && search.includes(normalize(name)))
+        );
+    }
+
+    get showIngredientSearch() {
+        const session = this.state.session;
+        return session?.mode === "production" && session.state === "draft";
+    }
+
+    get visibleDeliveries() {
+        return this.state.deliveries.filter((delivery) =>
+            this.matches(delivery.name, delivery.partner_name, delivery.origin)
+        );
+    }
+
     onSearchInput(ev) {
         this.state.search = ev.target.value;
+        this.state.foundPackages = [];
     }
 
     onSearchKeydown(ev) {
-        // A scanned crotal or lot (ending with Enter) opens its product directly
-        if (ev.key === "Enter") {
+        if (ev.key !== "Enter") {
+            return;
+        }
+        // A scanned crotal, lot or package (ending with Enter) opens it directly
+        if (this.showIngredientSearch) {
+            this.onFindIngredientPackage();
+        } else if (this.state.mode === "packing" && this.state.packing) {
+            this.onScanPackage();
+        } else if (this.state.mode === "receipt") {
             const products = this.visibleProducts;
             if (products.length === 1) {
                 this.onSelectProduct(products[0]);
+            }
+        } else if (["cutting", "preparation"].includes(this.state.mode) && this.state.familyId) {
+            const packages = this.visiblePackages;
+            if (packages.length === 1) {
+                this.onSelectPackage(packages[0]);
             }
         }
     }
 
     clearSearch() {
         this.state.search = "";
+        this.state.foundPackages = [];
     }
 
+
+    // ---- Selection by family (cutting, preparation, production) ----
+
+    async onSelectFamily(familyId) {
+        this.state.familyId = familyId;
+        this.state.search = "";
+        await this.loadFamily();
+    }
+
+    onBackToFamilies() {
+        this.state.familyId = false;
+        this.state.packages = [];
+        this.state.productionProducts = [];
+        this.state.bomChoice = null;
+    }
+
+    async onSelectPackage(pack, bomId = false) {
+        // Several BoMs are several cutting methods: the operator picks one
+        if (this.state.mode === "cutting" && !bomId && pack.boms.length > 1) {
+            this.state.bomChoice = { pack, boms: pack.boms, name: pack.product_name };
+            return;
+        }
+        const sessionId = await this.orm.call(SESSION_MODEL, "start_package_session", [
+            this.state.mode,
+            pack.package_id,
+            pack.product_id,
+            bomId,
+        ]);
+        this.state.bomChoice = null;
+        await this.loadSession(sessionId);
+    }
+
+    async onSelectProductionProduct(product, bomId = false) {
+        if (!bomId && product.boms.length > 1) {
+            this.state.bomChoice = { productionProduct: product, boms: product.boms, name: product.name };
+            return;
+        }
+        const sessionId = await this.orm.call(SESSION_MODEL, "start_production_session", [product.id, bomId]);
+        this.state.bomChoice = null;
+        await this.loadSession(sessionId);
+    }
+
+    onSelectBom(bom) {
+        const choice = this.state.bomChoice;
+        if (choice.pack) {
+            return this.onSelectPackage(choice.pack, bom.id);
+        } else if (choice.productionProduct) {
+            return this.onSelectProductionProduct(choice.productionProduct, bom.id);
+        }
+        return this.startSession(choice.product, choice.lotId, bom.id);
+    }
+
+    get bomChoiceBoms() {
+        const choice = this.state.bomChoice;
+        return choice.boms || choice.product.boms;
+    }
+
+    get bomChoiceName() {
+        const choice = this.state.bomChoice;
+        return choice.name || choice.product.name;
+    }
+
+    // ---- Receipts ----
 
     async onSelectPicking(pickingId) {
         this.state.pickingId = this.state.pickingId === pickingId ? false : pickingId;
@@ -205,6 +412,9 @@ export class CuttingScreen extends Component {
         this.state.session = null;
         this.state.product = null;
         this.state.bomChoice = null;
+        this.state.ingredient = null;
+        this.state.ingredientPackages = [];
+        this.state.foundPackages = [];
         this.state.search = "";
         this.state.weight = "";
         await this.loadSelection();
@@ -244,6 +454,11 @@ export class CuttingScreen extends Component {
     // ---- Cuts ----
 
     async onComponentClick(component) {
+        await this.addLine(component.bom_line_id);
+    }
+
+    /** Weigh a cut of the BoM, a prepared package or the product made. */
+    async addLine(bomLineId = false) {
         const weight = this.parseNumber(this.state.weight);
         if (weight <= 0) {
             this.notification.add(_t("Enter the weight before selecting the cut."), {
@@ -258,8 +473,9 @@ export class CuttingScreen extends Component {
         try {
             const lineId = await this.orm.call(SESSION_MODEL, "action_add_line", [
                 [this.state.session.id],
-                component.bom_line_id,
+                bomLineId,
                 weight,
+                ["preparation", "production"].includes(this.state.session.mode) ? this.state.presentationId : false,
             ]);
             this.state.weight = "";
             await this.loadSession(this.state.session.id);
@@ -269,6 +485,283 @@ export class CuttingScreen extends Component {
         } finally {
             this.state.busy = false;
         }
+    }
+
+    // ---- Preparation: presentations in carousel ----
+
+    get presentationName() {
+        const presentations = this.state.session?.presentations || [];
+        return presentations.find((p) => p.id === this.state.presentationId)?.name || _t("No presentation");
+    }
+
+    /** Next presentation of the list, back to the first one after the last. */
+    nextPresentation(presentationId) {
+        const presentations = this.state.session.presentations;
+        const index = presentations.findIndex((p) => p.id === presentationId);
+        return presentations[(index + 1) % presentations.length]?.id || false;
+    }
+
+    rotatePresentation() {
+        if (!this.state.session) {
+            return;
+        }
+        this.state.presentationId = this.nextPresentation(this.state.presentationId);
+    }
+
+    async rotateLinePresentation(line) {
+        await this.orm.call("meat.cutting.line", "action_set_presentation", [
+            [line.id],
+            this.nextPresentation(line.presentation_id),
+        ]);
+        await this.loadSession(this.state.session.id);
+    }
+
+    get preparationLeftQty() {
+        const session = this.state.session;
+        return session.available_qty - session.total_weight;
+    }
+
+    // ---- Production: ingredients ----
+
+    /** The weight typed is the quantity to make: the ingredients are recommended from it. */
+    async onSetProductionQty() {
+        const qty = this.parseNumber(this.state.weight);
+        if (qty <= 0) {
+            this.notification.add(_t("Type the quantity to make, then press here."), { type: "warning" });
+            return;
+        }
+        await this.orm.call(SESSION_MODEL, "action_set_production_qty", [[this.state.session.id], qty]);
+        this.state.weight = "";
+        await this.loadSession(this.state.session.id);
+    }
+
+    /** Quantity of the ingredient still to add to reach the recommended one. */
+    ingredientMissingQty(component) {
+        return Math.max(component.recommended_qty - component.weighed_qty, 0);
+    }
+
+    async onSelectIngredient(component) {
+        this.state.search = "";
+        this.state.foundPackages = [];
+        if (this.state.ingredient?.product_id === component.product_id) {
+            this.state.ingredient = null;
+            return;
+        }
+        this.state.ingredient = component;
+        this.state.ingredientPackages = await this.orm.call(SESSION_MODEL, "get_ingredient_packages", [
+            [this.state.session.id],
+            component.product_id,
+        ]);
+    }
+
+    /** A package typed or scanned: of the ingredient shown, else of any
+     * ingredient of the recipe. A single one is used at once. */
+    async onFindIngredientPackage() {
+        const text = this.state.search.trim();
+        if (!text || this.state.busy) {
+            return;
+        }
+        let packages = this.state.ingredient ? this.visibleIngredientPackages : [];
+        if (packages.length !== 1) {
+            packages = await this.orm.call(SESSION_MODEL, "find_ingredient_packages", [
+                [this.state.session.id],
+                text,
+            ]);
+        }
+        if (packages.length === 1) {
+            await this.onSelectIngredientPackage(packages[0]);
+        } else if (packages.length) {
+            this.state.ingredient = null;
+            this.state.foundPackages = packages;
+        } else {
+            this.notification.add(_t("No package matches."), { type: "warning" });
+        }
+    }
+
+    /** Use the weight typed of the package, or all of it without weight. */
+    async onSelectIngredientPackage(pack) {
+        if (this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            await this.orm.call(SESSION_MODEL, "action_add_consumption", [
+                [this.state.session.id],
+                pack.product_id,
+                this.parseNumber(this.state.weight),
+            ], {
+                package_id: pack.package_id,
+                lot_id: pack.lot_id,
+                location_id: pack.location_id,
+            });
+            this.state.weight = "";
+            this.state.search = "";
+            this.state.foundPackages = [];
+            await this.loadSession(this.state.session.id);
+            // The ingredient of the package used stays shown, also when found by a scan
+            this.state.ingredient = this.state.session.components.find(
+                (component) => component.product_id === pack.product_id
+            ) || null;
+            this.state.ingredientPackages = await this.orm.call(SESSION_MODEL, "get_ingredient_packages", [
+                [this.state.session.id],
+                pack.product_id,
+            ]);
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    onDeleteConsumption(consumption) {
+        this.dialog.add(ConfirmationDialog, {
+            body: _t("Delete %(weight)s %(uom)s of %(product)s?", {
+                weight: this.formatQty(consumption.weight),
+                uom: consumption.uom_name,
+                product: consumption.product_name,
+            }),
+            confirmLabel: _t("Delete"),
+            confirmClass: "btn-danger",
+            confirm: async () => {
+                await this.orm.unlink("meat.cutting.consumption", [consumption.id]);
+                await this.loadSession(this.state.session.id);
+                if (this.state.ingredient) {
+                    this.state.ingredientPackages = await this.orm.call(
+                        SESSION_MODEL,
+                        "get_ingredient_packages",
+                        [[this.state.session.id], this.state.ingredient.product_id]
+                    );
+                }
+            },
+            cancel: () => {},
+        });
+    }
+
+    formatDate(value) {
+        return value ? value.slice(0, 10) : "";
+    }
+
+    // ---- Packing ----
+
+    async loadPacking(pickingId) {
+        this.state.packing = await this.orm.call(PICKING_MODEL, "get_meat_packing_data", [[pickingId]]);
+        const boxes = this.state.packing.boxes;
+        if (this.state.boxId && !boxes.some((box) => box.id === this.state.boxId) && !this.state.newBox) {
+            this.state.boxId = false;
+        }
+    }
+
+    async onSelectDelivery(delivery) {
+        this.state.search = "";
+        this.state.boxId = false;
+        this.state.newBox = null;
+        await this.loadPacking(delivery.id);
+    }
+
+    async onBackToDeliveries() {
+        this.state.packing = null;
+        this.state.boxId = false;
+        this.state.newBox = null;
+        await this.loadSelection();
+    }
+
+    get packingBoxes() {
+        const boxes = [...this.state.packing.boxes];
+        // A new box is listed until something is put in it
+        if (this.state.newBox && !boxes.some((box) => box.id === this.state.newBox.id)) {
+            boxes.push({ ...this.state.newBox, count: 0, weight: 0 });
+        }
+        return boxes;
+    }
+
+    async onNewBox() {
+        const box = await this.orm.call(PICKING_MODEL, "action_meat_new_box", [[this.state.packing.id]]);
+        this.state.newBox = box;
+        this.state.boxId = box.id;
+    }
+
+    onSelectBox(box) {
+        this.state.boxId = box.id;
+    }
+
+    async onToggleLine(line) {
+        if (this.state.busy) {
+            return;
+        }
+        if (!line.box_id && !this.state.boxId) {
+            await this.onNewBox();
+        }
+        this.state.busy = true;
+        try {
+            await this.orm.call(PICKING_MODEL, "action_meat_toggle_box", [
+                [this.state.packing.id],
+                line.id,
+                this.state.boxId,
+            ]);
+            await this.loadPacking(this.state.packing.id);
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async onScanPackage() {
+        const barcode = this.state.search.trim();
+        if (!barcode || this.state.busy) {
+            return;
+        }
+        if (!this.state.boxId) {
+            await this.onNewBox();
+        }
+        this.state.busy = true;
+        try {
+            await this.orm.call(PICKING_MODEL, "action_meat_scan_package", [
+                [this.state.packing.id],
+                barcode,
+                this.state.boxId,
+            ]);
+            this.state.search = "";
+            await this.loadPacking(this.state.packing.id);
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async printBoxLabel(box) {
+        await this.action.doAction(BOX_LABEL_REPORT, {
+            additionalContext: { active_model: "stock.package", active_id: box.id, active_ids: [box.id] },
+        });
+    }
+
+    async printAllBoxLabels() {
+        const pickingId = this.state.packing.id;
+        await this.action.doAction(PICKING_BOX_LABEL_REPORT, {
+            additionalContext: { active_model: PICKING_MODEL, active_id: pickingId, active_ids: [pickingId] },
+        });
+    }
+
+    async onValidateDelivery() {
+        const pickingId = this.state.packing.id;
+        const result = await this.orm.call(PICKING_MODEL, "button_validate", [[pickingId]]);
+        const done = async () => {
+            await this.loadPacking(pickingId);
+            if (this.state.packing.state === "done") {
+                this.notification.add(_t("Delivery %s validated.", this.state.packing.name), { type: "success" });
+                await this.onBackToDeliveries();
+            }
+        };
+        if (result && typeof result === "object") {
+            // E.g. the backorder wizard, when a piece is missing
+            await this.action.doAction(result, { onClose: done });
+        } else {
+            await done();
+        }
+    }
+
+    onOpenDelivery() {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: PICKING_MODEL,
+            res_id: this.state.packing.id,
+            views: [[false, "form"]],
+        });
     }
 
     async printLabel(lineId) {
@@ -308,25 +801,44 @@ export class CuttingScreen extends Component {
 
     // ---- Validation ----
 
+    get validationMessage() {
+        const session = this.state.session;
+        const values = {
+            count: session.lines.length,
+            weight: this.formatQty(session.total_weight),
+            qty: this.formatQty(session.consumed_qty),
+            uom: session.uom_name,
+            product: session.product_name,
+            package: session.package_name,
+            ingredients: session.consumptions.length,
+        };
+        if (session.mode === "preparation") {
+            return _t(
+                "%(count)s packages (%(weight)s %(uom)s) will be made from %(package)s; the rest stays in it.",
+                values
+            );
+        } else if (session.mode === "production") {
+            return _t(
+                "%(count)s packages of %(product)s (%(weight)s %(uom)s) will be made with %(ingredients)s ingredients (%(qty)s).",
+                values
+            );
+        }
+        return _t(
+            "Lots will be created for %(count)s cuts (%(weight)s) and %(qty)s %(uom)s of %(product)s will be consumed.",
+            values
+        );
+    }
+
     onValidate() {
         const session = this.state.session;
         this.dialog.add(ConfirmationDialog, {
-            title: _t("Finish cutting"),
-            body: _t(
-                "Lots will be created for %(count)s cuts (%(weight)s) and %(qty)s %(uom)s of %(product)s will be consumed.",
-                {
-                    count: session.lines.length,
-                    weight: this.formatQty(session.total_weight),
-                    qty: this.formatQty(session.consumed_qty),
-                    uom: session.uom_name,
-                    product: session.product_name,
-                }
-            ),
+            title: _t("Finish"),
+            body: this.validationMessage,
             confirmLabel: _t("Validate"),
             confirm: async () => {
                 const result = await this.orm.call(SESSION_MODEL, "action_validate", [[session.id]]);
                 this.setSession(result);
-                this.notification.add(_t("Cutting %s validated.", result.name), {
+                this.notification.add(_t("%s validated.", result.name), {
                     type: "success",
                 });
             },

@@ -7,9 +7,11 @@
             <list decoration-muted="state == 'cancel'" decoration-info="state == 'draft'">
                 <field name="name"/>
                 <field name="date"/>
+                <field name="mode"/>
                 <field name="picking_id" optional="show"/>
                 <field name="product_id"/>
                 <field name="lot_id" optional="show"/>
+                <field name="package_id" optional="show"/>
                 <field name="total_weight" sum="Total"/>
                 <field name="consumed_qty" optional="show"/>
                 <field name="uom_id" optional="hide"/>
@@ -38,18 +40,29 @@
                                 <span class="o_stat_text">Unbuild Order</span>
                             </div>
                         </button>
+                        <button name="action_view_production" type="object" class="oe_stat_button" icon="factory" invisible="not production_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Manufacturing Order</span>
+                            </div>
+                        </button>
                     </div>
                     <div class="oe_title">
                         <h1><field name="name"/></h1>
                     </div>
                     <group>
                         <group>
-                            <field name="picking_id" readonly="state != 'draft'"/>
+                            <field name="mode"/>
+                            <field name="production_id" invisible="1"/>
+                            <field name="picking_id" readonly="state != 'draft'" invisible="mode != 'receipt'"/>
                             <field name="product_id" readonly="state != 'draft'"/>
                             <field name="tracking" invisible="1"/>
-                            <field name="lot_id" readonly="state != 'draft'" invisible="tracking == 'none'" required="tracking != 'none'"/>
+                            <field name="package_id" readonly="1" invisible="not package_id"/>
+                            <field name="lot_id" readonly="state != 'draft'" invisible="tracking == 'none' or mode == 'production'"
+                                   required="tracking != 'none' and mode != 'production'"/>
                             <field name="crotal_id" invisible="not lot_id"/>
-                            <field name="bom_id" readonly="state != 'draft'"/>
+                            <field name="bom_id" readonly="state != 'draft'" invisible="mode == 'preparation'"
+                                   required="mode != 'preparation'"/>
+                            <field name="production_qty" readonly="state != 'draft'" invisible="mode != 'production'"/>
                             <label for="consumed_qty"/>
                             <div class="o_row">
                                 <field name="consumed_qty"/>
@@ -80,9 +93,25 @@
                                     <field name="uom_id"/>
                                     <field name="lot_name"/>
                                     <field name="package_id" optional="show"/>
+                                    <field name="presentation_id" optional="show" options="{'no_create': True}"/>
                                     <field name="user_id" optional="hide"/>
                                     <field name="label_custom" optional="hide"/>
                                     <button name="%(meat_cutting.action_report_meat_cutting_label)d" type="action" icon="print" title="Print Label"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ingredients" name="ingredients" invisible="mode != 'production'">
+                            <field name="consumption_ids" readonly="1">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="product_id"/>
+                                    <field name="package_id"/>
+                                    <field name="lot_id"/>
+                                    <field name="expiration_date"/>
+                                    <field name="location_id" optional="hide"/>
+                                    <field name="weight" sum="Total"/>
+                                    <field name="uom_id"/>
+                                    <field name="user_id" optional="hide"/>
                                 </list>
                             </field>
                         </page>
@@ -102,12 +131,14 @@
                 <field name="product_id"/>
                 <field name="lot_id"/>
                 <field name="picking_id"/>
+                <field name="package_id"/>
                 <filter name="in_progress" string="In Progress" domain="[('state', '=', 'draft')]"/>
                 <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
                 <separator/>
                 <filter name="date" string="Date" date="date"/>
                 <group>
-                    <filter name="group_product" string="Source Product" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_mode" string="Process" context="{'group_by': 'mode'}"/>
+                    <filter name="group_product" string="Product" context="{'group_by': 'product_id'}"/>
                     <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
                 </group>
             </search>

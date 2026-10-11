@@ -1,0 +1,2399 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* meat_cutting
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-10 13:28+0000\n"
+"PO-Revision-Date: 2026-10-10 13:28+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid ""
+"%(count)s packages (%(weight)s %(uom)s) will be made from %(package)s; the "
+"rest stays in it."
+msgstr ""
+"Se harán %(count)s paquetes (%(weight)s %(uom)s) del paquete %(package)s; el"
+" resto se queda en él."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid ""
+"%(count)s packages of %(product)s (%(weight)s %(uom)s) will be made with "
+"%(ingredients)s ingredients (%(qty)s)."
+msgstr ""
+"Se harán %(count)s paquetes de %(product)s (%(weight)s %(uom)s) con "
+"%(ingredients)s ingredientes (%(qty)s)."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_quant.py:0
+msgid ""
+"%(product)s %(lot)s is reserved for a transfer: unreserve it before freezing"
+" it."
+msgstr ""
+"%(product)s %(lot)s está reservado para un traslado: anule la reserva antes "
+"de congelarlo."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid ""
+"%(session)s is already cutting this lot with %(bom)s. Delete its weighed "
+"cuts to change the cutting method."
+msgstr ""
+"%(session)s ya está despiezando este lote con %(bom)s. Borre sus cortes "
+"pesados para cambiar el método de despiece."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid ""
+"%(session)s is already cutting this package with %(bom)s. Delete its weighed"
+" cuts to change the cutting method."
+msgstr ""
+"%(session)s ya está cortando este paquete con %(bom)s. Borre sus cortes "
+"pesados para cambiar el método de despiece."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "%s has no bill of materials to cut it into pieces."
+msgstr "%s no tiene lista de materiales para despiezarlo."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "%s has no bill of materials."
+msgstr "%s no tiene lista de materiales."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_line.py:0
+#: code:addons/meat_cutting/models/stock_quant.py:0
+msgid "%s has no frozen product."
+msgstr "%s no tiene producto congelado."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_line.py:0
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "%s is not a presentation of this product."
+msgstr "%s no es una presentación de este producto."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "%s is not an ingredient of this product."
+msgstr "%s no es un ingrediente de este producto."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "%s needs a bill of materials."
+msgstr "%s necesita una lista de materiales."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "%s needs a source package."
+msgstr "%s necesita un paquete de origen."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "%s validated."
+msgstr "%s validado."
+
+#. module: meat_cutting
+#: model:ir.actions.report,print_report_name:meat_cutting.action_report_meat_box_label
+msgid "'Box - %s' % object.name"
+msgstr "'Caja - %s' % object.name"
+
+#. module: meat_cutting
+#: model:ir.actions.report,print_report_name:meat_cutting.action_report_picking_meat_box_label
+msgid "'Boxes - %s' % object.name"
+msgstr "'Cajas - %s' % object.name"
+
+#. module: meat_cutting
+#: model:ir.actions.report,print_report_name:meat_cutting.action_report_meat_cutting_label
+msgid "'Label - %s' % object.output_product_id.display_name"
+msgstr "'Etiqueta - %s' % object.output_product_id.display_name"
+
+#. module: meat_cutting
+#: model:ir.actions.report,print_report_name:meat_cutting.action_report_meat_piece_label
+msgid "'Label - %s' % object.product_id.display_name"
+msgstr "'Etiqueta - %s' % object.product_id.display_name"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "(optional)"
+msgstr "(opcional)"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "(whole lot)"
+msgstr "(lote entero)"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "(whole package)"
+msgstr "(paquete entero)"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid ": press to put in the box, again to take out"
+msgstr ": pulse para meter en la caja y otra vez para sacar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid ": type the weight used, or none to use it all"
+msgstr ": escriba el peso usado, o nada para usarlo todo"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.view_production_lot_form_freeze
+msgid "<span class=\"o_stat_text\">Freeze</span>"
+msgstr "<span class=\"o_stat_text\">Congelar</span>"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+msgid "<span class=\"o_stat_text\">Manufacturing Order</span>"
+msgstr "<span class=\"o_stat_text\">Orden de fabricación</span>"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+msgid "<span class=\"o_stat_text\">Unbuild Order</span>"
+msgstr "<span class=\"o_stat_text\">Orden de desmontaje</span>"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "<strong>HALAL</strong>"
+msgstr "<strong>HALAL</strong>"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_package.py:0
+msgid "A GS1 company prefix has from 6 to 12 digits."
+msgstr "Un prefijo de empresa GS1 tiene de 6 a 12 dígitos."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_needaction
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_needaction
+msgid "Action Needed"
+msgstr "Acción requerida"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/wizard/meat_carcass_register.py:0
+msgid "Add at least one carcass."
+msgstr "Añada al menos una canal."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "All box labels"
+msgstr "Todas las etiquetas de caja"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+msgid "All the pieces of %s ordered are already packed."
+msgstr "Todas las piezas pedidas de %s ya están en caja."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_form
+msgid "Animal"
+msgstr "Animal"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_partner_id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_partner_id
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+msgid "Animal Supplier"
+msgstr "Proveedor del animal"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_attachment_count
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_attachment_count
+msgid "Attachment Count"
+msgstr "Número de adjuntos"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Back"
+msgstr "Volver"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_mrp_bom
+msgid "Bill of Material"
+msgstr "Lista de materiales"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__bom_id
+msgid "Bill of Materials"
+msgstr "Lista de materiales"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Bill of materials of"
+msgstr "Lista de materiales de"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__birth_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__birth_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_birth_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_birth_date
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Birth Date"
+msgstr "Fecha de nacimiento"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__bom_line_id
+msgid "BoM Line"
+msgstr "Línea de la lista de materiales"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__birth_country
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__birth_country
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__birth_country
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_birth_country
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_birth_country
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Born In"
+msgstr "Nacido en"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+msgid "Born in"
+msgstr "Nacido en"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Born in:"
+msgstr "Nacido en:"
+
+#. module: meat_cutting
+#: model:ir.actions.report,name:meat_cutting.action_report_meat_box_label
+msgid "Box Label"
+msgstr "Etiqueta de caja"
+
+#. module: meat_cutting
+#: model:ir.actions.report,name:meat_cutting.action_report_picking_meat_box_label
+msgid "Box Labels"
+msgstr "Etiquetas de caja"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Boxes"
+msgstr "Cajas"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__breed
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__breed
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_breed
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_breed
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Breed"
+msgstr "Raza"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__can_freeze
+msgid "Can Freeze"
+msgstr "Se puede congelar"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__can_meat_freeze
+msgid "Can Meat Freeze"
+msgstr "Se puede congelar"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_carcass_register_view_form
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: meat_cutting
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_cutting_session__state__cancel
+msgid "Cancelled"
+msgstr "Cancelada"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_meat_carcass_register_line
+msgid "Carcass to Register"
+msgstr "Canal a registrar"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__line_ids
+msgid "Carcasses"
+msgstr "Canales"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Change"
+msgstr "Cambiar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+msgid ""
+"Changes only apply to the label of this cut; the crotal is not modified.\n"
+"                    An emptied text is not printed."
+msgstr ""
+"Los cambios solo afectan a la etiqueta de este corte; el crotal no se modifica.\n"
+"                    Un texto vaciado no se imprime."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__supplier_city
+msgid "City"
+msgstr "Ciudad"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Clear"
+msgstr "Borrar"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__company_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__company_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__company_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__company_id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_carcass_register_view_form
+msgid "Confirm"
+msgstr "Confirmar"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__consumed_qty
+msgid "Consumed Quantity"
+msgstr "Cantidad consumida"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__create_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__create_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__create_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__create_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__create_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__create_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__create_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__create_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__create_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__create_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+#: model:ir.model,name:meat_cutting.model_stock_crotal
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__name
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__crotal_id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_id
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+msgid "Crotal"
+msgstr "Crotal"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Crotal:"
+msgstr "Crotal:"
+
+#. module: meat_cutting
+#: model:ir.actions.act_window,name:meat_cutting.stock_crotal_action
+#: model:ir.ui.menu,name:meat_cutting.meat_cutting_menu_crotal
+msgid "Crotals"
+msgstr "Crotales"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__product_id
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_line_view_search
+msgid "Cut"
+msgstr "Corte"
+
+#. module: meat_cutting
+#: model:ir.actions.report,name:meat_cutting.action_report_meat_cutting_label
+msgid "Cut Label"
+msgstr "Etiqueta de corte"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Cut a package in stock again"
+msgstr "Cortar otra vez un paquete en stock"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Cut the received carcasses"
+msgstr "Despiezar las canales recibidas"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__line_ids
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+msgid "Cuts"
+msgstr "Cortes"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__output_lot_name
+msgid "Cuts Lot"
+msgstr "Lote de los cortes"
+
+#. module: meat_cutting
+#. odoo-javascript
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_cutting_session__mode__cutting
+#: model:ir.model.fields.selection,name:meat_cutting.selection__mrp_bom__meat_use__cutting
+msgid "Cutting"
+msgstr "Corte"
+
+#. module: meat_cutting
+#: model:ir.actions.client,name:meat_cutting.meat_cutting_screen_action
+#: model:ir.ui.menu,name:meat_cutting.meat_cutting_menu_screen
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+#: model_terms:ir.ui.view,arch_db:meat_cutting.view_picking_form
+msgid "Cutting Screen"
+msgstr "Pantalla de despiece"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_mrp_unbuild__cutting_session_id
+msgid "Cutting Session"
+msgstr "Sesión de despiece"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_picking__cutting_session_count
+msgid "Cutting Session Count"
+msgstr "Número de sesiones de despiece"
+
+#. module: meat_cutting
+#: model:ir.actions.act_window,name:meat_cutting.meat_cutting_session_action
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_picking__cutting_session_ids
+#: model:ir.ui.menu,name:meat_cutting.meat_cutting_menu_session
+msgid "Cutting Sessions"
+msgstr "Sesiones de despiece"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_mrp_bom__meat_use
+msgid ""
+"Cutting: a cutting method of the product (carcass or piece), whose components are its cuts, used in reverse on the cutting screen.\n"
+"Production: a recipe made on the production screen, e.g. sausages, from weighed ingredient packages."
+msgstr ""
+"Corte: un método de despiece del producto (canal o pieza), cuyos componentes son sus cortes, que se usa a la inversa en la pantalla de despiece.\n"
+"Elaboración: una receta que se hace en la pantalla, por ejemplo embutidos, con paquetes de ingredientes pesados."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.view_picking_form
+msgid "Cuttings"
+msgstr "Despieces"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__date
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_line_view_search
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_search
+msgid "Date"
+msgstr "Fecha"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_line_view_search
+msgid "Day"
+msgstr "Día"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__default_product_id
+msgid "Default Product"
+msgstr "Producto por defecto"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_carcass_register__birth_country
+#: model:ir.model.fields,help:meat_cutting.field_meat_carcass_register__halal
+#: model:ir.model.fields,help:meat_cutting.field_meat_carcass_register__reared_country
+msgid "Default of the carcasses."
+msgstr "Valor por defecto de las canales."
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__freeze
+msgid ""
+"Default of the new cuts: produce their frozen product instead of the fresh "
+"one."
+msgstr ""
+"Valor por defecto de los nuevos cortes: producir su producto congelado en "
+"lugar del fresco."
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_carcass_register_line__uom_id
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_consumption__uom_id
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_line__uom_id
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__uom_id
+msgid "Default unit of measure used for all stock operations."
+msgstr "Unidad de medida por defecto para todas las operaciones de stock."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_carcass_register_view_form
+msgid "Defaults of the carcasses"
+msgstr "Valores por defecto de las canales"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Delete"
+msgstr "Borrar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Delete %(weight)s %(uom)s of %(product)s?"
+msgstr "¿Borrar %(weight)s %(uom)s de %(product)s?"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Deliveries"
+msgstr "Entregas"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Delivery %s validated."
+msgstr "Entrega %s validada."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Delivery or customer; scan a package"
+msgstr "Entrega o cliente; escanee un paquete"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Delivery to pack"
+msgstr "Entrega a empaquetar"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Delivery:"
+msgstr "Albarán:"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__location_dest_id
+msgid "Destination Location"
+msgstr "Ubicación de destino"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Details"
+msgstr "Detalles"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+msgid "Discard"
+msgstr "Descartar"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_mrp_bom__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_mrp_unbuild__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_product_template__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_move__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_move_line__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_package__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_package_type__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_picking__display_name
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__display_name
+msgid "Display Name"
+msgstr "Nombre para mostrar"
+
+#. module: meat_cutting
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_cutting_session__state__done
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_search
+msgid "Done"
+msgstr "Hecha"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+msgid "Edit label"
+msgstr "Editar etiqueta"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_custom
+msgid "Edited Label"
+msgstr "Etiqueta editada"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Enter a weight greater than zero."
+msgstr "Introduzca un peso mayor que cero."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Enter the weight before selecting the cut."
+msgstr "Introduzca el peso antes de elegir el corte."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/wizard/meat_carcass_register.py:0
+msgid "Enter the weight of the carcass %s."
+msgstr "Introduzca el peso de la canal %s."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__expiration_date
+msgid "Expiration Date"
+msgstr "Fecha de caducidad"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Expires"
+msgstr "Caduca"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Expiry"
+msgstr "Caducidad"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Expiry date:"
+msgstr "Fecha de caducidad:"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Family"
+msgstr "Familia"
+
+#. module: meat_cutting
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_carcass_register_line__sex__female
+#: model:ir.model.fields.selection,name:meat_cutting.selection__stock_crotal__sex__female
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Female"
+msgstr "Hembra"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Finish"
+msgstr "Terminar"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_follower_ids
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_follower_ids
+msgid "Followers"
+msgstr "Seguidores"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_partner_ids
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Seguidores (contactos)"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: model:ir.actions.server,name:meat_cutting.action_server_quant_meat_freeze
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__freeze
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__freeze
+msgid "Freeze"
+msgstr "Congelar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Freeze the new cuts by default"
+msgstr "Congelar por defecto los nuevos cortes"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.view_production_lot_form_freeze
+msgid ""
+"Freeze the whole stock of this lot? It becomes the frozen product, with the "
+"frozen shelf life from today."
+msgstr ""
+"¿Congelar todo el stock de este lote? Pasa a ser el producto congelado, con "
+"la caducidad del congelado desde hoy."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Freezing date:"
+msgstr "Fecha de congelación:"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_quant.py:0
+msgid "Freezing of %s"
+msgstr "Congelación de %s"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Frozen"
+msgstr "Congelado"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_product_product__frozen_product_id
+#: model:ir.model.fields,field_description:meat_cutting.field_product_template__frozen_product_id
+msgid "Frozen Product"
+msgstr "Producto congelado"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_stock_package_type__meat_sscc_prefix
+msgid ""
+"GS1 company prefix: the packages of this type are named with a SSCC (Serial "
+"Shipping Container Code) built from it, printed as a GS1-128 (00) barcode on"
+" their box label."
+msgstr ""
+"Prefijo de empresa GS1: los paquetes de este tipo se nombran con un SSCC "
+"(código seriado de unidad de envío) construido a partir de él, que se "
+"imprime como código de barras GS1-128 (00) en su etiqueta de caja."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "HALAL"
+msgstr "HALAL"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__halal
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__halal
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__halal
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_halal
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_halal
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Halal"
+msgstr "Halal"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__halal_certificate
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__halal_certificate
+msgid "Halal Certificate"
+msgstr "Certificado halal"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__halal_certifier
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__halal_certifier
+msgid "Halal Certifier"
+msgstr "Certificador halal"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_product_product__meat_piece
+#: model:ir.model.fields,help:meat_cutting.field_product_template__meat_piece
+msgid ""
+"Handled in whole pieces of variable weight. Each weighing of the cutting "
+"screen is one piece, put in its own package, and each carcass registered on "
+"receipt is one piece (its lot). A piece received or delivered counts as one "
+"piece whatever its weight."
+msgstr ""
+"Se maneja en piezas enteras de peso variable. Cada pesada de la pantalla de "
+"despiece es una pieza, en su propio paquete, y cada canal registrada en la "
+"recepción es una pieza (su lote). Una pieza recibida o entregada cuenta como"
+" una pieza pese lo que pese."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__has_message
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__has_message
+msgid "Has Message"
+msgstr "Tiene mensaje"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_stock_package__meat_presentation_id
+msgid "How the product of the package was prepared."
+msgstr "Cómo se preparó el producto del paquete."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__id
+#: model:ir.model.fields,field_description:meat_cutting.field_mrp_bom__id
+#: model:ir.model.fields,field_description:meat_cutting.field_mrp_unbuild__id
+#: model:ir.model.fields,field_description:meat_cutting.field_product_template__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_move__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_move_line__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_package__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_package_type__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_picking__id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__id
+msgid "ID"
+msgstr "ID"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__message_needaction
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si está marcado, hay nuevos mensajes que requieren su atención."
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__message_has_error
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__message_has_sms_error
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__message_has_error
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si está marcado, algunos mensajes tienen un error de entrega."
+
+#. module: meat_cutting
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_cutting_session__state__draft
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_search
+msgid "In Progress"
+msgstr "En curso"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__product_id
+msgid "Ingredient"
+msgstr "Ingrediente"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__consumption_ids
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+msgid "Ingredients"
+msgstr "Ingredientes"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Ingredients are only weighed in production."
+msgstr "Los ingredientes solo se pesan en las elaboraciones."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_is_follower
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_is_follower
+msgid "Is Follower"
+msgstr "Es seguidor"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Keep at -18 °C or below. Do not refreeze once thawed."
+msgstr ""
+"Conservar a -18 °C o menos. No volver a congelar una vez descongelado."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Keypad"
+msgstr "Teclado"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__label
+msgid "Label"
+msgstr "Etiqueta"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_birth_country
+msgid "Label Born In"
+msgstr "Etiqueta: nacido en"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__label_report_id
+msgid "Label Format"
+msgstr "Formato de etiqueta"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_note
+msgid "Label Note"
+msgstr "Etiqueta: nota"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_origin
+msgid "Label Origin"
+msgstr "Etiqueta: origen"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_product_name
+msgid "Label Product"
+msgstr "Etiqueta: producto"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_reared_country
+msgid "Label Reared In"
+msgstr "Etiqueta: engordado en"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_slaughter_date
+msgid "Label Slaughter Date"
+msgstr "Etiqueta: fecha de sacrificio"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__label_supplier
+msgid "Label Supplier"
+msgstr "Etiqueta: proveedor"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Label format"
+msgstr "Formato de etiqueta"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__write_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__write_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__write_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__write_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__write_uid
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__write_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__write_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__write_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__write_date
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__write_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__location_id
+msgid "Location"
+msgstr "Ubicación"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__lot_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__lot_name
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__lot_id
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Lot"
+msgstr "Lote"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Lot %(source)s is already being cut in %(session)s."
+msgstr "El lote %(source)s ya se está despiezando en %(session)s."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__lot_count
+msgid "Lot Count"
+msgstr "Número de lotes"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Lot of"
+msgstr "Lote de"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_stock_lot
+msgid "Lot/Serial"
+msgstr "Lote/serie"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Lot:"
+msgstr "Lote:"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__lot_ids
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_form
+msgid "Lots"
+msgstr "Lotes"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid ""
+"Lots will be created for %(count)s cuts (%(weight)s) and %(qty)s %(uom)s of "
+"%(product)s will be consumed."
+msgstr ""
+"Se crearán lotes para %(count)s cortes (%(weight)s) y se consumirán %(qty)s "
+"%(uom)s de %(product)s."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Make a product from ingredients"
+msgstr "Elaborar un producto con ingredientes"
+
+#. module: meat_cutting
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_carcass_register_line__sex__male
+#: model:ir.model.fields.selection,name:meat_cutting.selection__stock_crotal__sex__male
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Male"
+msgstr "Macho"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__production_id
+msgid "Manufacturing Order"
+msgstr "Orden de fabricación"
+
+#. module: meat_cutting
+#: model:ir.module.module,shortdesc:base.module_meat_cutting
+#: model:ir.ui.menu,name:meat_cutting.meat_cutting_menu_root
+msgid "Meat Cutting"
+msgstr "Despiece cárnico"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_meat_cutting_consumption
+msgid "Meat Cutting Ingredient"
+msgstr "Ingrediente de despiece cárnico"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_meat_cutting_line
+msgid "Meat Cutting Line"
+msgstr "Línea de despiece cárnico"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_meat_cutting_session
+msgid "Meat Cutting Session"
+msgstr "Sesión de despiece cárnico"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_mrp_bom__meat_use
+msgid "Meat Use"
+msgstr "Uso cárnico"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_has_error
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_has_error
+msgid "Message Delivery error"
+msgstr "Error de entrega del mensaje"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_ids
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_ids
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__mode
+msgid "Mode"
+msgstr "Proceso"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Net weight:"
+msgstr "Peso neto:"
+
+#. module: meat_cutting
+#. odoo-javascript
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "New"
+msgstr "Nuevo"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "New box"
+msgstr "Nueva caja"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "New package"
+msgstr "Nuevo paquete"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Next presentation"
+msgstr "Siguiente presentación"
+
+#. module: meat_cutting
+#: model_terms:ir.actions.act_window,help:meat_cutting.meat_cutting_session_action
+msgid "No cutting session yet"
+msgstr "Aún no hay sesiones de despiece"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "No delivery with reserved products."
+msgstr "No hay entregas con productos reservados."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+msgid "No package %s."
+msgstr "No existe el paquete %s."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "No package in stock with a cutting bill of materials."
+msgstr "No hay paquetes en stock con lista de materiales de corte."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "No package in stock."
+msgstr "No hay paquetes en stock."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "No presentation"
+msgstr "Sin presentación"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "No product in stock with a bill of materials."
+msgstr "No hay productos en stock con lista de materiales."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "No product with a production bill of materials."
+msgstr "No hay productos con lista de materiales de elaboración."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "No stock left."
+msgstr "No queda stock."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Not Halal"
+msgstr "No halal"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+msgid "Note"
+msgstr "Nota"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Nothing matches \""
+msgstr "Nada coincide con \""
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Nothing reserved."
+msgstr "No hay nada reservado."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_needaction_counter
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Número de acciones"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_has_error_counter
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_has_error_counter
+msgid "Number of errors"
+msgstr "Número de errores"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__message_needaction_counter
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Número de mensajes que requieren una acción"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__message_has_error_counter
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Número de mensajes con error de entrega"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__notes
+msgid "Observations"
+msgstr "Observaciones"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Only %(qty)s %(uom)s of %(product)s are left in %(source)s."
+msgstr "Solo quedan %(qty)s %(uom)s de %(product)s en %(source)s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Only %(qty)s %(uom)s of %(product)s are left there."
+msgstr "Solo quedan %(qty)s %(uom)s de %(product)s ahí."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Only cutting sessions in progress can be validated."
+msgstr "Solo se pueden validar las sesiones en curso."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Only packages are cut or prepared."
+msgstr "Solo se cortan o preparan paquetes."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+msgid "Open a box first."
+msgstr "Abra primero una caja."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Open a box, then press the pieces or scan them."
+msgstr "Abra una caja y pulse las piezas o escanéelas."
+
+#. module: meat_cutting
+#: model_terms:ir.actions.act_window,help:meat_cutting.meat_cutting_session_action
+msgid "Open the cutting screen to weigh and label the cuts of a carcass."
+msgstr ""
+"Abra la pantalla de despiece para pesar y etiquetar los cortes de una canal."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__user_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__user_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__user_id
+msgid "Operator"
+msgstr "Operario"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__slaughter_order
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__slaughter_order
+msgid "Order"
+msgstr "Orden"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Order:"
+msgstr "Pedido:"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Ordered"
+msgstr "Pedido"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+msgid "Origin"
+msgstr "Origen"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+msgid "Origin:"
+msgstr "Origen:"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_stock_package
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__package_id
+msgid "Package"
+msgstr "Paquete"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Package %(package)s has no %(product)s."
+msgstr "El paquete %(package)s no tiene %(product)s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+msgid "Package %(package)s has no product of %(picking)s."
+msgstr "El paquete %(package)s no tiene ningún producto de %(picking)s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Package %(package)s is already open in %(session)s."
+msgstr "El paquete %(package)s ya está abierto en %(session)s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Package %(source)s is already being cut or prepared in %(session)s."
+msgstr ""
+"El paquete %(source)s ya se está cortando o preparando en %(session)s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+msgid "Package %s is reserved for another transfer."
+msgstr "El paquete %s está reservado para otro traslado."
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__package_id
+msgid "Package in stock that is cut or prepared."
+msgstr "Paquete en stock que se corta o se prepara."
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_stock_package__meat_piece
+msgid "Package of a single piece, weighed when cut."
+msgstr "Paquete de una sola pieza, pesada al cortarla."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Package to cut"
+msgstr "Paquete a cortar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Package to prepare"
+msgstr "Paquete a preparar"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Packed:"
+msgstr "Envasado:"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Packing"
+msgstr "Empaquetar"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__package_id
+msgid "Piece"
+msgstr "Pieza"
+
+#. module: meat_cutting
+#: model:ir.actions.report,name:meat_cutting.action_report_meat_piece_label
+msgid "Piece Label"
+msgstr "Etiqueta de pieza"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Piece:"
+msgstr "Pieza:"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Pieces"
+msgstr "Piezas"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_cutting_session__mode__preparation
+msgid "Preparation"
+msgstr "Preparación"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Prepared"
+msgstr "Preparado"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__presentation_id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_package__meat_presentation_id
+msgid "Presentation"
+msgstr "Presentación"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+msgid "Print Label"
+msgstr "Imprimir etiqueta"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Print box label"
+msgstr "Imprimir etiqueta de caja"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Print label"
+msgstr "Imprimir etiqueta"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_search
+msgid "Process"
+msgstr "Proceso"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Produce the frozen product"
+msgstr "Producir el producto congelado"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_line__freeze
+msgid "Produce the frozen product of the cut instead of the fresh one."
+msgstr "Producir el producto congelado del corte en lugar del fresco."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__output_product_id
+msgid "Produced Product"
+msgstr "Producto producido"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+#: model:ir.model,name:meat_cutting.model_product_template
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__product_ids
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__product_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__product_id
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__product_id
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_search
+msgid "Product"
+msgstr "Producto"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_stock_move_line
+msgid "Product Moves (Stock Move Line)"
+msgstr "Movimientos de producto (línea de movimiento de stock)"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_line__source_product_id
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__product_id
+msgid "Product cut or prepared, or the product made in production."
+msgstr "Producto cortado o preparado, o el producto hecho en la elaboración."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Product made"
+msgstr "Producto elaborado"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Product to cut"
+msgstr "Producto a despiezar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Product to make"
+msgstr "Producto a elaborar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Product, package, lot or crotal"
+msgstr "Producto, paquete, lote o crotal"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_cutting_session__mode__production
+#: model:ir.model.fields.selection,name:meat_cutting.selection__mrp_bom__meat_use__production
+msgid "Production"
+msgstr "Elaboración"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Production date:"
+msgstr "Fecha de elaboración:"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Put the pieces of a delivery in boxes"
+msgstr "Meter en cajas las piezas de una entrega"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__quality
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__quality
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_quality
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_quality
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Quality"
+msgstr "Calidad"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_stock_quant
+msgid "Quant"
+msgstr "Quant"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Quantity"
+msgstr "Cantidad"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__consumed_qty
+msgid ""
+"Quantity of the source product consumed when the session was validated."
+msgstr "Cantidad del producto de origen consumida al validar la sesión."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__reared_country
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__reared_country
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__reared_country
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_reared_country
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_reared_country
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Reared In"
+msgstr "Engordado en"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+msgid "Reared in"
+msgstr "Engordado en"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Reared in:"
+msgstr "Engordado en:"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__picking_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__picking_id
+msgid "Receipt"
+msgstr "Recepción"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Receipt, product, lot or crotal"
+msgstr "Recepción, producto, lote o crotal"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: model:ir.model.fields.selection,name:meat_cutting.selection__meat_cutting_session__mode__receipt
+msgid "Receipts"
+msgstr "Entradas"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__name
+msgid "Reference"
+msgstr "Referencia"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__register_id
+msgid "Register"
+msgstr "Registrar"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+#: model:ir.model,name:meat_cutting.model_meat_carcass_register
+#: model_terms:ir.ui.view,arch_db:meat_cutting.view_picking_form
+msgid "Register Carcasses"
+msgstr "Registrar canales"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Reserved"
+msgstr "Reservado"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+msgid "Restore"
+msgstr "Restaurar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+msgid "Restore all"
+msgstr "Restaurar todo"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__message_has_sms_error
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Error de entrega del SMS"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_package_type__meat_sscc_prefix
+msgid "SSCC Company Prefix"
+msgstr "Prefijo de empresa SSCC"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_product_product__frozen_product_id
+#: model:ir.model.fields,help:meat_cutting.field_product_template__frozen_product_id
+msgid ""
+"Same cut sold frozen, with its own price and expiration dates. The cutting "
+"screen produces it instead of this product when the cut is marked to freeze."
+msgstr ""
+"El mismo corte vendido congelado, con su propio precio y caducidad. La "
+"pantalla de despiece lo produce en lugar de este producto cuando el corte se"
+" marca para congelar."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+msgid "Save"
+msgstr "Guardar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+msgid "Save & print"
+msgstr "Guardar e imprimir"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_quant.py:0
+msgid "Select fresh stock to freeze."
+msgstr "Seleccione stock fresco para congelar."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Select the lot of %s before validating."
+msgstr "Seleccione el lote de %s antes de validar."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_quant.py:0
+msgid "Select the lot of %s to freeze it."
+msgstr "Seleccione el lote de %s para congelarlo."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Select the lot of %s."
+msgstr "Seleccione el lote de %s."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__session_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__session_id
+msgid "Session"
+msgstr "Sesión"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__sex
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__sex
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_sex
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_sex
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Sex"
+msgstr "Sexo"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_carcass_register_view_form
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_form
+msgid "Slaughter"
+msgstr "Sacrificio"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__slaughter_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__slaughter_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_lot__crotal_slaughter_date
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_quant__crotal_slaughter_date
+#: model_terms:ir.ui.view,arch_db:meat_cutting.quant_search_view
+#: model_terms:ir.ui.view,arch_db:meat_cutting.search_product_lot_filter
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Slaughter Date"
+msgstr "Fecha de sacrificio"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+msgid "Slaughtered"
+msgstr "Sacrificado"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Slaughtered:"
+msgstr "Sacrificado:"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__partner_id
+msgid "Slaughterhouse"
+msgstr "Matadero"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_carcass_register__slaughter_order
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__slaughter_order
+msgid "Slaughterhouse reference."
+msgstr "Referencia del matadero."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__location_id
+msgid "Source Location"
+msgstr "Ubicación de origen"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__package_id
+msgid "Source Package"
+msgstr "Paquete de origen"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__source_product_id
+msgid "Source Product"
+msgstr "Producto de origen"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Split a package with a presentation"
+msgstr "Dividir un paquete con una presentación"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__state
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__state
+msgid "State"
+msgstr "Estado"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_search
+msgid "Status"
+msgstr "Estado"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_stock_move
+msgid "Stock Move"
+msgstr "Movimiento de stock"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Stock of"
+msgstr "Stock de"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_stock_package_type
+msgid "Stock package type"
+msgstr "Tipo de paquete de stock"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__partner_id
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_search
+msgid "Supplier"
+msgstr "Proveedor"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register__supplier_health_code
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__supplier_health_code
+msgid "Supplier Health ID"
+msgstr "Registro sanitario del proveedor"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_cutting_label
+#: model_terms:ir.ui.view,arch_db:meat_cutting.report_meat_piece_label
+msgid "Supplier:"
+msgstr "Proveedor:"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_crotal__supplier_vat
+msgid "Tax ID"
+msgstr "NIF"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__tracking
+msgid ""
+"Technical field holding the tracking method. False on a storable product "
+"means it's tracked by quantity only."
+msgstr ""
+"Campo técnico con el método de seguimiento. Falso en un producto almacenable"
+" significa que solo se sigue por cantidad."
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__halal
+#: model:ir.model.fields,help:meat_cutting.field_stock_lot__crotal_halal
+#: model:ir.model.fields,help:meat_cutting.field_stock_quant__crotal_halal
+msgid "The animal was slaughtered following the halal rite."
+msgstr "El animal se sacrificó según el rito halal."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/wizard/meat_carcass_register.py:0
+msgid "The crotal %s has already been received."
+msgstr "El crotal %s ya se ha recibido."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/wizard/meat_carcass_register.py:0
+msgid "The crotal %s is repeated."
+msgstr "El crotal %s está repetido."
+
+#. module: meat_cutting
+#: model:ir.model.constraint,message:meat_cutting.constraint_stock_crotal_name_company_uniq
+msgid "The crotal must be unique per company."
+msgstr "El crotal debe ser único por compañía."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "The manufacturing order %s could not be done."
+msgstr "No se ha podido terminar la orden de fabricación %s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid ""
+"The prepared packages weigh more than package %(package)s (%(qty)s %(uom)s)."
+msgstr ""
+"Los paquetes preparados pesan más que el paquete %(package)s (%(qty)s "
+"%(uom)s)."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/wizard/meat_carcass_register.py:0
+msgid "The receipt %(picking)s does not receive %(product)s."
+msgstr "La recepción %(picking)s no recibe %(product)s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/wizard/meat_carcass_register.py:0
+msgid "The receipt %s is already done or cancelled."
+msgstr "La recepción %s ya está hecha o cancelada."
+
+#. module: meat_cutting
+#: model:ir.model.constraint,message:meat_cutting.constraint_meat_cutting_consumption_weight_positive
+#: model:ir.model.constraint,message:meat_cutting.constraint_meat_cutting_line_weight_positive
+msgid "The weight must be positive."
+msgstr "El peso debe ser positivo."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "There is no stock of %(product)s left in %(location)s."
+msgstr "No queda stock de %(product)s en %(location)s."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.xml:0
+msgid ""
+"These data carry the traceability and the barcode of the cut: they cannot be"
+" edited."
+msgstr ""
+"Estos datos llevan la trazabilidad y el código de barras del corte: no se "
+"pueden editar."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "This bill of materials does not cut %s."
+msgstr "Esta lista de materiales no despieza %s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "This bill of materials does not make %s."
+msgstr "Esta lista de materiales no elabora %s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "This cut does not belong to the bill of materials of the session."
+msgstr "Este corte no pertenece a la lista de materiales de la sesión."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_line.py:0
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "This cutting session is already closed."
+msgstr "Esta sesión ya está cerrada."
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_consumption__expiration_date
+msgid ""
+"This is the date on which the goods with this Serial Number may become "
+"dangerous and must not be consumed."
+msgstr ""
+"Fecha a partir de la cual los productos con este número de serie pueden ser "
+"peligrosos y no deben consumirse."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/stock_picking.py:0
+msgid "This line is not in %s anymore."
+msgstr "Esta línea ya no está en %s."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "This report is not a label format of the cuts."
+msgstr "Este informe no es un formato de etiqueta de los cortes."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_line_view_list
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_list
+msgid "Total"
+msgstr "Total"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__total_weight
+msgid "Total Weight"
+msgstr "Peso total"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__tracking
+msgid "Tracking Method"
+msgstr "Método de seguimiento"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_stock_picking
+msgid "Transfer"
+msgstr "Traslado"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Type the weight and press a cut."
+msgstr "Escriba el peso y pulse un corte."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Type the weight and press the product."
+msgstr "Escriba el peso y pulse el producto."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Type the weight and press to pack"
+msgstr "Escriba el peso y pulse para empaquetar"
+
+#. module: meat_cutting
+#: model:ir.model,name:meat_cutting.model_mrp_unbuild
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__unbuild_id
+msgid "Unbuild Order"
+msgstr "Orden de desmontaje"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_stock_crotal__name
+msgid "Unique identifier of the source animal."
+msgstr "Identificador único del animal de origen."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__uom_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__uom_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__uom_id
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__uom_id
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_carcass_register_view_form
+msgid "Unit"
+msgstr "Unidad"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "Use before:"
+msgstr "Consumir antes de:"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Used"
+msgstr "Usado"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_cutting_session_view_form
+msgid "Validate"
+msgstr "Validar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Validate delivery"
+msgstr "Validar entrega"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Weigh at least one cut before validating."
+msgstr "Pese al menos un corte antes de validar."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "Weigh at least one ingredient before validating."
+msgstr "Pese al menos un ingrediente antes de validar."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Weighed"
+msgstr "Pesado"
+
+#. module: meat_cutting
+#: model:ir.actions.act_window,name:meat_cutting.meat_cutting_line_action
+#: model:ir.ui.menu,name:meat_cutting.meat_cutting_menu_line
+msgid "Weighed Cuts"
+msgstr "Cortes pesados"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_carcass_register_line__weight
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_consumption__weight
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_line__weight
+msgid "Weight"
+msgstr "Peso"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_stock_package__meat_piece
+msgid "Whole Piece"
+msgstr "Pieza entera"
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_product_product__meat_piece
+#: model:ir.model.fields,field_description:meat_cutting.field_product_template__meat_piece
+msgid "Whole Pieces"
+msgstr "Piezas completas"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "You cannot cancel a validated cutting session."
+msgstr "No se puede cancelar una sesión validada."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "You cannot delete a validated cutting session."
+msgstr "No se puede borrar una sesión validada."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_consumption.py:0
+msgid "You cannot delete ingredients of a validated production."
+msgstr "No se pueden borrar ingredientes de una elaboración validada."
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_line.py:0
+msgid "You cannot delete lines of a validated cutting session."
+msgstr "No se pueden borrar líneas de una sesión validada."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "components"
+msgstr "componentes"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_package_type_form
+msgid "e.g. 8437000"
+msgstr "p. ej. 8437000"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_carcass_register_view_form
+#: model_terms:ir.ui.view,arch_db:meat_cutting.stock_crotal_view_form
+msgid "e.g. ES041234567890"
+msgstr "p. ej. ES041234567890"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/label_edit_dialog.js:0
+msgid "e.g. Keep between 0 and 4 °C"
+msgstr "p. ej. Conservar entre 0 y 4 °C"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "in stock"
+msgstr "en stock"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "is validated."
+msgstr "está validada."
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "kg"
+msgstr "kg"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "line(s) ·"
+msgstr "línea(s) ·"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "lot(s)"
+msgstr "lote(s)"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "packed"
+msgstr "en caja"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "pcs ·"
+msgstr "pzs ·"
+
+#. module: meat_cutting
+#: model_terms:ir.ui.view,arch_db:meat_cutting.meat_box_label
+msgid "pieces"
+msgstr "piezas"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "press to change"
+msgstr "pulse para cambiar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "product(s)"
+msgstr "producto(s)"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "recipe(s)"
+msgstr "receta(s)"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "used ·"
+msgstr "usado ·"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· Available"
+msgstr "· Disponible"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· Consumes"
+msgstr "· Consume"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· Expires"
+msgstr "· Caduca"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· Left in the package"
+msgstr "· Queda en el paquete"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· Lot"
+msgstr "· Lote"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· Made"
+msgstr "· Elaborado"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· New lot"
+msgstr "· Lote nuevo"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· Slaughtered"
+msgstr "· Sacrificado"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "· whole pieces"
+msgstr "· piezas enteras"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Scan or type a package"
+msgstr "Escanee o escriba un paquete"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "How much do you make?"
+msgstr "¿Cuánto vas a elaborar?"
+
+#. module: meat_cutting
+#: model:ir.model.fields,help:meat_cutting.field_meat_cutting_session__production_qty
+msgid ""
+"Production: quantity planned, from which the quantity of each ingredient is "
+"recommended."
+msgstr ""
+"Elaboración: cantidad prevista, a partir de la cual se recomienda la "
+"cantidad de cada ingrediente."
+
+#. module: meat_cutting
+#: model:ir.model.fields,field_description:meat_cutting.field_meat_cutting_session__production_qty
+msgid "Quantity to Make"
+msgstr "Cantidad a elaborar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Recommended"
+msgstr "Recomendado"
+
+#. module: meat_cutting
+#. odoo-python
+#: code:addons/meat_cutting/models/meat_cutting_session.py:0
+msgid "The quantity to make is only set in production."
+msgstr "La cantidad a elaborar solo se indica en elaboración."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "To make"
+msgstr "A elaborar"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Type the quantity to make and press here"
+msgstr "Escriba la cantidad a elaborar y pulse aquí"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "Type the quantity to make, then press here."
+msgstr "Escriba la cantidad a elaborar y pulse aquí."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "add"
+msgstr "faltan"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "complete"
+msgstr "completo"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Scan or type a package or lot"
+msgstr "Escanee o escriba un paquete o lote"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.js:0
+msgid "No package matches."
+msgstr "Ningún paquete coincide."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Press an ingredient, then its package, or scan a package."
+msgstr "Pulse un ingrediente y luego su paquete, o escanee un paquete."
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid "Packages found"
+msgstr "Paquetes encontrados"
+
+#. module: meat_cutting
+#. odoo-javascript
+#: code:addons/meat_cutting/static/src/cutting_screen/cutting_screen.xml:0
+msgid ""
+"No package of this ingredient matches: press Enter to look in all the "
+"ingredients."
+msgstr ""
+"Ningún paquete de este ingrediente coincide: pulse Intro para buscar en "
+"todos los ingredientes."
