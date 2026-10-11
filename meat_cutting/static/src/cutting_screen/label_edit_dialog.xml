@@ -5,7 +5,8 @@
         <Dialog title="this.title" size="'md'">
             <div t-if="this.state.data" class="o_meat_cutting_label_dialog">
                 <div class="alert alert-light d-flex flex-wrap gap-3 mb-3 py-2">
-                    <span>Lot <strong t-out="this.state.data.lot_name"/></span>
+                    <span t-if="this.state.data.lot_name">Lot <strong t-out="this.state.data.lot_name"/></span>
+                    <span t-elif="this.state.data.package_name"><strong t-out="this.state.data.package_name"/></span>
                     <span t-if="this.state.data.crotal_name">Crotal <strong t-out="this.state.data.crotal_name"/></span>
                     <span><strong t-out="this.weight"/> <t t-out="this.state.data.uom_name"/></span>
                     <span class="text-muted small w-100">These data carry the traceability and the barcode of the cut: they cannot be edited.</span>

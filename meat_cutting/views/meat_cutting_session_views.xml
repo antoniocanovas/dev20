@@ -201,9 +201,11 @@
     <record id="meat_cutting_screen_action" model="ir.actions.client">
         <field name="name">Cutting Screen</field>
         <field name="tag">meat_cutting_screen</field>
+        <!-- Also the start of the app installed on the tablet (PWA) -->
+        <field name="path">meat-cutting</field>
     </record>
 
-    <menuitem id="meat_cutting_menu_root" name="Meat Cutting" web_icon="mrp,static/description/icon.png"
+    <menuitem id="meat_cutting_menu_root" name="Meat Cutting" web_icon="meat_cutting,static/description/icon.png"
               groups="mrp.group_mrp_user" sequence="56">
         <menuitem id="meat_cutting_menu_screen" action="meat_cutting_screen_action" sequence="10"/>
         <menuitem id="meat_cutting_menu_session" action="meat_cutting_session_action" sequence="20"/>

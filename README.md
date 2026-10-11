@@ -12,7 +12,7 @@ Funcionan en Odoo 20 Community; no requieren Enterprise.
 
 | Módulo | Depende de | Qué aporta |
 |---|---|---|
-| `meat_cutting` | `mrp`, `product_expiry` | Crotales, registro de canales en la recepción, pantalla de fábrica (despiece de canales, segundo corte, preparación con presentación, elaborados y cajas), etiquetas GS1-128, piezas en paquetes, fresco y congelado, etiqueta de caja con SSCC, recepciones y entregas por pieza (reserva de piezas enteras, sin pedidos pendientes) |
+| `meat_cutting` | `mrp`, `product_expiry`, `barcodes` | Crotales, registro de canales en la recepción, pantalla de fábrica (despiece de canales, segundo corte, preparación con presentación, elaborados, cajas y reimpresión de etiquetas, con menú principal e instalable como aplicación), etiquetas GS1-128, piezas en paquetes, fresco y congelado, etiqueta de caja con SSCC, recepciones y entregas por pieza (reserva de piezas enteras, sin pedidos pendientes) |
 | `meat_cutting_sale` | `meat_cutting`, `sale_stock` | Factura en kg reales a precio por kilo las líneas vendidas en piezas. Se instala solo cuando están los dos módulos |
 | `meat_cutting_purchase` | `meat_cutting`, `purchase_stock` | Factura en kg reales a precio por kilo las canales compradas por número. Se instala solo cuando están los dos módulos |
 | `meat_cutting_demo` | `meat_cutting_sale`, `meat_cutting_purchase`, `sale_management` | Datos de ejemplo: canales, compras, despieces, crotales, recepciones, sesiones, ventas, cajas y formatos de etiqueta |
@@ -58,15 +58,22 @@ Las canales se reciben con lote. El lote es el animal y puede llevar su **crotal
 Si el lote no tiene crotal, se crea uno al despiezar. Los datos del crotal se guardan también en lotes y stock, así que se puede **filtrar y agrupar el stock** por cualquiera de ellos; por ejemplo, el stock halal por país de engorde.
 
 ### 2. Pantalla de fábrica (*Meat Cutting → Cutting Screen*)
-La pantalla está pensada para tablet. Arriba se elige el proceso:
+La pantalla está pensada para tablet. Empieza en un **menú principal**, como el de la aplicación Barcode:
+
+- Arriba, la **cuadrícula de puntos** vuelve a Odoo y, a la derecha, un botón **instala la pantalla como aplicación** (PWA) en la tablet, que abre directamente este menú (ruta `/odoo/meat-cutting`). En la aplicación instalada hay un botón para cerrar sesión.
+- Con el lector, **escanear una etiqueta** de pieza o de caja en el menú la abre en *Labels* para reimprimirla.
+- Un botón por proceso.
+
+Dentro de cada proceso, la cuadrícula de puntos (arriba a la izquierda) vuelve al menú, y una sesión a medias se retoma al volver a entrar. Un lector de códigos de barras funciona sin tocar antes el buscador: lo escaneado se busca como si se escribiera y se pulsara Intro. El albarán de recepción y la sesión abren directamente su proceso. El peso se escribe con el teclado del dispositivo o la báscula. Los procesos son:
 
 - **Receipts:** despiece de las canales recibidas (abajo).
 - **Cutting:** segundo corte de un paquete en stock; por ejemplo, un lomo en chuletas.
 - **Preparation:** divide un paquete en varios del mismo producto, cada uno con su presentación (entera, fileteado…). Lo que sobra queda en el original. Los paquetes que se guardan en stock se pueden congelar.
-- **Production:** elaborados (longanizas, morcillas…). Se indica cuánto se va a elaborar y la pantalla recomienda la cantidad de cada ingrediente según la receta. Los ingredientes se pesan de sus paquetes y el producto sale en un lote nuevo que caduca con el ingrediente que caduca antes, con su presentación y, si se quiere, congelado.
+- **Production:** elaborados (longanizas, morcillas…). Se indica cuánto se va a elaborar y la pantalla recomienda la cantidad de cada ingrediente según la receta. Los ingredientes se pesan de sus paquetes (se pueden escanear), hay que usarlos todos, y el producto sale en un lote nuevo que caduca con el ingrediente que caduca antes, con su presentación y, si se quiere, congelado.
 
 Los paquetes y productos se eligen por familia (la categoría del producto), por ejemplo *Cerdo fresco* o *Elaborado congelado*.
 - **Packing:** mete en cajas las piezas de una entrega, con su etiqueta resumen.
+- **Labels:** reimprime una etiqueta deteriorada de una pieza o una caja, escaneándola o buscándola, con el tipo de etiqueta a elegir y sus textos editables.
 
 Los detalles de cada uno están en el README de `meat_cutting`. El despiece de canales:
 

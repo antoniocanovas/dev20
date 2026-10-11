@@ -61,3 +61,37 @@ def gs1_sscc(company_prefix, serial, extension_digit='0'):
         return False
     digits = extension_digit + company_prefix + serial.zfill(serial_length)
     return digits + gs1_check_digit(digits)
+
+
+# Length of the GS1 elements read from a scan (those of the labels printed
+# here), by their application identifier; None for a variable length one.
+GS1_PARSED_LENGTHS = {'00': 18, '01': 14, '02': 14, '10': None, '11': 6, '13': 6, '15': 6, '17': 6, '21': None}
+GS1_SEPARATOR = '\x1d'
+
+
+def gs1_parse(text):
+    """ Elements {ai: value} of a scanned GS1-128 barcode: the scanners send
+    FNC1 as a group separator (or nothing at the end). Empty when the text
+    is not a GS1 barcode with a SSCC (00) or a GTIN (01). """
+    text = (text or '').strip()
+    for prefix in (']C1', FNC1, GS1_SEPARATOR):
+        text = text.removeprefix(prefix)
+    parts = {}
+    while text:
+        ai = text[:2]
+        if ai[:1] == '3' and ai in GS1_PREDEFINED_LENGTH_PREFIXES:
+            # Measures: 4 digits identifier (with the decimals), 6 digits value
+            ai, length = text[:4], 6
+        elif ai in GS1_PARSED_LENGTHS:
+            length = GS1_PARSED_LENGTHS[ai]
+        else:
+            return {}
+        rest = text[len(ai):]
+        if length is None:
+            value, _sep, text = rest.partition(GS1_SEPARATOR)
+        else:
+            value, text = rest[:length], rest[length:].removeprefix(GS1_SEPARATOR)
+            if len(value) != length or not value.isdigit():
+                return {}
+        parts[ai] = value
+    return parts if {'00', '01'} & parts.keys() else {}

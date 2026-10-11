@@ -1,6 +1,6 @@
 # Meat Cutting
 
-Despiece de canales en Odoo 20 Community, sin Enterprise. Depende de `mrp` y `product_expiry`.
+Despiece de canales en Odoo 20 Community, sin Enterprise. Depende de `mrp`, `product_expiry` y `barcodes` (lector de códigos de barras).
 
 Cubre el despiece y el almacén:
 
@@ -26,13 +26,11 @@ La compra y la venta por canal o por pieza, facturadas en kg reales, están en `
 
 La regla general es **un producto por corte y estado (fresco o congelado), con el stock en kg**. La pieza entera y la caja se montan sobre ese producto, sin catálogos paralelos.
 
-| Necesidad | Solución |
-|---|---|
-| Canal entera | El producto se marca como *Piezas completas* y lleva un embalaje "Canal" con su peso medio. Cada canal recibida es un lote con su crotal |
-| Pieza entera (por ejemplo, un solomillo) | El producto se marca como *Piezas completas*. Cada pieza pesada en el despiece va en su propio paquete, y el stock se cuenta en paquetes |
-| Fresco y congelado | Dos productos con distinta caducidad, enlazados por *Producto congelado* |
-| Presentación que se guarda en stock (con su caducidad o su código de barras) | Producto propio, que sale del despiece como un corte más |
-| Cajas con el contenido | Paquetes anidados: las piezas van dentro de la caja, y la caja lleva una etiqueta con su contenido y un SSCC |
+- **Canal entera:** el producto se marca como *Piezas completas* y lleva un embalaje "Canal" con su peso medio. Cada canal recibida es un lote con su crotal.
+- **Pieza entera** (por ejemplo, un solomillo): el producto se marca como *Piezas completas*. Cada pieza pesada en el despiece va en su propio paquete, y el stock se cuenta en paquetes.
+- **Fresco y congelado:** dos productos con distinta caducidad, enlazados por *Producto congelado*.
+- **Presentación que se guarda en stock** (con su caducidad o su código de barras): producto propio, que sale del despiece como un corte más.
+- **Cajas con el contenido:** paquetes anidados; las piezas van dentro de la caja, y la caja lleva una etiqueta con su contenido y un SSCC.
 
 ## Flujo
 
@@ -66,15 +64,22 @@ Si la canal se pidió por número (embalaje "Canal" con su peso medio) y el prod
 Si el lote no tiene crotal, se crea uno al despiezar. Los datos del crotal se guardan también en lotes y stock, así que se puede **filtrar y agrupar el stock** por cualquiera de ellos; por ejemplo, el stock halal por país de engorde.
 
 ### 2. Pantalla de fábrica (*Meat Cutting → Cutting Screen*)
-La pantalla está pensada para tablet. Arriba se elige el proceso:
+La pantalla está pensada para tablet. Empieza en un **menú principal**, como el de la aplicación Barcode:
 
-| Proceso | Qué hace | Se elige | Resultado |
-|---|---|---|---|
-| **Receipts** (entradas) | Despiece de las canales recibidas | Albarán, canal y lote | Orden de desmontaje que consume el lote entero |
-| **Cutting** | Segundo corte de un paquete en stock | Familia y paquete | Orden de desmontaje que consume el paquete entero |
-| **Preparation** | Divide un paquete en varios del mismo producto, cada uno con su presentación | Familia y paquete | Paquetes nuevos; lo que sobra queda en el original |
-| **Production** | Elaborados (longanizas, morcillas…) con ingredientes pesados | Familia y producto | Orden de fabricación con un lote nuevo |
-| **Packing** | Mete en cajas las piezas de una entrega | Entrega | Cajas con SSCC y etiqueta resumen |
+- Arriba, la **cuadrícula de puntos** vuelve a Odoo y, a la derecha, un botón **instala la pantalla como aplicación** (PWA) en la tablet, que abre directamente este menú (ruta `/odoo/meat-cutting`). En la aplicación instalada hay un botón para cerrar sesión.
+- Con el lector, **escanear una etiqueta** de pieza o de caja en el menú la abre en *Labels* para reimprimirla.
+- Un botón por proceso.
+
+Dentro de cada proceso, la cuadrícula de puntos (arriba a la izquierda) vuelve al menú, y una sesión a medias se retoma al volver a entrar. Un lector de códigos de barras funciona sin tocar antes el buscador: lo escaneado se busca como si se escribiera y se pulsara Intro. El albarán de recepción y la sesión abren directamente su proceso. El peso se escribe con el teclado del dispositivo o la báscula. Los procesos son:
+
+- **Receipts** (entradas): despiece de las canales recibidas. Se elige albarán, canal y lote, y se crea una orden de desmontaje que consume el lote entero.
+- **Cutting:** segundo corte de un paquete en stock. Se elige familia y paquete, y se crea una orden de desmontaje que consume el paquete entero.
+- **Preparation:** divide un paquete en varios del mismo producto, cada uno con su presentación. Se elige familia y paquete; salen paquetes nuevos y lo que sobra queda en el original.
+- **Production:** elaborados (longanizas, morcillas…) con ingredientes pesados. Se elige familia y producto, y se crea una orden de fabricación con un lote nuevo.
+- **Packing:** mete en cajas las piezas de una entrega. Se elige la entrega; salen cajas con SSCC y etiqueta resumen.
+- **Labels:** reimprime la etiqueta deteriorada de una pieza o de una caja. Se escanea o se busca el paquete o la caja, se elige el tipo de etiqueta y se pueden editar sus textos.
+
+Las fichas de los paquetes muestran solo lo que sirve para elegirlos: la cantidad, el paquete, el lote y la caducidad, y el producto cuando no es el mismo en todas. Su botón **i** muestra el resto: referencia interna, crotal, presentación y ubicación.
 
 La familia es la categoría del producto. Conviene separarlas por especie y estado; por ejemplo: *Vacuno fresco*, *Vacuno congelado*, *Cerdo fresco*, *Cerdo congelado*, *Elaborado fresco*, *Elaborado congelado* y *Otros ingredientes* (sal, especias y lo que entra en las recetas sin ser despiece). Los paquetes salen ordenados por la caducidad más próxima.
 
@@ -120,12 +125,15 @@ La presentación se guarda en el paquete y sale en su etiqueta y en la de la caj
 
 #### Production: elaborados
 1. Se elige la familia y el producto, y la receta si tiene varias. Solo se ofrecen las listas de materiales de uso **Production**.
-2. **Cantidad a elaborar.** La pantalla pregunta cuánto se va a elaborar: se escribe en el campo de peso (por ejemplo, 10 kg) y se pulsa el botón *How much do you make?*, en la cabecera a la izquierda de *Change*, que luego muestra la cantidad a elaborar. Cada ingrediente muestra entonces la cantidad **recomendada** según las proporciones de la receta y lo que falta por añadir. Es solo una guía: se usa lo que se pesa. Se puede cambiar en cualquier momento.
+2. **Cantidad a elaborar.** La pantalla pregunta cuánto se va a elaborar: se escribe en el campo de peso (por ejemplo, 10 kg) y se pulsa el botón *How much do you make?*, en la cabecera a la izquierda de *Change*, que luego muestra la cantidad a elaborar. Cada ingrediente muestra entonces lo usado frente a lo **recomendado** según las proporciones de la receta (por ejemplo, 1,5 / 1,8 kg), con una barra de progreso y su stock, y una marca cuando se completa. Es solo una guía: se usa lo que se pesa. Se puede cambiar en cualquier momento.
 3. **Ingredientes.** Se pulsa un ingrediente de la receta y se ven sus paquetes (o lotes sin paquete) en stock, por caducidad ascendente. Se escribe el peso usado y se pulsa el paquete; sin peso, se usa todo. Lo que no se usa queda en el paquete. También se puede **escanear** (o escribir) un paquete sin elegir antes el ingrediente, en el **buscador** de la cabecera a la izquierda de la cantidad a elaborar: al pulsar Intro busca por paquete, lote o crotal en todos los ingredientes de la receta (también una etiqueta GS1 que lleve el lote). Si encuentra un solo paquete, se usa directamente con el peso escrito y se muestra su ingrediente; si encuentra varios, se muestran para pulsar el correcto. Con un ingrediente elegido, lo escrito filtra además sus paquetes.
 4. **Producto.** Se escribe el peso y se pulsa el producto: cada pesada es un paquete nuevo. Como en la preparación:
+
    - El botón **Presentation** elige la presentación de los paquetes (en carrusel), y la de cada línea se cambia pulsando su botón.
    - **Congelar**, en la línea o por defecto en la cabecera, produce el producto congelado.
-5. Al terminar se crea y se termina una **orden de fabricación**: consume lo pesado de cada paquete y produce los paquetes en un **lote nuevo** (con el nombre de la sesión) cuya caducidad es la del ingrediente que caduca antes. Los paquetes que se congelan se pasan después al producto congelado, en un lote del mismo nombre con su caducidad de congelado contada desde la pesada; la trazabilidad enlaza ese lote con el fresco.
+
+5. **Hay que usar todos los ingredientes** de la receta, aunque no sea en la cantidad recomendada: los que aún no se han usado salen en ámbar, y no se puede terminar sin ellos.
+6. Al terminar se crea y se termina una **orden de fabricación**: consume lo pesado de cada paquete y produce los paquetes en un **lote nuevo** (con el nombre de la sesión) cuya caducidad es la del ingrediente que caduca antes. Los paquetes que se congelan se pasan después al producto congelado, en un lote del mismo nombre con su caducidad de congelado contada desde la pesada; la trazabilidad enlaza ese lote con el fresco.
 
 #### Packing: cajas de una entrega
 1. Se elige la entrega.
@@ -133,6 +141,17 @@ La presentación se guarda en el paquete y sale en su etiqueta y en la de la caj
 3. **New box** abre una caja; si un tipo de paquete tiene prefijo SSCC, la caja se nombra con un SSCC.
 4. Se pulsan las piezas reservadas para meterlas en la caja abierta, y otra vez para sacarlas. También se pueden **escanear**: un paquete que no está reservado sustituye a otra pieza del mismo producto aún sin meter en caja, y queda reservado en su lugar.
 5. Se imprime la etiqueta de cada caja o todas, y se valida la entrega.
+
+#### Labels: reimprimir etiquetas deterioradas
+1. Se **escanea** la etiqueta deteriorada (también su código GS1: el lote y el peso localizan la pieza, el SSCC la caja) o se escribe un paquete, lote, crotal, producto o caja y se pulsa Intro. Si coincide más de uno, se elige.
+2. Se elige el **tipo de etiqueta**:
+
+   - **Etiqueta de corte**, en cualquiera de sus formatos, tal como se pesó en el despiece. Solo se ofrece mientras el stock del paquete sigue siendo el pesado (mismo producto, lote y peso).
+   - **Piece Label**, con el stock tal como está ahora: sirve también para lo congelado después, lo que queda de un paquete preparado o lo que no viene del despiece.
+   - **Box Label**, de la caja o de la caja en la que está la pieza.
+
+3. **Edit label** edita los textos, igual que en las líneas, sin tocar el crotal. En la etiqueta de corte se guardan en la línea; en la de stock, en el paquete. En la etiqueta de caja se editan el cliente y una nota, que se guardan en la caja; el contenido no se edita.
+4. **Print** la imprime.
 
 ### 3. Congelar stock fresco
 El stock fresco ya cortado se congela desde:
@@ -196,12 +215,10 @@ Lo vendido por kg se reserva y se entrega como siempre: por peso, aunque parta u
 
 El código de barras es GS1-128:
 
-| AI | Contenido |
-|---|---|
-| (01) | GTIN del producto (su código de barras) |
-| (3103) | Peso neto en kg con 3 decimales |
-| (17) | Caducidad (AAMMDD) |
-| (10) | Lote (al final, por ser de longitud variable) |
+- **(01)** GTIN del producto (su código de barras).
+- **(3103)** Peso neto en kg con 3 decimales.
+- **(17)** Caducidad (AAMMDD).
+- **(10)** Lote (al final, por ser de longitud variable).
 
 Lleva FNC1 al principio y como separador tras los campos de longitud variable, así que es un GS1-128 real. Sin GTIN, la etiqueta lleva un Code 128 con el lote.
 
@@ -228,7 +245,7 @@ Lleva FNC1 al principio y como separador tras los campos de longitud variable, a
 
 ## Traducción
 
-`i18n/es.po` traduce al español la pantalla, los mensajes, los campos y las etiquetas. Los procesos de la pantalla se llaman *Entradas*, *Corte*, *Preparación*, *Elaboración* y *Empaquetar*.
+`i18n/es.po` traduce al español la pantalla, los mensajes, los campos y las etiquetas. Los procesos de la pantalla se llaman *Entradas*, *Corte*, *Preparación*, *Elaboración*, *Empaquetar* y *Etiquetas*.
 
 ## Tests
 
@@ -240,7 +257,6 @@ El tour de la pantalla (`test_meat_cutting_ui`) necesita Chrome y la librería `
 
 ## Limitaciones conocidas
 
-- **Reetiquetar tras congelar.** Al congelar stock ya cortado, la pieza cambia de producto y de caducidad, pero no hay etiqueta de pieza para stock que no venga del despiece. Hay que reetiquetar a mano.
 - **Caducidad de los cortes.** La de los cortes de una canal no se limita a la de la canal; la del segundo corte, sí a la del paquete.
 - **Coste de los elaborados.** Lo calcula la orden de fabricación con el coste medio de los ingredientes.
 - **Coste por pieza.** Es el coste medio del producto, no el de cada pieza.

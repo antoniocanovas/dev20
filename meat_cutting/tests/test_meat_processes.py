@@ -212,6 +212,26 @@ class TestMeatProcesses(TestMrpCommon):
         })
         return sausage, frozen_sausage
 
+    def _use_ribs(self, session):
+        ribs_lot = self.env['stock.lot'].sudo().create({'name': 'RIBS2', 'product_id': self.ribs.id})
+        self.env['stock.quant']._update_available_quantity(self.ribs, self.stock_location, 1.0, lot_id=ribs_lot)
+        session.action_add_consumption(self.ribs.id, 0, lot_id=ribs_lot.id, location_id=self.stock_location.id)
+
+    def test_production_unused_ingredient(self):
+        """ Every ingredient of the recipe must be used, in any quantity. """
+        pieces = self._cut_loins([4.6])
+        sausage, _frozen_sausage = self._sausage()
+        session = self.Session.browse(self.Session.start_production_session(sausage.id))
+        session.action_add_consumption(
+            self.loin.id, 0, package_id=pieces.package_id.id, lot_id=pieces.lot_id.id,
+            location_id=pieces.location_id.id)
+        session.action_add_line(False, 4.4)
+        with self.assertRaisesRegex(UserError, 'Pork Ribs'):
+            session.action_validate()
+        self._use_ribs(session)
+        session.action_validate()
+        self.assertEqual(session.production_id.state, 'done')
+
     def test_production_recommended(self):
         """ The quantity to make proposes the quantity of each ingredient. """
         sausage, _frozen_sausage = self._sausage()
@@ -252,6 +272,7 @@ class TestMeatProcesses(TestMrpCommon):
             session.action_add_consumption(
                 self.loin.id, 0, package_id=piece.package_id.id, lot_id=piece.lot_id.id,
                 location_id=piece.location_id.id)
+        self._use_ribs(session)
         fresh_line = self.env['meat.cutting.line'].browse(session.action_add_line(False, 4.0, self.sliced.id))
         session.action_set_freeze(True)
         frozen_line = self.env['meat.cutting.line'].browse(session.action_add_line(False, 4.5, self.whole.id))
@@ -279,6 +300,7 @@ class TestMeatProcesses(TestMrpCommon):
         session.action_add_consumption(
             self.loin.id, 0, package_id=pieces.package_id.id, lot_id=pieces.lot_id.id,
             location_id=pieces.location_id.id)
+        self._use_ribs(session)
         session.action_set_freeze(True)
         session.action_add_line(False, 4.4)
         session.action_validate()
@@ -345,3 +367,65 @@ class TestMeatProcesses(TestMrpCommon):
         self.assertIs(delivery.button_validate(), True)
         self.assertEqual(delivery.state, 'done')
         self.assertEqual(delivery._get_meat_boxes(), box_package)
+
+    def test_relabel_piece(self):
+        """ The label of a piece is printed again as weighed, or from its
+        stock, with its texts edited. """
+        pieces = self._cut_loins([4.6, 4.3])
+        piece = pieces[1]
+        Package = self.env['stock.package']
+        found = Package.meat_relabel_search(piece.package_id.name)
+        self.assertEqual([(f['id'], f['is_box']) for f in found], [(piece.package_id.id, False)])
+        # A scanned GS1 label finds its piece among those of the lot by its weight
+        line = self.env['meat.cutting.line'].search([('package_id', '=', piece.package_id.id)])
+        scanned = line._get_label_barcode_value().replace('\xf1', '\x1d')
+        self.assertEqual([f['id'] for f in Package.meat_relabel_search(scanned)], [piece.package_id.id])
+        self.assertEqual(len(Package.meat_relabel_search(self.lot.name)), 2)
+        self.assertFalse(Package.meat_relabel_search(' '))
+
+        data = piece.package_id.get_meat_relabel_data()
+        kinds = [f['kind'] for f in data['formats']]
+        self.assertEqual(kinds[0], 'line')
+        self.assertEqual(kinds[-1], 'stock')
+        self.assertEqual(data['formats'][0]['res_ids'], line.ids)
+        stock_format = data['formats'][-1]
+        self.assertEqual(stock_format['res_ids'], piece.ids)
+
+        piece.package_id.action_save_label(dict(
+            piece.package_id.get_label_data()['values'], product_name='Iberian Loin', note='Keep cold'))
+        values = piece._get_meat_label_values()
+        self.assertEqual((values['product_name'], values['note']), ('Iberian Loin', 'Keep cold'))
+        self.assertEqual(line._get_label_values()['product_name'], 'Pork Loin', "The cut label is not changed")
+        piece.package_id.action_reset_label()
+        self.assertEqual(piece._get_meat_label_values()['product_name'], 'Pork Loin')
+
+        # Once frozen, the stock is no longer the one weighed: only its own label
+        piece._meat_freeze()
+        self.assertEqual([f['kind'] for f in piece.package_id.get_meat_relabel_data()['formats']], ['stock'])
+
+    def test_relabel_box(self):
+        pieces = self._cut_loins([4.6, 4.3])
+        delivery = self._delivery(2)
+        box = delivery.action_meat_new_box()
+        for line in delivery.get_meat_packing_data()['lines']:
+            delivery.action_meat_toggle_box(line['id'], box['id'])
+        box_package = self.env['stock.package'].browse(box['id'])
+        found = self.env['stock.package'].meat_relabel_search(box_package.name)
+        self.assertEqual([(f['id'], f['is_box'], f['pieces']) for f in found], [(box_package.id, True, 2)])
+        formats = box_package.get_meat_relabel_data()['formats']
+        self.assertEqual([(f['kind'], f['res_ids'], f['edit_model'], f['edit_kind']) for f in formats],
+                         [('box', box_package.ids, 'stock.package', 'box')])
+        # Customer and note of the box label can be edited
+        box_label = box_package.with_context(meat_label_kind='box')
+        data = box_label.get_label_data()
+        self.assertEqual(data['values'], {'partner_name': 'Butcher', 'note': ''})
+        box_label.action_save_label({'partner_name': 'Butcher Shop', 'note': 'Fragile'})
+        values = box_package._get_meat_box_label_values()
+        self.assertEqual((values['partner_name'], values['note']), ('Butcher Shop', 'Fragile'))
+        self.assertFalse(box_package.meat_label_custom, "The piece label of the package is not changed")
+        box_label.action_reset_label()
+        self.assertEqual(box_package._get_meat_box_label_values()['partner_name'], 'Butcher')
+        # A piece in the box offers the label of its box too
+        piece_formats = pieces[0].package_id.get_meat_relabel_data()['formats']
+        self.assertEqual(piece_formats[-1]['kind'], 'box')
+        self.assertEqual(piece_formats[-1]['res_ids'], box_package.ids)

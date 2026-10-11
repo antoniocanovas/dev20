@@ -1,18 +1,23 @@
 import { Component, onWillStart, proxy, useProps } from "@odoo/owl";
+import { browser } from "@web/core/browser/browser";
+import { post } from "@web/core/network/http_service";
+import { redirect } from "@web/core/utils/urls";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
-import { useService } from "@web/core/utils/hooks";
+import { useBus, useService } from "@web/core/utils/hooks";
 import { formatFloat } from "@web/core/utils/numbers";
 import { standardActionServiceProps } from "@web/webclient/actions/action_plugin";
 import { LabelEditDialog } from "./label_edit_dialog";
+import { PackageInfoDialog } from "./package_info_dialog";
 
 const SESSION_MODEL = "meat.cutting.session";
 const PICKING_MODEL = "stock.picking";
 const LABEL_REPORT = "meat_cutting.action_report_meat_cutting_label";
 const BOX_LABEL_REPORT = "meat_cutting.action_report_meat_box_label";
 const PICKING_BOX_LABEL_REPORT = "meat_cutting.action_report_picking_meat_box_label";
-const KEYPAD_KEYS = ["7", "8", "9", "4", "5", "6", "1", "2", "3", "0", ".", "C"];
+// Path of the screen, also the start of the app installed on the tablet
+const APP_PATH = "meat-cutting";
 
 /** Lowercase without accents, so that "jamon" finds "Jamón". */
 function normalize(text) {
@@ -31,17 +36,25 @@ export class CuttingScreen extends Component {
         this.action = useService("action");
         this.dialog = useService("dialog");
         this.notification = useService("notification");
-        this.keypadKeys = KEYPAD_KEYS;
+        this.pwa = useService("pwa");
+        this.ui = useService("ui");
+        // The home menu of Odoo Enterprise; Community has none
+        this.homeMenu = "home_menu" in this.env.services ? useService("home_menu") : null;
+        // A scanner in keyboard mode, without having to focus the search first
+        useBus(useService("barcode").bus, "barcode_scanned", (ev) => this.onBarcodeScanned(ev.detail.barcode));
+        this.pwaInstallUrl = `/scoped_app?app_id=meat_cutting&path=scoped_app/${APP_PATH}`;
         this.modes = [
             { key: "receipt", name: _t("Receipts"), icon: "local_shipping", help: _t("Cut the received carcasses") },
             { key: "cutting", name: _t("Cutting"), icon: "content_cut", help: _t("Cut a package in stock again") },
             { key: "preparation", name: _t("Preparation"), icon: "fork_right", help: _t("Split a package with a presentation") },
             { key: "production", name: _t("Production"), icon: "factory", help: _t("Make a product from ingredients") },
             { key: "packing", name: _t("Packing"), icon: "package_2", help: _t("Put the pieces of a delivery in boxes") },
+            { key: "labels", name: _t("Labels"), icon: "label", help: _t("Print a damaged label again") },
         ];
         const context = this.props.action.context || {};
         this.state = proxy({
-            mode: "receipt",
+            // The main menu until a process is chosen; a receipt opens its cutting
+            mode: context.meat_cutting_picking_id ? "receipt" : false,
             // Receipts
             pickings: [],
             products: [],
@@ -64,11 +77,15 @@ export class CuttingScreen extends Component {
             packing: null,
             boxId: false,
             newBox: null,
+            // Labels: packages and boxes found, and the one whose label is printed again
+            relabelResults: [],
+            relabelSearched: false,
+            relabel: null,
+            relabelFormatKey: false,
             search: "",
             session: null,
             weight: "",
             autoPrint: false,
-            showKeypad: false,
             showFormats: false,
             busy: false,
         });
@@ -76,7 +93,7 @@ export class CuttingScreen extends Component {
             if (context.meat_cutting_session_id) {
                 await this.loadSession(context.meat_cutting_session_id);
                 this.state.mode = this.state.session.mode;
-            } else {
+            } else if (this.state.mode) {
                 await this.loadSelection();
             }
         });
@@ -86,6 +103,9 @@ export class CuttingScreen extends Component {
 
     async loadSelection() {
         const mode = this.state.mode;
+        if (!mode) {
+            return;
+        }
         if (mode === "receipt") {
             const [pickings, products] = await Promise.all([
                 this.orm.call(SESSION_MODEL, "get_cutting_pickings", []),
@@ -95,6 +115,10 @@ export class CuttingScreen extends Component {
             ]);
             this.state.pickings = pickings;
             this.state.products = products;
+        } else if (mode === "labels") {
+            if (this.state.relabel) {
+                await this.loadRelabel(this.state.relabel.id);
+            }
         } else if (mode === "packing") {
             this.state.deliveries = await this.orm.call(PICKING_MODEL, "get_meat_packing_pickings", []);
         } else {
@@ -134,6 +158,7 @@ export class CuttingScreen extends Component {
             preparation: _t("Product, package, lot or crotal"),
             production: _t("Product"),
             packing: _t("Delivery or customer; scan a package"),
+            labels: _t("Scan the label, or type a package, lot or box"),
         }[this.state.mode];
     }
 
@@ -146,12 +171,64 @@ export class CuttingScreen extends Component {
         this.state.packing = null;
         this.state.boxId = false;
         this.state.newBox = null;
+        this.state.relabel = null;
+        this.state.relabelResults = [];
+        this.state.relabelSearched = false;
         this.state.busy = true;
         try {
             await this.onChangeSource();
         } finally {
             this.state.busy = false;
         }
+    }
+
+    // ---- Main menu ----
+
+    /** Back to Odoo, as the Barcode app does. */
+    onOdooHome() {
+        if (this.homeMenu) {
+            this.homeMenu.toggle(true);
+        } else {
+            browser.location.href = "/odoo";
+        }
+    }
+
+    async onLogout() {
+        const redirectPart = this.pwa.isScopedApp ? "scoped_app" : "/odoo";
+        const url = await post(
+            `/web/session/logout?redirect=${redirectPart}/${APP_PATH}`,
+            { csrf_token: odoo.csrf_token },
+            "url"
+        );
+        redirect(url);
+    }
+
+    /** A label scanned with the reader on the main menu is printed again. */
+    async onHomeScan(barcode) {
+        if (!barcode || this.state.busy) {
+            return;
+        }
+        await this.onSelectMode("labels");
+        this.state.search = barcode;
+        await this.onRelabelSearch();
+    }
+
+    /** A scan out of an input: like typing it in the search and pressing Enter. */
+    async onBarcodeScanned(barcode) {
+        if (this.state.busy) {
+            return;
+        }
+        if (!this.state.mode) {
+            await this.onHomeScan(barcode);
+        } else if (!this.state.session || this.showIngredientSearch) {
+            this.state.search = barcode;
+            this.onSearchKeydown({ key: "Enter" });
+        }
+    }
+
+    /** Back to the main menu; a session in progress is kept to resume it. */
+    async onHome() {
+        await this.onSelectMode(false);
     }
 
     async loadSession(sessionId) {
@@ -203,7 +280,7 @@ export class CuttingScreen extends Component {
 
     get visiblePackages() {
         return this.state.packages.filter((pack) =>
-            this.matches(pack.product_name, pack.package_name, pack.lot_name, pack.crotal_name)
+            this.matches(pack.product_name, pack.default_code, pack.package_name, pack.lot_name, pack.crotal_name)
         );
     }
 
@@ -218,7 +295,7 @@ export class CuttingScreen extends Component {
         const search = normalize(this.state.search.trim());
         return this.state.ingredientPackages.filter(
             (pack) =>
-                this.matches(pack.product_name, pack.package_name, pack.lot_name, pack.crotal_name) ||
+                this.matches(pack.product_name, pack.default_code, pack.package_name, pack.lot_name, pack.crotal_name) ||
                 [pack.package_name, pack.lot_name].some((name) => name && search.includes(normalize(name)))
         );
     }
@@ -244,7 +321,9 @@ export class CuttingScreen extends Component {
             return;
         }
         // A scanned crotal, lot or package (ending with Enter) opens it directly
-        if (this.showIngredientSearch) {
+        if (this.state.mode === "labels") {
+            this.onRelabelSearch();
+        } else if (this.showIngredientSearch) {
             this.onFindIngredientPackage();
         } else if (this.state.mode === "packing" && this.state.packing) {
             this.onScanPackage();
@@ -435,18 +514,6 @@ export class CuttingScreen extends Component {
         this.state.weight = ev.target.value;
     }
 
-    onKeypad(key) {
-        if (key === "C") {
-            this.state.weight = "";
-        } else if (key !== "." || !this.state.weight.includes(".")) {
-            this.state.weight += key;
-        }
-    }
-
-    toggleKeypad() {
-        this.state.showKeypad = !this.state.showKeypad;
-    }
-
     toggleAutoPrint() {
         this.state.autoPrint = !this.state.autoPrint;
     }
@@ -540,6 +607,15 @@ export class CuttingScreen extends Component {
         return Math.max(component.recommended_qty - component.weighed_qty, 0);
     }
 
+    /** Used, up to the recommended quantity when there is one. */
+    ingredientDone(component) {
+        return Boolean(component.weighed_count) && (!component.recommended_qty || !this.ingredientMissingQty(component));
+    }
+
+    ingredientProgress(component) {
+        return Math.min(Math.round((100 * component.weighed_qty) / component.recommended_qty), 100);
+    }
+
     async onSelectIngredient(component) {
         this.state.search = "";
         this.state.foundPackages = [];
@@ -552,6 +628,18 @@ export class CuttingScreen extends Component {
             [this.state.session.id],
             component.product_id,
         ]);
+    }
+
+    /** A package tile: the source of the session, or an ingredient used. */
+    onPackageClick(pack) {
+        if (this.state.session) {
+            return this.onSelectIngredientPackage(pack);
+        }
+        return this.onSelectPackage(pack);
+    }
+
+    onPackageInfo(pack) {
+        this.dialog.add(PackageInfoDialog, { pack });
     }
 
     /** A package typed or scanned: of the ingredient shown, else of any
@@ -637,6 +725,67 @@ export class CuttingScreen extends Component {
 
     formatDate(value) {
         return value ? value.slice(0, 10) : "";
+    }
+
+    // ---- Labels: print a damaged label again ----
+
+    async onRelabelSearch() {
+        const text = this.state.search.trim();
+        if (!text || this.state.busy) {
+            return;
+        }
+        const results = await this.orm.call("stock.package", "meat_relabel_search", [text]);
+        this.state.search = "";
+        if (results.length === 1) {
+            await this.onSelectRelabel(results[0]);
+            return;
+        }
+        this.state.relabel = null;
+        this.state.relabelResults = results;
+        this.state.relabelSearched = true;
+    }
+
+    async loadRelabel(packageId) {
+        const data = await this.orm.call("stock.package", "get_meat_relabel_data", [[packageId]]);
+        this.state.relabel = data;
+        if (!data.formats.some((format) => format.key === this.state.relabelFormatKey)) {
+            this.state.relabelFormatKey = data.formats[0]?.key || false;
+        }
+    }
+
+    async onSelectRelabel(pack) {
+        this.state.relabelFormatKey = false;
+        await this.loadRelabel(pack.id);
+    }
+
+    get relabelFormat() {
+        return this.state.relabel?.formats.find((format) => format.key === this.state.relabelFormatKey);
+    }
+
+    onSelectRelabelFormat(format) {
+        this.state.relabelFormatKey = format.key;
+    }
+
+    async onRelabelPrint() {
+        const format = this.relabelFormat;
+        await this.action.doAction(format.report_id, {
+            additionalContext: { active_model: format.model, active_id: format.res_ids[0], active_ids: format.res_ids },
+        });
+    }
+
+    onRelabelEdit() {
+        const format = this.relabelFormat;
+        this.dialog.add(LabelEditDialog, {
+            lineId: format.edit_id,
+            model: format.edit_model,
+            kind: format.edit_kind || "",
+            print: () => this.onRelabelPrint(),
+            onSaved: () => this.loadRelabel(this.state.relabel.id),
+        });
+    }
+
+    onBackFromRelabel() {
+        this.state.relabel = null;
     }
 
     // ---- Packing ----
@@ -831,6 +980,15 @@ export class CuttingScreen extends Component {
 
     onValidate() {
         const session = this.state.session;
+        const unused = session.mode === "production" ? session.components.filter((c) => !c.weighed_count) : [];
+        if (unused.length) {
+            this.notification.add(
+                _t("Use every ingredient of the recipe before finishing. Not used: %s.",
+                    unused.map((component) => component.name).join(", ")),
+                { type: "danger" }
+            );
+            return;
+        }
         this.dialog.add(ConfirmationDialog, {
             title: _t("Finish"),
             body: this.validationMessage,

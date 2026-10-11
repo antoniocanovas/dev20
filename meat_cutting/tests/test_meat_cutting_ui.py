@@ -30,3 +30,14 @@ class TestMeatCuttingUi(HttpCase):
         piece = session.line_ids.package_id
         self.assertTrue(piece.meat_piece)
         self.assertEqual(session.unbuild_id.produce_line_ids.move_line_ids.result_package_id, piece)
+
+    def test_labels_tour(self):
+        """ A label found in Labels is printed again, with its texts edited. """
+        Session = self.env['meat.cutting.session']
+        session = Session.browse(Session.start_cutting_session(self.carcass.id, self.lot.id))
+        session.action_add_line(self.bom.bom_line_ids.filtered(lambda bl: bl.product_id == self.loin).id, 4.6)
+        session.action_validate()
+        self.start_tour('/odoo/action-meat_cutting.meat_cutting_screen_action', 'meat_cutting_labels_tour', login='admin')
+        package = session.line_ids.package_id
+        self.assertTrue(package.meat_label_custom)
+        self.assertEqual(package.meat_label_note, 'Keep cold')

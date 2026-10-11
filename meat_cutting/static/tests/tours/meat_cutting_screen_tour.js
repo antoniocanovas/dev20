@@ -3,6 +3,11 @@ import { registry } from "@web/core/registry";
 registry.category("web_tour.tours").add("meat_cutting_screen_tour", {
     steps: () => [
         {
+            content: "Open the receipts from the main menu",
+            trigger: ".o_meat_cutting_mode_receipt",
+            run: "click",
+        },
+        {
             content: "Search something that does not exist",
             trigger: ".o_meat_cutting_search_input",
             run: "edit zzz",

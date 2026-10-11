@@ -17,14 +17,21 @@ export class LabelEditDialog extends Component {
     props = useProps({
         close: t.function(),
         lineId: t.number(),
+        // The label of a cut by default, or of the stock of a package
+        model: t.string().optional(),
+        // "box" for the box label of a package
+        kind: t.string().optional(),
         print: t.function(),
         onSaved: t.function().optional(),
     });
 
     setup() {
         this.orm = useService("orm");
+        this.model = this.props.model || LINE_MODEL;
+        this.context = { meat_label_kind: this.props.kind || false };
         this.title = _t("Edit label");
         this.fields = [
+            { key: "partner_name", label: _t("Customer") },
             { key: "product_name", label: _t("Product") },
             { key: "birth_country", label: _t("Born in") },
             { key: "reared_country", label: _t("Reared in") },
@@ -35,7 +42,11 @@ export class LabelEditDialog extends Component {
         ];
         this.state = proxy({ data: null, values: {}, busy: false });
         onWillStart(async () => {
-            const data = await this.orm.call(LINE_MODEL, "get_label_data", [[this.props.lineId]]);
+            const data = await this.orm.call(this.model, "get_label_data", [[this.props.lineId]], {
+                context: this.context,
+            });
+            // Only the texts of this kind of label
+            this.fields = this.fields.filter((field) => field.key in data.values);
             this.state.data = data;
             this.state.values = { ...data.values };
         });
@@ -74,10 +85,12 @@ export class LabelEditDialog extends Component {
     async save() {
         const changed = this.fields.some((field) => this.isChanged(field.key));
         if (changed) {
-            await this.orm.call(LINE_MODEL, "action_save_label", [[this.props.lineId], this.state.values]);
+            await this.orm.call(this.model, "action_save_label", [[this.props.lineId], this.state.values], {
+                context: this.context,
+            });
         } else if (this.state.data.custom) {
             // Back to the defaults: follow the crotal again
-            await this.orm.call(LINE_MODEL, "action_reset_label", [[this.props.lineId]]);
+            await this.orm.call(this.model, "action_reset_label", [[this.props.lineId]], { context: this.context });
         }
     }
 

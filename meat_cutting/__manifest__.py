@@ -5,8 +5,8 @@
     'author': 'Antonio Cánovas',
     'license': 'LGPL-3',
     'category': 'Supply Chain/Manufacturing',
-    'icon': '/mrp/static/description/icon.png',
-    'depends': ['mrp', 'product_expiry'],
+    'icon': '/meat_cutting/static/description/icon.png',
+    'depends': ['mrp', 'product_expiry', 'barcodes'],
     'data': [
         'data/ir_sequence_data.xml',
         'report/meat_cutting_line_reports.xml',

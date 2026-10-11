@@ -7,7 +7,7 @@
             <table style="width: 100%;">
                 <tr>
                     <td style="vertical-align: top;">
-                        <div style="font-size: 18px; font-weight: bold;" t-out="box_values['partner'].name or ''"/>
+                        <div style="font-size: 18px; font-weight: bold;" t-out="box_values['partner_name']"/>
                         <div t-if="box_values['partner'].city" t-out="', '.join(filter(None, [box_values['partner'].zip, box_values['partner'].city]))"/>
                         <div t-if="box_values['origin']">Order: <strong t-out="box_values['origin']"/></div>
                         <div t-if="box_values['picking']">Delivery: <strong t-out="box_values['picking'].name"/></div>
@@ -66,6 +66,7 @@
                     </td>
                 </tr>
             </table>
+            <div t-if="box_values['note']" style="margin-top: 4px; font-size: 14px; font-weight: bold;" t-out="box_values['note']"/>
             <div style="margin-top: 4px;" t-out="box.company_id.name or env.company.name"/>
             <div style="text-align: center; margin-top: 6px;">
                 <div t-out="box._get_meat_box_barcode_value()" t-options="{'widget': 'barcode', 'symbology': 'Code128', 'width': 600, 'height': 150, 'img_style': 'width:90mm;height:20mm;'}"/>

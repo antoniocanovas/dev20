@@ -71,8 +71,10 @@
                                     Expiry date: <span t-out="label['expiration_date']" t-options="{'widget': 'date'}"/>
                                 </div>
                                 <div t-if="label['frozen']" style="font-weight: bold;">Keep at -18 °C or below. Do not refreeze once thawed.</div>
+                                <div t-if="label['origin']">Origin: <span t-out="label['origin']"/></div>
                                 <div t-if="label['supplier']">Supplier: <span t-out="label['supplier']"/></div>
                                 <div t-out="quant.company_id.name"/>
+                                <div t-if="label['note']" style="font-weight: bold;" t-out="label['note']"/>
                             </td>
                             <td style="width: 45%; text-align: right; vertical-align: top;">
                                 <div style="font-size: 30px; font-weight: bold;">

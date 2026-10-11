@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="meat_cutting.PackageInfoDialog">
+        <Dialog title="this.title" size="'md'">
+            <dl class="row fs-5 mb-0 o_meat_cutting_package_info_dialog">
+                <t t-foreach="this.rows" t-as="row" t-key="row.label">
+                    <dt class="col-5 text-muted fw-normal" t-out="row.label"/>
+                    <dd class="col-7 fw-bold" t-out="row.value"/>
+                </t>
+            </dl>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary btn-lg" t-on-click="this.props.close">Close</button>
+            </t>
+        </Dialog>
+    </t>
+
+</templates>

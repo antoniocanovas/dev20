@@ -4,6 +4,7 @@ from odoo import Command, fields, models
 from odoo.exceptions import UserError
 
 from ..tools import gs1_barcode_text, gs1_barcode_value, gs1_item_parts
+from .meat_cutting_line import LABEL_KEYS
 
 
 class StockQuant(models.Model):
@@ -114,7 +115,7 @@ class StockQuant(models.Model):
     # Piece label: the stock relabelled out of the cutting, e.g. once frozen
     # ------------------------------------------------------------------
 
-    def _get_meat_label_values(self):
+    def _get_meat_label_default_values(self):
         """ Texts of the label of the stock, from its lot and crotal. The
         date is when it entered the stock: its cutting, or its freezing for a
         frozen product. """
@@ -132,6 +133,8 @@ class StockQuant(models.Model):
             'reared_country': crotal.reared_country or '',
             'slaughter_date': crotal.slaughter_date or False,
             'supplier': crotal.partner_id.name or '',
+            'origin': '',
+            'note': '',
             'frozen': bool(self.env['product.template'].search_count(
                 [('frozen_product_id', '=', product.id)], limit=1)),
             'date': self.in_date and fields.Datetime.context_timestamp(self, self.in_date).date(),
@@ -140,6 +143,16 @@ class StockQuant(models.Model):
             'weight': self.quantity,
             'uom': product.uom_id,
         }
+
+    def _get_meat_label_values(self):
+        """ Texts printed on the label: the ones edited on its package once
+        edited (an emptied text is not printed), else the defaults. """
+        self.ensure_one()
+        values = self._get_meat_label_default_values()
+        package = self.package_id
+        if package.meat_label_custom:
+            values.update({key: package[f'meat_label_{key}'] or False for key in LABEL_KEYS})
+        return values
 
     def _get_meat_label_gs1_parts(self):
         self.ensure_one()

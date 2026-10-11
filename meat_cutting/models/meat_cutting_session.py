@@ -610,6 +610,8 @@ class MeatCuttingSession(models.Model):
                 product = self.env['product.product'].browse(component['product_id'])
                 bom_line = self.env['mrp.bom.line'].browse(component['bom_line_id'])
                 component.update({
+                    # Without the internal reference, to save room on the ingredient tiles
+                    'name': product.with_context(display_default_code=False).display_name,
                     'weighed_count': len(self.consumption_ids.filtered(lambda c: c.product_id == product)),
                     'weighed_qty': qty_by_product[product],
                     'available_qty': self.env['stock.quant']._get_available_quantity(product, self.location_id),
@@ -759,7 +761,9 @@ class MeatCuttingSession(models.Model):
             value = {
                 'key': f'{product.id}-{package.id}-{lot.id}-{location.id}',
                 'product_id': product.id,
-                'product_name': product.display_name,
+                # The internal reference is shown on demand only
+                'product_name': product.with_context(display_default_code=False).display_name,
+                'default_code': product.default_code or '',
                 'package_id': package.id,
                 'package_name': package.name or '',
                 'lot_id': lot.id,
@@ -905,6 +909,12 @@ class MeatCuttingSession(models.Model):
                     days=product.expiration_time)
         return vals
 
+    def _get_unused_ingredients(self):
+        """ Production: ingredients of the recipe without any weighing, even
+        if not in the quantity recommended. """
+        self.ensure_one()
+        return self._get_bom_lines().product_id - self.consumption_ids.product_id
+
     def _get_production_expiration_date(self):
         """ A product made expires with its ingredient closest to expiry. """
         self.ensure_one()
@@ -937,6 +947,10 @@ class MeatCuttingSession(models.Model):
         self.ensure_one()
         if not self.consumption_ids:
             raise UserError(self.env._("Weigh at least one ingredient before validating."))
+        if missing := self._get_unused_ingredients():
+            raise UserError(self.env._(
+                "Use every ingredient of the recipe before validating. Not used: %s.",
+                ", ".join(missing.mapped('display_name'))))
         for consumption in self.consumption_ids:
             available = self.env['stock.quant']._get_available_quantity(
                 consumption.product_id, consumption.location_id, lot_id=consumption.lot_id or None,

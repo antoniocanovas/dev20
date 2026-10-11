@@ -9,19 +9,44 @@
         max-width: 32rem;
     }
 
+    .o_meat_cutting_tile.o_meat_cutting_ingredient {
+        min-height: 4rem;
+        padding: map-get($spacers, 1) map-get($spacers, 2);
+        text-align: start;
+    }
+
+    .o_meat_cutting_ingredient_progress {
+        height: 0.3rem;
+    }
+
+    .o_meat_cutting_tile.o_meat_cutting_package_tile {
+        min-height: 4.5rem;
+        padding: map-get($spacers, 1) map-get($spacers, 2);
+        text-align: start;
+    }
+
     .o_meat_cutting_ingredient_search {
         width: 18rem;
         flex-shrink: 1;
     }
 
-    .o_meat_cutting_keypad {
-        grid-template-columns: repeat(6, 1fr);
+    .o_meat_cutting_home_menu {
+        max-width: 36rem;
     }
 
     .o_meat_cutting_grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
         gap: map-get($spacers, 3);
+    }
+
+    .o_meat_cutting_package_info {
+        position: absolute;
+        top: map-get($spacers, 1);
+        right: map-get($spacers, 1);
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
     }
 
     .o_meat_cutting_tile {
