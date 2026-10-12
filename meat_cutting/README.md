@@ -86,6 +86,21 @@ La familia es la categoría del producto. Conviene separarlas por especie y esta
 #### Receipts: despiece de canales
 También se abre con el botón *Cutting Screen* del albarán de recepción.
 
+**Qué albaranes se muestran:** las recepciones validadas que aún tienen algo por despiezar, de la más reciente a la más antigua (por fecha de validación). Una recepción aparece si alguno de sus lotes tiene stock que cumple todo esto:
+
+- Está en una ubicación interna, con cantidad mayor que 0.
+- No está en un paquete: lo empaquetado se corta en *Cutting*.
+- Es de la compañía actual.
+- El producto tiene una lista de materiales de despiece (*Meat Use* = *Cutting*).
+
+Por tanto:
+
+- Las recepciones sin validar no aparecen.
+- Las de productos sin lote nunca aparecen.
+- Cuando todos sus lotes están despiezados, la recepción deja de aparecer.
+- El buscador solo encuentra el producto, el lote y el crotal de los lotes pendientes.
+- La lista no descuenta lo reservado, pero los productos del albarán sí. Una recepción con todo su stock reservado aparece, pero al abrirla no muestra productos.
+
 1. **Buscar.** Un buscador filtra por albarán, producto, lote o crotal.
 2. **Elegir.** Se selecciona el albarán, la canal y el lote.
 3. **Elegir el método de despiece.** Una canal puede tener varias listas de materiales, cada una un método distinto.
@@ -108,12 +123,25 @@ Solo puede haber una sesión abierta por lote. Al volver a entrar se retoma, se 
 #### Cutting: segundo corte
 Igual que el despiece de canales, pero de un paquete en stock con una lista de materiales de despiece (por ejemplo, un lomo en chuletas):
 
+**Qué se muestra:** las familias con paquetes por cortar, con cuántos productos tiene cada una. Al elegir una familia salen sus paquetes, de la caducidad más próxima a la más lejana; los que no tienen caducidad van al final. Un paquete aparece si su stock cumple todo esto:
+
+- Está en un paquete, en una ubicación interna.
+- Tiene cantidad libre, es decir, sin reservar, mayor que 0.
+- Es de la compañía actual.
+- El producto tiene una lista de materiales de despiece (*Meat Use* = *Cutting*).
+
+Si un paquete tiene varios lotes o ubicaciones, sale una ficha por cada uno. Lo reservado para una entrega no se ofrece. El buscador filtra los paquetes por producto, referencia interna, paquete, lote o crotal.
+
+
 - Se consume el paquete entero; la diferencia es la merma.
 - Los cortes conservan el nombre del lote y el crotal.
 - Su caducidad, contada desde la pesada, no pasa de la del paquete (salvo que se congelen).
 
 #### Preparation: dividir un paquete
 Para servir un pedido con otro peso o acabado; por ejemplo, un solomillo de 1 kg en dos paquetes de 500 g, uno de ellos fileteado:
+
+**Qué se muestra:** lo mismo que en *Cutting*, pero de cualquier producto, tenga o no lista de materiales. Es decir, los paquetes en ubicación interna de la compañía con cantidad libre, agrupados por familia y ordenados por caducidad.
+
 
 1. Se elige la familia y el paquete.
 2. El botón **Presentation** cambia de presentación con cada pulsación (en carrusel). Las presentaciones son los valores de los atributos del producto que no crean variantes, los mismos que se eligen en la venta.
@@ -124,6 +152,13 @@ Para servir un pedido con otro peso o acabado; por ejemplo, un solomillo de 1 kg
 La presentación se guarda en el paquete y sale en su etiqueta y en la de la caja.
 
 #### Production: elaborados
+**Qué se muestra:** las familias con productos elaborados y, en cada una, esos productos. Un producto aparece si:
+
+- Tiene una lista de materiales de tipo normal con *Meat Use* = *Production*, de la compañía actual o sin compañía.
+- Es almacenable y está activo.
+
+No depende del stock: se ofrece aunque falten ingredientes. Al pulsar un ingrediente salen sus paquetes (y los lotes sin paquete) de las ubicaciones del almacén, ordenados por caducidad. A la cantidad se le descuentan lo reservado y lo que ya usa la sesión.
+
 1. Se elige la familia y el producto, y la receta si tiene varias. Solo se ofrecen las listas de materiales de uso **Production**.
 2. **Cantidad a elaborar.** La pantalla pregunta cuánto se va a elaborar: se escribe en el campo de peso (por ejemplo, 10 kg) y se pulsa el botón *How much do you make?*, en la cabecera a la izquierda de *Change*, que luego muestra la cantidad a elaborar. Cada ingrediente muestra entonces lo usado frente a lo **recomendado** según las proporciones de la receta (por ejemplo, 1,5 / 1,8 kg), con una barra de progreso y su stock, y una marca cuando se completa. Es solo una guía: se usa lo que se pesa. Se puede cambiar en cualquier momento.
 3. **Ingredientes.** Se pulsa un ingrediente de la receta y se ven sus paquetes (o lotes sin paquete) en stock, por caducidad ascendente. Se escribe el peso usado y se pulsa el paquete; sin peso, se usa todo. Lo que no se usa queda en el paquete. También se puede **escanear** (o escribir) un paquete sin elegir antes el ingrediente, en el **buscador** de la cabecera a la izquierda de la cantidad a elaborar: al pulsar Intro busca por paquete, lote o crotal en todos los ingredientes de la receta (también una etiqueta GS1 que lleve el lote). Si encuentra un solo paquete, se usa directamente con el peso escrito y se muestra su ingrediente; si encuentra varios, se muestran para pulsar el correcto. Con un ingrediente elegido, lo escrito filtra además sus paquetes.
@@ -136,6 +171,8 @@ La presentación se guarda en el paquete y sale en su etiqueta y en la de la caj
 6. Al terminar se crea y se termina una **orden de fabricación**: consume lo pesado de cada paquete y produce los paquetes en un **lote nuevo** (con el nombre de la sesión) cuya caducidad es la del ingrediente que caduca antes. Los paquetes que se congelan se pasan después al producto congelado, en un lote del mismo nombre con su caducidad de congelado contada desde la pesada; la trazabilidad enlaza ese lote con el fresco.
 
 #### Packing: cajas de una entrega
+**Qué entregas se muestran:** los albaranes de salida de la compañía actual en espera o preparados, es decir, sin validar ni cancelar. Solo aparecen si tienen al menos una línea con cantidad mayor que 0 (reservada o cogida). Se ordenan por fecha prevista, y cada una indica cuántas líneas tiene y cuántas están ya en caja. Una entrega sin nada reservado no aparece. El buscador filtra por albarán, cliente u origen.
+
 1. Se elige la entrega.
 2. Arriba se ve lo pedido: piezas, kg y la presentación pedida en la venta.
 3. **New box** abre una caja; si un tipo de paquete tiene prefijo SSCC, la caja se nombra con un SSCC.
@@ -143,6 +180,15 @@ La presentación se guarda en el paquete y sale en su etiqueta y en la de la caj
 5. Se imprime la etiqueta de cada caja o todas, y se valida la entrega.
 
 #### Labels: reimprimir etiquetas deterioradas
+**Qué se encuentra:** no hay una lista; solo se muestran resultados al buscar, hasta 40.
+
+- **Etiqueta GS1 escaneada:**
+  - El SSCC (00) busca la caja por su nombre exacto.
+  - El lote (10) busca los paquetes de ese lote en stock. Si la etiqueta lleva el peso, se queda con las piezas de ese peso.
+- **Texto escrito:**
+  - Los paquetes y cajas cuyo nombre lo contiene, estén o no en stock. Por eso se puede reimprimir la etiqueta de una caja ya entregada.
+  - Los paquetes en stock en ubicación interna cuyo paquete, lote, crotal o producto lo contiene.
+
 1. Se **escanea** la etiqueta deteriorada (también su código GS1: el lote y el peso localizan la pieza, el SSCC la caja) o se escribe un paquete, lote, crotal, producto o caja y se pulsa Intro. Si coincide más de uno, se elige.
 2. Se elige el **tipo de etiqueta**:
 
