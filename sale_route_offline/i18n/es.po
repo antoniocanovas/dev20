@@ -674,6 +674,12 @@ msgid "Subtotal"
 msgstr "Subtotal"
 
 #. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Text for the line"
+msgstr "Texto de la línea"
+
+#. module: sale_route_offline
 #. odoo-python
 #: code:addons/sale_route_offline/models/account_payment.py:0
 msgid "The amount must be positive."
@@ -774,6 +780,12 @@ msgid ""
 msgstr "La ruta nunca se ha preparado en este dispositivo. Conéctate a internet y prepárala."
 
 #. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "The text of a line can't be longer than %s characters."
+msgstr "El texto de una línea no puede tener más de %s caracteres."
+
+#. module: sale_route_offline
 #. odoo-javascript
 #: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
 msgid "This customer has no usual product yet: add products from the catalog."
@@ -845,6 +857,12 @@ msgid ""
 "shows in red in the sync menu at the top: review it here and save it again. "
 "If a payment fails, copy it before discarding it."
 msgstr "Lo pendiente de conexión se envía solo. Si un pedido falla, aparece en rojo en el menú de sincronización de arriba: revísalo aquí y guárdalo otra vez. Si falla un cobro, cópialo antes de descartarlo."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Written under the product in the order"
+msgstr "Aparece bajo el producto en el pedido"
 
 #. module: sale_route_offline
 #. odoo-javascript

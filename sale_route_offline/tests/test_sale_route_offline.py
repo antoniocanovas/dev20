@@ -256,6 +256,47 @@ class TestSaleRouteOffline(AccountTestInvoicingCommon):
             self.env['sale.order'].with_user(self.salesman).save_from_tablet(
                 self._order_vals(order_id=quotation.id, lines=lines))
 
+    def test_line_note(self):
+        self.product_a.description_sale = 'Fresh, vacuum packed'
+        vals = self._order_vals(lines=[
+            {'product_id': self.product_a.id, 'qty': 1, 'note': 'Cut in thin slices '},
+            {'product_id': self.product_b.id, 'qty': 1, 'note': 'In a separate box'},
+            {'product_id': self.product_b.id, 'qty': 2},
+        ])
+        SaleOrder = self.env['sale.order'].with_user(self.salesman)
+        order = self.env['sale.order'].browse(SaleOrder.save_from_tablet(vals)['id'])
+        line_a, line_b, line_b2 = order.order_line
+        self.assertEqual(line_a.name, 'Fresh, vacuum packed\nCut in thin slices', "Under the product description")
+        self.assertEqual(line_b.name, 'In a separate box', "Product without description")
+        self.assertFalse(line_b2.name)
+
+        # The route data gives the text back to the tablet
+        data = self.env['res.partner'].with_user(self.salesman).get_route_data()
+        order_data = next(o for o in data['customers'][0]['orders'] if o['id'] == order.id)
+        self.assertEqual([line['note'] for line in order_data['lines']], ['Cut in thin slices', 'In a separate box', ''])
+
+        # Next version: one text changed, one removed, one line without text sent
+        SaleOrder.save_from_tablet(dict(vals, revision=2, lines=[
+            {'product_id': self.product_a.id, 'qty': 1, 'line_id': line_a.id, 'note': 'Cut in thick slices'},
+            {'product_id': self.product_b.id, 'qty': 1, 'line_id': line_b.id, 'note': ''},
+            {'product_id': self.product_b.id, 'qty': 3, 'line_id': line_b2.id},
+        ]))
+        self.assertEqual(line_a.name, 'Fresh, vacuum packed\nCut in thick slices')
+        self.assertFalse(line_b.name)
+        self.assertEqual(line_b2.product_uom_qty, 3.0)
+
+        with self.assertRaises(ValidationError):
+            SaleOrder.save_from_tablet(self._order_vals(lines=[{'product_id': self.product_a.id, 'qty': 1, 'note': 'x' * 501}]))
+
+    def test_line_note_keeps_backend_description(self):
+        quotation = self._backend_quotation()
+        line_a = quotation.order_line.filtered('product_id')[0]
+        line_a.name = 'Written in the backend'
+        self.env['sale.order'].with_user(self.salesman).save_from_tablet(self._order_vals(order_id=quotation.id, lines=[
+            {'product_id': self.product_a.id, 'qty': 2, 'line_id': line_a.id},
+        ]))
+        self.assertEqual(line_a.name, 'Written in the backend', "No text sent: the description stays")
+
     def test_create_from_tablet_compatibility(self):
         vals = self._order_vals()
         del vals['revision']

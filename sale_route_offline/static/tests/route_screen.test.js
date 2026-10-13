@@ -269,6 +269,28 @@ test("online: the recent orders are read again once the order is confirmed", asy
     expect(".o_sale_route_edit_quotation").toHaveCount(0);
 });
 
+test("order lines: text written under the product", async () => {
+    mockRouteServer();
+    await openRouteScreen();
+    await openCustomer();
+    await contains(".o_sale_route_new_order").click();
+    await contains(".o_sale_route_usual_qty").click();
+    expect(".o_sale_route_note_input").toHaveCount(0);
+    await contains(".o_sale_route_note_toggle").click();
+    await contains(".o_sale_route_note_input").edit("Cut in thin slices", { confirm: false });
+    await contains(".o_sale_route_review").click();
+    expect(".o_sale_route_review_lines .o_sale_route_line_note").toHaveText("Cut in thin slices");
+    await contains(".o_sale_route_save_quotation").click();
+    expect.verifySteps([
+        ["save_from_tablet", 1, false, [{ product_id: 3, qty: 2, discount: 0, note: "Cut in thin slices" }]],
+    ]);
+
+    // Changed again: the text is kept with the order
+    await contains(".o_sale_route_open_order").click();
+    await contains(".o_sale_route_edit_order").click();
+    expect(".o_sale_route_note_input").toHaveValue("Cut in thin slices");
+});
+
 test.tags("mobile");
 test("catalog: choose the category in a list on small screens", async () => {
     mockRouteServer();

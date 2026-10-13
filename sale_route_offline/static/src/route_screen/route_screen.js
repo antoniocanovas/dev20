@@ -468,6 +468,8 @@ export class RouteScreen extends Component {
             taxPercent: line.tax_percent,
             usualQty: 0,
             qty: line.qty,
+            note: line.note || "",
+            origNote: line.note || "",
         }));
         this.state.order = {
             uuid: order.offline_uuid || crypto.randomUUID(),
@@ -495,7 +497,13 @@ export class RouteScreen extends Component {
             name: entry.orderName,
             timeStamp: entry.timeStamp,
             day: entry.day,
-            lines: entry.order.lines.map((line) => ({ ...line })),
+            // Lines saved by an older version of the screen have neither key nor text
+            lines: entry.order.lines.map((line) => ({
+                key: line.lineId ? `line-${line.lineId}` : `product-${line.productId}`,
+                note: "",
+                origNote: "",
+                ...line,
+            })),
         };
         this.state.productSearch = "";
         this.state.mode = "review";
@@ -513,6 +521,8 @@ export class RouteScreen extends Component {
             taxPercent: this.state.data.taxes[customer.tax_key]?.[productId] ?? 0,
             usualQty: 0,
             qty: 0,
+            note: "",
+            origNote: "",
         };
     }
 
@@ -561,6 +571,14 @@ export class RouteScreen extends Component {
         line.qty = Math.max((line.qty || 0) + step, 0);
     }
 
+    onToggleLineNote(line) {
+        line.showNote = !line.showNote;
+    }
+
+    onLineNoteInput(line, ev) {
+        line.note = ev.target.value;
+    }
+
     onLineDiscountChange(line, ev) {
         line.discount = Math.min(Math.max(this.parseNumber(ev.target.value), 0), 100);
         ev.target.value = this.formatQty(line.discount);
@@ -584,6 +602,10 @@ export class RouteScreen extends Component {
 
     orderedLines() {
         return this.state.order.lines.filter((line) => line.qty > 0);
+    }
+
+    lineNoteChanged(line) {
+        return line.lineId ? line.note.trim() !== line.origNote : Boolean(line.note.trim());
     }
 
     onReview() {
@@ -619,6 +641,8 @@ export class RouteScreen extends Component {
                 qty: line.qty,
                 discount: line.discount,
                 ...(line.lineId ? { line_id: line.lineId } : {}),
+                // The description of a line only changes if its text changed
+                ...(this.lineNoteChanged(line) ? { note: line.note.trim() } : {}),
             })),
             ...(order.orderId ? { order_id: order.orderId } : {}),
         };
@@ -635,7 +659,8 @@ export class RouteScreen extends Component {
                 : _t("Quotation of %(customer)s, %(total)s", { customer: customer.name, total })),
             details: lines.map(
                 (line) => `${this.formatQty(line.qty)} ${line.uomName} ${line.name}` +
-                    (line.discount ? ` (-${this.formatQty(line.discount)}%)` : "")
+                    (line.discount ? ` (-${this.formatQty(line.discount)}%)` : "") +
+                    (line.note.trim() ? `\n   ${line.note.trim()}` : "")
             ),
             // Every line, also the usual ones not ordered this time, to change the order later
             order: { confirmed: confirm, lines: order.lines.map((line) => ({ ...line })) },

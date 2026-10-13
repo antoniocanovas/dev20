@@ -224,3 +224,9 @@ El tour de la pantalla (`test_meat_cutting_ui`) necesita Chrome y la librería `
 - **Presupuestos y pedidos por pieza o por canal.** Muestran el importe estimado; la factura, el real.
 - **Qué se puede despiezar.** Todo producto con lista de materiales normal y stock aparece en la pantalla de despiece. Los productos que se fabrican en otro proceso, como los envasados en stock, salen del despiece como un corte más en lugar de tener su propia lista de materiales.
 - **Prefijo SSCC.** Se configura por tipo de paquete, no por compañía.
+
+## Otros módulos del repositorio
+
+| Módulo | Depende de | Qué aporta |
+|---|---|---|
+| `sale_route_offline` | `sale`, `account` | Aplicación *Ruta de venta* para la tablet de los comerciales de preventa. Sin conexión: clientes con deuda y últimos pedidos, pedidos con productos habituales y catálogo, revisión y confirmación, y cobros. Todo se sincroniza al recuperar la conexión. Ver [su README](sale_route_offline/README.md) |

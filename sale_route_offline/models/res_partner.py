@@ -23,6 +23,18 @@ def _get_tax_percent(taxes):
     )
 
 
+def _get_line_note(line):
+    """ Text of an order line under the description of its product, as written on the tablet. """
+    description = line.with_context(lang=line.order_id._get_lang())._get_sale_order_line_multiline_description_sale()
+    name = line.name or ''
+    if not description:
+        return name
+    if name.startswith(description):
+        return name[len(description):].lstrip('\n')
+    # Description changed by hand in the backend: shown as it is, without text of the tablet
+    return ''
+
+
 def is_record_id(value):
     """ Whether `value`, sent by the tablet, can be a record id. """
     return isinstance(value, int) and not isinstance(value, bool) and value > 0
@@ -248,6 +260,7 @@ class ResPartner(models.Model):
                     'discount': line.discount,
                     'tax_percent': _get_tax_percent(line.tax_ids),
                     'subtotal': line.price_subtotal,
+                    'note': _get_line_note(line),
                 } for line in order.order_line if not line.display_type and line.product_id],
             })
         return orders

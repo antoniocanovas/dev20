@@ -5,6 +5,13 @@ from .res_partner import check_offline_uuid, is_record_id
 
 # Most lines of an order made on the tablet
 MAX_LINES = 200
+# Longest text of a line, written under the product description
+MAX_NOTE_LENGTH = 500
+
+
+def join_line_note(description, note):
+    """ Description of an order line: the one of the product, then the text of the tablet. """
+    return '\n'.join(part for part in (description, note) if part)
 
 
 class SaleOrder(models.Model):
@@ -36,13 +43,17 @@ class SaleOrder(models.Model):
         the lines it knows (`line_id`), adds the new ones and removes the missing ones. Sections
         and notes are kept. Once confirmed, the lines can't be changed from the tablet anymore.
 
+        The `note` of a line is written under the product description; the description of a line
+        is only changed when the tablet sends a `note` for it.
+
         A quotation made in the backend gets the uuid of the tablet the first time it is changed
         there (`order_id`).
 
         :param dict vals: {
             'offline_uuid': str, 'revision': int, 'partner_id': int, 'confirm': bool,
             'order_id': int (optional),
-            'lines': [{'product_id': int, 'qty': float, 'discount': float, 'line_id': int (optional)}],
+            'lines': [{'product_id': int, 'qty': float, 'discount': float,
+                       'line_id': int (optional), 'note': str (optional)}],
         }
         :return: {'id': int, 'name': str, 'state': str}
         """
@@ -73,7 +84,7 @@ class SaleOrder(models.Model):
                 'user_id': self.env.uid,
                 'offline_uuid': offline_uuid,
                 'offline_revision': revision,
-                'order_line': [Command.create({k: v for k, v in line.items() if k != 'line_id'}) for line in lines],
+                'order_line': [Command.create(self._get_tablet_new_line_vals(line, customer)) for line in lines],
             })
         elif order.partner_id.commercial_partner_id != customer:
             raise ValidationError(self.env._("The customer of an order can't be changed."))
@@ -81,7 +92,7 @@ class SaleOrder(models.Model):
             order.write({
                 'offline_uuid': offline_uuid,
                 'offline_revision': revision,
-                'order_line': order._get_tablet_line_commands(lines),
+                'order_line': order._get_tablet_line_commands(lines, customer),
             })
         elif order.state == 'sale' and confirm:
             # Confirmed meanwhile, e.g. from the backend: nothing left to do
@@ -107,25 +118,38 @@ class SaleOrder(models.Model):
                 "The order %s was changed from another tablet: prepare the route again.", order.name))
         return order
 
-    def _get_tablet_line_commands(self, lines):
+    def _get_tablet_line_commands(self, lines, customer):
         """ Commands to make the product lines of the order match the ones of the tablet. """
         self.ensure_one()
         product_lines = self.order_line.filtered(lambda line: not line.display_type)
         kept = self.env['sale.order.line']
         commands = []
         for line in lines:
-            line = dict(line)
             current = product_lines.filtered(lambda l: l.id == line.get('line_id')) - kept
-            line.pop('line_id', None)
             if current and current.product_id.id == line['product_id']:
                 kept |= current
-                line.pop('product_id')
-                commands.append(Command.update(current.id, line))
+                vals = {key: line[key] for key in ('product_uom_qty', 'discount') if key in line}
+                if line.get('note') is not None:
+                    description = current.with_context(lang=self._get_lang())._get_sale_order_line_multiline_description_sale()
+                    vals['name'] = join_line_note(description, line['note'])
+                commands.append(Command.update(current.id, vals))
             else:
                 # Also a line removed in the backend meanwhile: it comes back
-                commands.append(Command.create(line))
+                commands.append(Command.create(self._get_tablet_new_line_vals(line, customer)))
         commands += [Command.unlink(line.id) for line in product_lines - kept]
         return commands
+
+    @api.model
+    def _get_tablet_new_line_vals(self, line, customer):
+        vals = {key: line[key] for key in ('product_id', 'product_uom_qty', 'discount') if key in line}
+        if line.get('note'):
+            product = self.env['product.product'].browse(line['product_id']).with_context(lang=customer.lang)
+            # Like the default description of the line, which needs the line to exist
+            description = product.description_sale and product.get_product_multiline_description_sale(
+                with_display_name=False)
+            vals['name'] = join_line_note(description, line['note'])
+        return vals
+
     @api.model
     def create_from_tablet(self, vals):
         """ Calls queued by the first version of the tablet screen, which only made quotations. """
@@ -162,6 +186,11 @@ class SaleOrder(models.Model):
                 vals['discount'] = discount
             if line_id:
                 vals['line_id'] = line_id
+            note = line.get('note')
+            if note is not None:
+                if not isinstance(note, str) or len(note) > MAX_NOTE_LENGTH:
+                    raise ValidationError(self.env._("The text of a line can't be longer than %s characters.", MAX_NOTE_LENGTH))
+                vals['note'] = note.strip()
             line_vals.append(vals)
         products = self.env['product.product'].browse(product_ids).exists()
         current_products = order.order_line.product_id if order else self.env['product.product']
