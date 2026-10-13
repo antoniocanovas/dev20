@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- The sync menu only knows the status of the calls made by the views (created, edited...).
+         The orders and payments of the route have none, and reading it would break the menu. -->
+    <t t-inherit="web.OfflineSystray" t-inherit-mode="extension">
+        <xpath expr="//div[@t-att-data-tooltip-template]" position="attributes">
+            <attribute name="t-if">element.status</attribute>
+        </xpath>
+    </t>
+
+</templates>

@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="sale_route_offline.RouteScreen">
+        <div class="o_action o_sale_route_screen d-flex flex-column h-100 bg-view">
+            <t t-if="!this.state.mode" t-call="sale_route_offline.RouteScreenHome"/>
+            <t t-else="">
+                <div class="o_sale_route_header d-flex align-items-center gap-3 p-3 border-bottom">
+                    <button class="btn btn-light btn-lg o_sale_route_back" title="Back" data-available-offline=""
+                            t-att-disabled="this.state.sending" t-on-click="this.onBack">
+                        <i class="oi fs-2" data-icon="arrow_back"/>
+                    </button>
+                    <div class="flex-grow-1 min-w-0">
+                        <t t-if="this.state.mode === 'customers'">
+                            <div class="input-group input-group-lg o_sale_route_search">
+                                <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                                <input type="search" class="form-control o_sale_route_search_input" autocomplete="off"
+                                       placeholder="Search a customer"
+                                       t-att-value="this.state.search" t-on-input="this.onSearchInput"/>
+                            </div>
+                        </t>
+                        <t t-else="">
+                            <div class="fs-3 fw-bold text-truncate" t-out="this.customer().name"/>
+                            <div class="text-muted text-truncate">
+                                <t t-if="this.state.mode === 'order'">
+                                    <t t-if="this.state.order.revision or this.state.order.orderId">Change the quotation <t t-out="this.state.order.name or ''"/></t>
+                                    <t t-else="">New order</t>
+                                </t>
+                                <t t-elif="this.state.mode === 'catalog'">Catalog</t>
+                                <t t-elif="this.state.mode === 'review'">Review the order</t>
+                                <t t-elif="this.state.mode === 'payment'">Register payment</t>
+                                <t t-else="">
+                                    <t t-out="this.customer().street"/><t t-if="this.customer().city"> · <t t-out="this.customer().city"/></t>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                    <span t-if="this.offline.isOffline()" class="badge text-bg-warning fs-6 o_sale_route_offline_badge">
+                        <i class="oi me-1" data-icon="link_off"/>Offline
+                    </span>
+                </div>
+                <div class="flex-grow-1 overflow-auto p-3">
+                    <t t-if="this.state.mode === 'customers'" t-call="sale_route_offline.RouteScreenCustomers"/>
+                    <t t-elif="this.state.mode === 'customer'" t-call="sale_route_offline.RouteScreenCustomer"/>
+                    <t t-elif="this.state.mode === 'order'" t-call="sale_route_offline.RouteScreenOrder"/>
+                    <t t-elif="this.state.mode === 'catalog'" t-call="sale_route_offline.RouteScreenCatalog"/>
+                    <t t-elif="this.state.mode === 'review'" t-call="sale_route_offline.RouteScreenReview"/>
+                    <t t-elif="this.state.mode === 'payment'" t-call="sale_route_offline.RouteScreenPayment"/>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Main menu: prepare the route before leaving, then work with the customers -->
+    <t t-name="sale_route_offline.RouteScreenHome">
+        <div class="flex-grow-1 overflow-auto w-100 pt-sm-3 bg-body-tertiary o_sale_route_home">
+            <div class="container d-flex flex-column bg-view shadow o_sale_route_home_menu">
+                <header class="d-flex align-items-center justify-content-between my-3 column-gap-2">
+                    <a href="#" title="Odoo" aria-label="Odoo" class="oi fs-2 me-3 text-dark o_sale_route_odoo_home"
+                       data-icon="apps" t-on-click.prevent="this.onOdooHome"/>
+                    <span class="fs-2 me-auto">Route Sales</span>
+                    <span t-if="this.offline.isOffline()" class="badge text-bg-warning fs-6 o_sale_route_offline_badge">
+                        <i class="oi me-1" data-icon="link_off"/>Offline
+                    </span>
+                    <a t-if="this.canInstall()" href="#" role="button"
+                       title="Install the app on this device" aria-label="Install the app on this device"
+                       class="btn btn-secondary d-flex align-items-center justify-content-center oi o_sale_route_pwa_install"
+                       data-icon="download" t-on-click.prevent="this.onInstall"/>
+                </header>
+                <div t-if="this.state.loadFailed" class="alert alert-danger o_sale_route_no_data">
+                    The route was never prepared on this device. Connect to the internet and prepare it.
+                </div>
+                <div t-elif="this.state.data" t-att-class="'alert ' + (this.isStale() ? 'alert-warning o_sale_route_stale' : 'alert-success')">
+                    Route prepared on <strong t-out="this.formatDateTime(this.state.data.generated_at)"/>.
+                    <t t-if="this.isStale()">Prepare it again before leaving to have the latest debt and prices.</t>
+                </div>
+                <div t-if="this.pendingCount()" class="alert alert-info o_sale_route_pending_summary">
+                    <t t-out="this.pendingCount()"/> orders or payments waiting for the connection.
+                </div>
+                <footer class="d-grid gap-2 mb-3">
+                    <button class="btn btn-primary d-flex align-items-center gap-3 text-start p-3 o_sale_route_prepare"
+                            data-available-offline="" t-att-disabled="this.state.preparing" t-on-click="this.onPrepare">
+                        <i t-if="this.state.preparing" class="spinner-border fs-4"/>
+                        <i t-else="" class="oi fs-2" data-icon="cloud_download"/>
+                        <span class="d-flex flex-column">
+                            <span class="fs-5 fw-bold">Prepare route</span>
+                            <span class="small">Download customers, debt, prices and images to work offline</span>
+                        </span>
+                    </button>
+                    <button class="btn btn-primary d-flex align-items-center gap-3 text-start p-3 o_sale_route_customers"
+                            data-available-offline="" t-att-disabled="!this.state.data" t-on-click="this.onShowCustomers">
+                        <i class="oi fs-2" data-icon="groups"/>
+                        <span class="d-flex flex-column">
+                            <span class="fs-5 fw-bold">Customers</span>
+                            <span class="small">
+                                <t t-if="this.state.data"><t t-out="this.state.data.customers.length"/> customers in your route</t>
+                                <t t-else="">Prepare the route first</t>
+                            </span>
+                        </span>
+                    </button>
+                </footer>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="sale_route_offline.RouteScreenCustomers">
+        <div t-if="!this.visibleCustomers().length" class="alert alert-info">No customer found.</div>
+        <div class="o_sale_route_grid">
+            <button t-foreach="this.visibleCustomers()" t-as="customer" t-key="customer.id"
+                    class="btn btn-outline-secondary o_sale_route_tile o_sale_route_customer" data-available-offline=""
+                    t-on-click="() => this.onSelectCustomer(customer.id)">
+                <t t-set="todayOrders" t-value="this.customerOrders(customer.id)"/>
+                <div class="d-flex align-items-start gap-2">
+                    <div class="fs-5 fw-bold text-truncate me-auto" t-out="customer.name"/>
+                    <span t-if="todayOrders.length" class="badge rounded-pill text-bg-primary" title="Orders of today">
+                        <i class="oi" data-icon="shopping_cart"/> <t t-out="todayOrders.length"/>
+                    </span>
+                </div>
+                <div class="small text-muted text-truncate" t-out="customer.city"/>
+                <div class="mt-1 d-flex flex-wrap gap-2 small">
+                    <span t-if="customer.overdue > 0" class="badge rounded-pill text-bg-danger o_sale_route_overdue">
+                        Overdue <t t-out="this.formatAmount(customer.overdue)"/>
+                    </span>
+                    <span t-if="customer.not_due" class="badge rounded-pill text-bg-300">
+                        Not due <t t-out="this.formatAmount(customer.not_due)"/>
+                    </span>
+                    <span t-if="this.isOverCreditLimit(customer)" class="badge rounded-pill text-bg-warning">Credit limit exceeded</span>
+                </div>
+            </button>
+        </div>
+    </t>
+
+    <t t-name="sale_route_offline.RouteScreenCustomer">
+        <t t-set="customer" t-value="this.customer()"/>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-primary btn-lg o_sale_route_new_order" data-available-offline="" t-on-click="this.onNewOrder">
+                <i class="oi me-2" data-icon="add_shopping_cart"/>New order
+            </button>
+            <button class="btn btn-secondary btn-lg o_sale_route_new_payment" data-available-offline=""
+                    t-att-disabled="!this.state.data.journals.length" t-on-click="this.onNewPayment">
+                <i class="oi me-2" data-icon="payments"/>Register payment
+            </button>
+            <a t-if="customer.phone" class="btn btn-light btn-lg" t-attf-href="tel:{{ customer.phone }}">
+                <i class="oi me-2" data-icon="call"/><t t-out="customer.phone"/>
+            </a>
+        </div>
+
+        <div class="o_sale_route_debt d-flex flex-wrap gap-3 mb-4">
+            <div t-att-class="'card flex-fill ' + (customer.overdue > 0 ? 'border-danger' : '')">
+                <div class="card-body">
+                    <div class="small text-muted">Overdue</div>
+                    <div t-att-class="'fs-4 fw-bold ' + (customer.overdue > 0 ? 'text-danger' : '')" t-out="this.formatAmount(customer.overdue)"/>
+                </div>
+            </div>
+            <div class="card flex-fill">
+                <div class="card-body">
+                    <div class="small text-muted">Not due</div>
+                    <div class="fs-4 fw-bold" t-out="this.formatAmount(customer.not_due)"/>
+                </div>
+            </div>
+            <div t-if="customer.credit_limit !== false" t-att-class="'card flex-fill ' + (this.isOverCreditLimit(customer) ? 'border-warning' : '')">
+                <div class="card-body">
+                    <div class="small text-muted">Credit limit</div>
+                    <div class="fs-4 fw-bold" t-out="customer.credit_limit ? this.formatAmount(customer.credit_limit) : '-'"/>
+                </div>
+            </div>
+        </div>
+
+        <t t-set="todayOrders" t-value="this.customerOrders(customer.id)"/>
+        <section t-if="todayOrders.length" class="mb-4 o_sale_route_today_orders">
+            <h3>Orders of today</h3>
+            <ul class="list-group">
+                <li t-foreach="todayOrders" t-as="entry" t-key="entry.uuid"
+                    class="list-group-item d-flex flex-wrap align-items-center gap-2 o_sale_route_today_order">
+                    <span class="text-muted" t-out="this.formatTime(entry.timeStamp)"/>
+                    <span class="me-auto" t-out="entry.displayName"/>
+                    <span t-if="entry.order.confirmed" class="badge rounded-pill text-bg-success">Confirmed</span>
+                    <span t-else="" class="badge rounded-pill text-bg-info">Quotation</span>
+                    <span t-if="!entry.synced" class="badge rounded-pill text-bg-warning o_sale_route_waiting">
+                        <i class="oi" data-icon="schedule"/> Waiting for the connection
+                    </span>
+                    <button t-if="!entry.synced" class="btn btn-light o_sale_route_copy" title="Copy" data-available-offline=""
+                            t-on-click="() => this.onCopyEntry(entry)">
+                        <i class="oi" data-icon="content_copy"/>
+                    </button>
+                    <button class="btn btn-primary o_sale_route_open_order" data-available-offline=""
+                            t-on-click="() => this.onOpenOrder(entry)">
+                        <t t-if="entry.order.confirmed">See</t>
+                        <t t-else="">Review</t>
+                    </button>
+                </li>
+            </ul>
+        </section>
+
+        <t t-set="pending" t-value="this.pendingEntries(customer.id)"/>
+        <section t-if="pending.length" class="mb-4 o_sale_route_pending">
+            <h3>Payments waiting for the connection</h3>
+            <ul class="list-group">
+                <li t-foreach="pending" t-as="entry" t-key="entry.uuid" class="list-group-item d-flex align-items-center gap-2">
+                    <i class="oi" data-icon="payments"/>
+                    <span class="me-auto" t-out="entry.displayName"/>
+                    <button class="btn btn-light o_sale_route_copy" title="Copy" data-available-offline=""
+                            t-on-click="() => this.onCopyEntry(entry)">
+                        <i class="oi" data-icon="content_copy"/>
+                    </button>
+                </li>
+            </ul>
+        </section>
+        <p t-if="pending.length or todayOrders.some((entry) => !entry.synced)" class="text-muted small">
+            What waits for the connection is sent automatically. If an order fails, it shows in red in the sync menu at the top: review it here and save it again. If a payment fails, copy it before discarding it.
+        </p>
+
+        <section class="mb-4 o_sale_route_invoices">
+            <h3>Pending invoices</h3>
+            <div t-if="!customer.invoices.length" class="text-muted">No pending invoice.</div>
+            <table t-else="" class="table table-sm align-middle">
+                <thead>
+                    <tr><th>Invoice</th><th>Due date</th><th class="text-end">To pay</th></tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="customer.invoices" t-as="invoice" t-key="invoice.id"
+                        t-att-class="invoice.overdue ? 'table-danger' : ''">
+                        <td t-out="invoice.name"/>
+                        <td t-out="this.formatDate(invoice.date_due)"/>
+                        <td class="text-end" t-out="this.formatAmount(invoice.residual)"/>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="o_sale_route_orders">
+            <h3>Recent orders</h3>
+            <div t-if="!customer.orders.length" class="text-muted">No order yet.</div>
+            <details t-foreach="customer.orders" t-as="order" t-key="order.id" class="border rounded p-2 mb-2 o_sale_route_recent_order">
+                <summary class="o_sale_route_recent_order_summary">
+                    <div class="min-w-0">
+                        <strong t-out="order.name"/>
+                        <div class="small text-muted" t-out="this.formatDay(order.date)"/>
+                    </div>
+                    <div class="d-flex flex-wrap gap-1 align-items-start">
+                        <span t-att-class="'badge rounded-pill ' + this.orderStateClass(order)" t-out="order.state"/>
+                        <span t-if="order.invoice_status" t-att-class="'badge rounded-pill o_sale_route_invoice_status ' + this.invoiceStatusClass(order)"
+                              title="Invoice Status" t-out="order.invoice_status"/>
+                    </div>
+                    <div class="small o_sale_route_order_dates">
+                        <div t-if="order.delivery_date"><span class="text-muted">Delivery Date</span> <t t-out="this.formatDay(order.delivery_date)"/></div>
+                        <div t-if="order.commitment_date"><span class="text-muted">Promised Delivery</span> <t t-out="this.formatDay(order.commitment_date)"/></div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 justify-content-end">
+                        <span class="fw-bold text-nowrap" t-out="this.formatAmount(order.amount_total, order.currency_id)"/>
+                        <button t-if="this.isQuotation(order)" class="btn btn-secondary o_sale_route_edit_quotation" data-available-offline=""
+                                t-on-click.prevent.stop="() => this.onEditQuotation(order)">
+                            <i class="oi me-1" data-icon="edit"/>Change
+                        </button>
+                    </div>
+                </summary>
+                <table class="table table-sm mt-2 mb-0">
+                    <tr t-foreach="order.lines" t-as="line" t-key="line_index">
+                        <td t-out="line.name"/>
+                        <td class="text-end text-nowrap"><t t-out="this.formatQty(line.qty)"/> <t t-out="line.uom_name"/></td>
+                        <td class="text-end text-nowrap">
+                            <t t-out="this.formatAmount(line.price_unit, order.currency_id)"/>
+                            <span t-if="line.discount" class="text-muted"> -<t t-out="this.formatQty(line.discount)"/>%</span>
+                        </td>
+                    </tr>
+                </table>
+            </details>
+        </section>
+    </t>
+
+    <t t-name="sale_route_offline.RouteScreenOrder">
+        <t t-set="totals" t-value="this.orderTotals()"/>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-secondary btn-lg o_sale_route_open_catalog" data-available-offline=""
+                    t-on-click="this.onShowCatalog">
+                <i class="oi me-2" data-icon="grid_view"/>Catalog
+            </button>
+            <button t-if="this.state.order.lines.some((line) => line.usualQty)" class="btn btn-light btn-lg o_sale_route_usual_qty"
+                    data-available-offline="" t-on-click="this.onUseUsualQuantities">
+                Usual quantities
+            </button>
+        </div>
+        <div t-if="!this.state.order.lines.length" class="alert alert-info">
+            This customer has no usual product yet: add products from the catalog.
+        </div>
+        <div class="d-flex flex-column gap-2 mb-3">
+            <div t-foreach="this.state.order.lines" t-as="line" t-key="line.key"
+                 t-att-class="'d-flex flex-wrap align-items-center gap-2 border rounded p-2 o_sale_route_line ' + (line.qty ? 'border-primary' : '')">
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-bold text-truncate" t-out="line.name"/>
+                    <div class="small text-muted">
+                        <t t-out="this.formatAmount(line.price)"/> / <t t-out="line.uomName"/>
+                        <t t-if="line.usualQty"> · Usual <t t-out="this.formatQty(line.usualQty)"/></t>
+                    </div>
+                </div>
+                <div class="input-group o_sale_route_qty">
+                    <button class="btn btn-outline-secondary btn-lg" title="Less" data-available-offline=""
+                            t-on-click="() => this.onLineStep(line, -1)">
+                        <i class="oi" data-icon="remove"/>
+                    </button>
+                    <input type="text" inputmode="decimal" class="form-control form-control-lg text-center o_sale_route_qty_input"
+                           t-att-value="line.qty ? this.formatQty(line.qty) : ''"
+                           t-att-placeholder="line.usualQty ? this.formatQty(line.usualQty) : '0'"
+                           t-on-change="(ev) => this.onLineQtyChange(line, ev)"/>
+                    <button class="btn btn-outline-secondary btn-lg" title="More" data-available-offline=""
+                            t-on-click="() => this.onLineStep(line, 1)">
+                        <i class="oi" data-icon="add"/>
+                    </button>
+                </div>
+                <div t-if="this.state.data.has_discount" class="input-group o_sale_route_discount">
+                    <input type="text" inputmode="decimal" class="form-control form-control-lg text-end o_sale_route_discount_input"
+                           t-att-value="this.formatQty(line.discount)"
+                           t-on-change="(ev) => this.onLineDiscountChange(line, ev)"/>
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-3 border-top pt-3 o_sale_route_order_footer">
+            <div class="me-auto">
+                <div class="small text-muted">
+                    Untaxed <t t-out="this.formatAmount(totals.untaxed)"/> · Taxes <t t-out="this.formatAmount(totals.tax)"/>
+                </div>
+                <div class="fs-3 fw-bold o_sale_route_order_total" t-out="this.formatAmount(totals.total)"/>
+            </div>
+            <button class="btn btn-primary btn-lg o_sale_route_review" data-available-offline=""
+                    t-att-disabled="!this.orderedLines().length" t-on-click="this.onReview">
+                <i class="oi me-2" data-icon="fact_check"/>Review order
+            </button>
+        </div>
+    </t>
+
+    <!-- Like the catalog of the sales orders, but with the data of the prepared route -->
+    <t t-name="sale_route_offline.RouteScreenCatalog">
+        <t t-set="categories" t-value="this.catalogCategories()"/>
+        <t t-set="products" t-value="this.catalogProducts()"/>
+        <div class="d-flex gap-3 align-items-start o_sale_route_catalog">
+            <aside class="d-none d-md-block flex-shrink-0 o_sale_route_catalog_panel">
+                <div class="list-group">
+                    <button t-att-class="'list-group-item list-group-item-action d-flex ' + (!this.state.categoryId ? 'active' : '')"
+                            data-available-offline="" t-on-click="() => this.onSelectCategory(false)">
+                        <span class="me-auto">All</span>
+                        <span class="o_sale_route_counter small fw-bold" t-out="this.state.data.products.length"/>
+                    </button>
+                    <button t-foreach="categories" t-as="category" t-key="category.id"
+                            t-att-class="'list-group-item list-group-item-action d-flex gap-2 o_sale_route_category ' + (this.state.categoryId === category.id ? 'active' : '')"
+                            data-available-offline="" t-on-click="() => this.onSelectCategory(category.id)">
+                        <span class="me-auto text-start" t-out="category.name"/>
+                        <span class="o_sale_route_counter small fw-bold" t-out="category.count"/>
+                    </button>
+                </div>
+            </aside>
+            <div class="flex-grow-1 min-w-0">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="input-group input-group-lg o_sale_route_product_search">
+                        <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                        <input type="search" class="form-control o_sale_route_product_search_input" autocomplete="off"
+                               placeholder="Search a product"
+                               t-att-value="this.state.productSearch" t-on-input="this.onProductSearchInput"/>
+                    </div>
+                    <select class="form-select form-select-lg d-md-none o_sale_route_category_select" t-on-change="this.onCategorySelectChange">
+                        <option value="" t-att-selected="!this.state.categoryId">All categories</option>
+                        <option t-foreach="categories" t-as="category" t-key="category.id"
+                                t-att-value="category.id" t-att-selected="this.state.categoryId === category.id"
+                                t-out="category.name"/>
+                    </select>
+                    <button class="btn btn-primary btn-lg ms-auto o_sale_route_catalog_done" data-available-offline=""
+                            t-on-click="this.onBack">
+                        <i class="oi me-2" data-icon="shopping_cart"/>Back to order
+                        <span class="badge rounded-pill text-bg-300 ms-1" t-out="this.orderedLines().length"/>
+                    </button>
+                </div>
+                <div t-if="!products.length" class="alert alert-info">No product found.</div>
+                <div class="o_sale_route_catalog_grid">
+                    <article t-foreach="products" t-as="product" t-key="product.id"
+                             t-att-class="'card o_sale_route_catalog_card ' + (this.catalogQty(product.id) ? 'border-primary o_sale_route_added' : '')"
+                             t-att-data-id="product.id" t-on-click="() => this.onCatalogCardClick(product.id)">
+                        <div class="card-body d-flex gap-2 p-2">
+                            <img class="o_sale_route_catalog_image flex-shrink-0 rounded" loading="lazy" alt=""
+                                 t-att-src="this.productImageUrl(product)" t-on-error="this.onCatalogImageError"/>
+                            <div class="min-w-0">
+                                <div class="fw-bold o_sale_route_catalog_name" t-out="product.name"/>
+                                <div t-if="product.default_code" class="small text-muted" t-out="product.default_code"/>
+                                <div class="fw-bold mt-1">
+                                    <t t-out="this.formatAmount(this.catalogPrice(product.id))"/>
+                                    <span class="small fw-normal text-muted"> / <t t-out="product.uom_name"/></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 p-2 pt-0" t-on-click.stop="() => {}">
+                            <div t-if="this.catalogQty(product.id)" class="input-group flex-nowrap o_sale_route_catalog_qty">
+                                <button class="btn btn-primary" title="Less" data-available-offline=""
+                                        t-on-click="() => this.onCatalogStep(product.id, -1)">
+                                    <i class="oi" data-icon="remove"/>
+                                </button>
+                                <input type="text" inputmode="decimal" class="form-control text-center o_sale_route_catalog_qty_input"
+                                       t-att-value="this.formatQty(this.catalogQty(product.id))"
+                                       t-on-change="(ev) => this.onCatalogQtyChange(product.id, ev)"/>
+                                <span class="input-group-text" t-out="product.uom_name"/>
+                                <button class="btn btn-primary" title="More" data-available-offline=""
+                                        t-on-click="() => this.onCatalogStep(product.id, 1)">
+                                    <i class="oi" data-icon="add"/>
+                                </button>
+                            </div>
+                            <button t-else="" class="btn btn-secondary w-100 o_sale_route_catalog_add" data-available-offline=""
+                                    t-on-click="() => this.onCatalogStep(product.id, 1)">
+                                <i class="oi me-1" data-icon="add_shopping_cart"/>Add
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="sale_route_offline.RouteScreenReview">
+        <t t-set="customer" t-value="this.customer()"/>
+        <t t-set="order" t-value="this.state.order"/>
+        <t t-set="lines" t-value="this.orderedLines()"/>
+        <t t-set="totals" t-value="this.orderTotals(lines)"/>
+        <div t-if="order.confirmed" class="alert alert-success o_sale_route_confirmed">
+            This order is confirmed: it can't be changed from the tablet anymore.
+        </div>
+        <t t-else="">
+            <div t-if="customer.overdue > 0" class="alert alert-danger o_sale_route_review_overdue">
+                The customer has <strong t-out="this.formatAmount(customer.overdue)"/> overdue.
+            </div>
+            <div t-elif="this.isOverCreditLimit(customer)" class="alert alert-warning">
+                The customer is over their credit limit.
+            </div>
+        </t>
+        <table class="table align-middle o_sale_route_review_lines">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th class="text-end">Quantity</th>
+                    <th class="text-end">Price</th>
+                    <th t-if="this.state.data.has_discount" class="text-end">Disc.</th>
+                    <th class="text-end">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr t-foreach="lines" t-as="line" t-key="line.key">
+                    <td t-out="line.name"/>
+                    <td class="text-end text-nowrap"><t t-out="this.formatQty(line.qty)"/> <t t-out="line.uomName"/></td>
+                    <td class="text-end text-nowrap" t-out="this.formatAmount(line.price)"/>
+                    <td t-if="this.state.data.has_discount" class="text-end text-nowrap">
+                        <t t-if="line.discount"><t t-out="this.formatQty(line.discount)"/>%</t>
+                    </td>
+                    <td class="text-end text-nowrap" t-out="this.formatAmount(this.lineSubtotal(line))"/>
+                </tr>
+            </tbody>
+        </table>
+        <div class="d-flex flex-wrap align-items-center gap-3 border-top pt-3">
+            <div class="me-auto">
+                <div class="small text-muted">
+                    Untaxed <t t-out="this.formatAmount(totals.untaxed)"/> · Taxes <t t-out="this.formatAmount(totals.tax)"/>
+                </div>
+                <div class="fs-3 fw-bold o_sale_route_order_total" t-out="this.formatAmount(totals.total)"/>
+                <div class="small text-muted">Estimate: the final prices are computed when the order is received.</div>
+            </div>
+            <t t-if="!order.confirmed">
+                <button class="btn btn-light btn-lg o_sale_route_edit_order" data-available-offline=""
+                        t-att-disabled="this.state.sending" t-on-click="this.onEditOrder">
+                    <i class="oi me-2" data-icon="edit"/>Change
+                </button>
+                <button class="btn btn-secondary btn-lg o_sale_route_save_quotation" data-available-offline=""
+                        t-att-disabled="!lines.length or this.state.sending" t-on-click="() => this.onSaveOrder(false)">
+                    <i class="oi me-2" data-icon="save"/>Save quotation
+                </button>
+                <button class="btn btn-primary btn-lg o_sale_route_confirm_order" data-available-offline=""
+                        t-att-disabled="!lines.length or this.state.sending" t-on-click="() => this.onSaveOrder(true)">
+                    <i class="oi me-2" data-icon="check"/>Confirm order
+                </button>
+            </t>
+        </div>
+    </t>
+
+    <t t-name="sale_route_offline.RouteScreenPayment">
+        <t t-set="payment" t-value="this.state.payment"/>
+        <div class="o_sale_route_payment_form d-flex flex-column gap-3">
+            <div t-if="this.payableInvoices().length">
+                <h3>Invoices paid <small class="text-muted">(optional)</small></h3>
+                <div class="list-group">
+                    <label t-foreach="this.payableInvoices()" t-as="invoice" t-key="invoice.id"
+                           class="list-group-item d-flex align-items-center gap-3 o_sale_route_payment_invoice">
+                        <input type="checkbox" class="form-check-input fs-4 m-0"
+                               t-att-checked="payment.invoiceIds.includes(invoice.id)"
+                               t-on-change="() => this.onToggleInvoice(invoice)"/>
+                        <span class="me-auto">
+                            <strong t-out="invoice.name"/>
+                            <span t-att-class="'small ms-2 ' + (invoice.overdue ? 'text-danger' : 'text-muted')">
+                                Due <t t-out="this.formatDate(invoice.date_due)"/>
+                            </span>
+                        </span>
+                        <span class="fw-bold" t-out="this.formatAmount(invoice.residual)"/>
+                    </label>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <label class="form-label" for="o_sale_route_amount">Amount</label>
+                    <input id="o_sale_route_amount" type="text" inputmode="decimal"
+                           class="form-control form-control-lg o_sale_route_amount_input"
+                           t-att-value="payment.amount ? this.formatNumber(payment.amount) : ''"
+                           t-on-change="this.onPaymentAmountChange"/>
+                </div>
+                <div class="col-sm-6">
+                    <label class="form-label" for="o_sale_route_journal">Paid by</label>
+                    <select id="o_sale_route_journal" class="form-select form-select-lg o_sale_route_journal_select"
+                            t-on-change="this.onPaymentJournalChange">
+                        <option t-foreach="this.state.data.journals" t-as="journal" t-key="journal.id"
+                                t-att-value="journal.id" t-att-selected="journal.id === payment.journalId"
+                                t-out="journal.name"/>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="form-label" for="o_sale_route_memo">Memo</label>
+                <input id="o_sale_route_memo" type="text" maxlength="200" class="form-control form-control-lg o_sale_route_memo_input"
+                       t-att-value="payment.memo" t-on-input="this.onPaymentMemoInput"/>
+            </div>
+            <div class="d-flex justify-content-end border-top pt-3">
+                <button class="btn btn-primary btn-lg o_sale_route_save_payment" data-available-offline=""
+                        t-att-disabled="!(payment.amount > 0) or !payment.journalId or this.state.sending"
+                        t-on-click="this.onSavePayment">
+                    <i class="oi me-2" data-icon="check"/>Register <t t-out="this.formatAmount(payment.amount)"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

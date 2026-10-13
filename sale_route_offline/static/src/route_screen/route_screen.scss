@@ -1,0 +1,79 @@
+.o_sale_route_screen {
+    touch-action: manipulation;
+
+    .o_sale_route_home_menu {
+        max-width: 36rem;
+    }
+
+    .o_sale_route_search,
+    .o_sale_route_product_search {
+        max-width: 32rem;
+    }
+
+    .o_sale_route_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        gap: map-get($spacers, 3);
+    }
+
+    .o_sale_route_tile {
+        min-height: 6rem;
+        text-align: start;
+        white-space: normal;
+    }
+
+    .o_sale_route_qty {
+        width: 12rem;
+    }
+
+    .o_sale_route_discount {
+        width: 7rem;
+    }
+
+    .o_sale_route_debt .card {
+        min-width: 10rem;
+    }
+
+    .o_sale_route_recent_order_summary {
+        display: grid;
+        grid-template-columns: minmax(7rem, 1fr) minmax(8rem, 1.2fr) minmax(10rem, 1.4fr) auto;
+        gap: map-get($spacers, 2);
+        align-items: center;
+        cursor: pointer;
+
+        @include media-breakpoint-down(md) {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .o_sale_route_catalog_panel {
+        width: 15rem;
+    }
+
+    .o_sale_route_catalog_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+        gap: map-get($spacers, 2);
+    }
+
+    .o_sale_route_catalog_card {
+        cursor: pointer;
+    }
+
+    .o_sale_route_catalog_image {
+        width: 4.5rem;
+        height: 4.5rem;
+        object-fit: contain;
+
+        &.o_sale_route_no_image {
+            visibility: hidden;
+        }
+    }
+
+    .o_sale_route_catalog_name {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}

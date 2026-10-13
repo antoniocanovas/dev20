@@ -1,0 +1,877 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* sale_route_offline
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-13 10:12+0000\n"
+"PO-Revision-Date: 2026-10-13 10:12+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "(optional)"
+msgstr "(opcional)"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Add"
+msgstr "Añadir"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "All"
+msgstr "Todos"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "All categories"
+msgstr "Todas las categorías"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Amount"
+msgstr "Importe"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Back"
+msgstr "Volver"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Back to order"
+msgstr "Volver al pedido"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Catalog"
+msgstr "Catálogo"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Change"
+msgstr "Modificar"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Change the quotation"
+msgstr "Modificar el presupuesto"
+
+#. module: sale_route_offline
+#: model:ir.model,name:sale_route_offline.model_res_company
+msgid "Company"
+msgstr "Compañía"
+
+#. module: sale_route_offline
+#: model:ir.model,name:sale_route_offline.model_res_config_settings
+msgid "Config Settings"
+msgstr "Ajustes de configuración"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Confirm order"
+msgstr "Confirmar pedido"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Confirmed"
+msgstr "Confirmado"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Connect to the internet to prepare the route."
+msgstr "Conéctate a internet para preparar la ruta."
+
+#. module: sale_route_offline
+#: model:ir.model,name:sale_route_offline.model_res_partner
+msgid "Contact"
+msgstr "Contacto"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Copied to the clipboard."
+msgstr "Copiado al portapapeles."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Copy"
+msgstr "Copiar"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Credit limit"
+msgstr "Límite de crédito"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Credit limit exceeded"
+msgstr "Límite de crédito superado"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Customers"
+msgstr "Clientes"
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/controllers/webmanifest.py:0
+msgid "Customers, orders and payments, also offline"
+msgstr "Clientes, pedidos y cobros, también sin conexión"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Delivery Date"
+msgstr "Fecha de entrega"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Disc."
+msgstr "Dto."
+
+#. module: sale_route_offline
+#: model:ir.model.fields,field_description:sale_route_offline.field_account_payment__display_name
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_company__display_name
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_config_settings__display_name
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_partner__display_name
+#: model:ir.model.fields,field_description:sale_route_offline.field_sale_order__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Download customers, debt, prices and images to work offline"
+msgstr "Descargar clientes, deuda, precios e imágenes para trabajar sin conexión"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Due"
+msgstr "Vence"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Due date"
+msgstr "Vencimiento"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Estimate: the final prices are computed when the order is received."
+msgstr "Orientativo: los precios definitivos se calculan al recibir el pedido."
+
+#. module: sale_route_offline
+#: model:ir.model.fields,field_description:sale_route_offline.field_account_payment__id
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_company__id
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_config_settings__id
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_partner__id
+#: model:ir.model.fields,field_description:sale_route_offline.field_sale_order__id
+msgid "ID"
+msgstr "ID"
+
+#. module: sale_route_offline
+#: model:ir.model.fields,help:sale_route_offline.field_sale_order__offline_uuid
+msgid "Identifier given by the tablet that made the order offline."
+msgstr "Identificador que asigna la tablet que hizo el pedido sin conexión."
+
+#. module: sale_route_offline
+#: model:ir.model.fields,help:sale_route_offline.field_account_payment__offline_uuid
+msgid "Identifier given by the tablet that registered the payment offline."
+msgstr "Identificador que asigna la tablet que registró el cobro sin conexión."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Install the app on this device"
+msgstr "Instalar la aplicación en este dispositivo"
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/res_partner.py:0
+msgid "Invalid customer."
+msgstr "Cliente no válido."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "Invalid date."
+msgstr "Fecha no válida."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "Invalid invoices."
+msgstr "Facturas no válidas."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/res_partner.py:0
+msgid "Invalid list of offline identifiers."
+msgstr "Lista de identificadores sin conexión no válida."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/res_partner.py:0
+msgid "Invalid offline identifier."
+msgstr "Identificador sin conexión no válido."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "Invalid order line."
+msgstr "Línea de pedido no válida."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "Invalid order version."
+msgstr "Versión del pedido no válida."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "Invalid order."
+msgstr "Pedido no válido."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "Invalid payment."
+msgstr "Cobro no válido."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "Invalid product."
+msgstr "Producto no válido."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Invoice Status"
+msgstr "Estado de la factura"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Invoices paid"
+msgstr "Facturas que paga"
+
+#. module: sale_route_offline
+#: model:ir.model.fields,help:sale_route_offline.field_res_company__route_payment_journal_ids
+#: model:ir.model.fields,help:sale_route_offline.field_res_config_settings__route_payment_journal_ids
+msgid ""
+"Journals in which the salespeople register payments on the route. Empty "
+"means every bank and cash journal of the company."
+msgstr "Diarios en los que los comerciales registran cobros en ruta. Vacío: todos los diarios de banco y de caja de la compañía."
+
+#. module: sale_route_offline
+#: model_terms:ir.ui.view,arch_db:sale_route_offline.res_config_settings_view_form
+msgid ""
+"Journals of the payments registered on the route. Empty: every bank and cash"
+" journal"
+msgstr "Diarios de los cobros registrados en ruta. Vacío: todos los diarios de banco y de caja"
+
+#. module: sale_route_offline
+#: model:ir.model.fields,help:sale_route_offline.field_sale_order__offline_revision
+msgid "Last version of the order received from the tablet."
+msgstr "Última versión del pedido recibida desde la tablet."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Less"
+msgstr "Menos"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Memo"
+msgstr "Concepto"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "More"
+msgstr "Más"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "New order"
+msgstr "Nuevo pedido"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "No customer found."
+msgstr "No se ha encontrado ningún cliente."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "No order yet."
+msgstr "Todavía no hay pedidos."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "No pending invoice."
+msgstr "No hay facturas pendientes."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "No product found."
+msgstr "No se ha encontrado ningún producto."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Not due"
+msgstr "No vencida"
+
+#. module: sale_route_offline
+#: model:ir.model.fields,help:sale_route_offline.field_res_company__route_order_count
+#: model:ir.model.fields,help:sale_route_offline.field_res_config_settings__route_order_count
+msgid "Number of recent orders of each customer loaded on the tablet."
+msgstr "Número de pedidos recientes de cada cliente que se cargan en la tablet."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Odoo"
+msgstr "Odoo"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Offline"
+msgstr "Sin conexión"
+
+#. module: sale_route_offline
+#: model:ir.model.fields,field_description:sale_route_offline.field_account_payment__offline_uuid
+#: model:ir.model.fields,field_description:sale_route_offline.field_sale_order__offline_uuid
+msgid "Offline Identifier"
+msgstr "Identificador sin conexión"
+
+#. module: sale_route_offline
+#: model:ir.model.fields,field_description:sale_route_offline.field_sale_order__offline_revision
+msgid "Offline Revision"
+msgstr "Versión sin conexión"
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/res_partner.py:0
+msgid "Only salespeople can use the route sales."
+msgstr "Solo los comerciales pueden usar la ruta de venta."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Order confirmed."
+msgstr "Pedido confirmado."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Order confirmed. It will be sent when the connection is back."
+msgstr "Pedido confirmado. Se enviará al recuperar la conexión."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Order of %(customer)s, %(total)s"
+msgstr "Pedido de %(customer)s, %(total)s"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Orders of today"
+msgstr "Pedidos de hoy"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Overdue"
+msgstr "Vencida"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Paid by"
+msgstr "Forma de pago"
+
+#. module: sale_route_offline
+#: model:ir.model,name:sale_route_offline.model_account_payment
+msgid "Payment"
+msgstr "Pago"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Payment of %(customer)s, %(amount)s"
+msgstr "Cobro de %(customer)s, %(amount)s"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Payment saved. It will be sent when the connection is back."
+msgstr "Cobro guardado. Se enviará al recuperar la conexión."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Payment sent."
+msgstr "Cobro enviado."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "Payments can't be registered in this journal."
+msgstr "No se pueden registrar cobros en este diario."
+
+#. module: sale_route_offline
+#: model_terms:ir.ui.view,arch_db:sale_route_offline.view_account_payment_search_inherit_sale_route_offline
+msgid "Payments registered on the route tablet"
+msgstr "Cobros registrados en la tablet de ruta"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Payments waiting for the connection"
+msgstr "Cobros pendientes de conexión"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Pending invoices"
+msgstr "Facturas pendientes"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Prepare it again before leaving to have the latest debt and prices."
+msgstr "Vuelve a prepararla antes de salir para tener la deuda y los precios al día."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Prepare route"
+msgstr "Preparar ruta"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Prepare the route first"
+msgstr "Prepara antes la ruta"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Price"
+msgstr "Precio"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Product"
+msgstr "Producto"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Promised Delivery"
+msgstr "Entrega prometida"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Quantity"
+msgstr "Cantidad"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Quotation"
+msgstr "Presupuesto"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Quotation of %(customer)s, %(total)s"
+msgstr "Presupuesto de %(customer)s, %(total)s"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Quotation saved."
+msgstr "Presupuesto guardado."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Quotation saved. It will be sent when the connection is back."
+msgstr "Presupuesto guardado. Se enviará al recuperar la conexión."
+
+#. module: sale_route_offline
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_company__route_order_count
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_config_settings__route_order_count
+msgid "Recent Orders per Customer"
+msgstr "Pedidos recientes por cliente"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Recent orders"
+msgstr "Últimos pedidos"
+
+#. module: sale_route_offline
+#: model_terms:ir.ui.view,arch_db:sale_route_offline.res_config_settings_view_form
+msgid "Recent orders of each customer loaded on the tablet"
+msgstr "Pedidos recientes de cada cliente que se cargan en la tablet"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Register"
+msgstr "Registrar"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Register payment"
+msgstr "Registrar cobro"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Review"
+msgstr "Revisar"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Review order"
+msgstr "Revisar pedido"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Review the order"
+msgstr "Revisar el pedido"
+
+#. module: sale_route_offline
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_company__route_payment_journal_ids
+#: model:ir.model.fields,field_description:sale_route_offline.field_res_config_settings__route_payment_journal_ids
+msgid "Route Payment Journals"
+msgstr "Diarios de cobro en ruta"
+
+#. module: sale_route_offline
+#: model_terms:ir.ui.view,arch_db:sale_route_offline.view_account_payment_search_inherit_sale_route_offline
+msgid "Route Payments"
+msgstr "Cobros de ruta"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#. odoo-python
+#: code:addons/sale_route_offline/controllers/webmanifest.py:0
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+#: model:ir.actions.client,name:sale_route_offline.sale_route_action
+#: model:ir.ui.menu,name:sale_route_offline.sale_route_menu_root
+#: model_terms:ir.ui.view,arch_db:sale_route_offline.res_config_settings_view_form
+msgid "Route Sales"
+msgstr "Ruta de venta"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Route prepared on"
+msgstr "Ruta preparada el"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "Route ready: %s customers."
+msgstr "Ruta preparada: %s clientes."
+
+#. module: sale_route_offline
+#: model:ir.model,name:sale_route_offline.model_sale_order
+msgid "Sales Order"
+msgstr "Pedido de venta"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Save quotation"
+msgstr "Guardar presupuesto"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Search a customer"
+msgstr "Buscar un cliente"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Search a product"
+msgstr "Buscar un producto"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "See"
+msgstr "Ver"
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "Some products can't be sold."
+msgstr "Algunos productos no se pueden vender."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "The amount must be positive."
+msgstr "El importe debe ser positivo."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "The clipboard isn't available."
+msgstr "El portapapeles no está disponible."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.js:0
+msgid "The connection was lost. Try again."
+msgstr "Se ha perdido la conexión. Vuelve a intentarlo."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "The customer has"
+msgstr "El cliente tiene"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "The customer is over their credit limit."
+msgstr "El cliente supera su límite de crédito."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "The customer of an order can't be changed."
+msgstr "No se puede cambiar el cliente de un pedido."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "The discount must be between 0 and 100."
+msgstr "El descuento debe estar entre 0 y 100."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "The invoices must be posted invoices of the customer."
+msgstr "Las facturas deben ser facturas publicadas del cliente."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "The memo is too long."
+msgstr "El concepto es demasiado largo."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid ""
+"The order %s is not a quotation anymore: it can't be changed from the "
+"tablet."
+msgstr "El pedido %s ya no es un presupuesto: no se puede cambiar desde la tablet."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "The order %s was changed from another tablet: prepare the route again."
+msgstr "El pedido %s se ha modificado desde otra tablet: vuelve a preparar la ruta."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "The order doesn't exist anymore."
+msgstr "El pedido ya no existe."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "The order must have between 1 and %s lines."
+msgstr "El pedido debe tener entre 1 y %s líneas."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "The payment date must be within the last %s days."
+msgstr "La fecha del cobro debe estar dentro de los últimos %s días."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "The quantity must be positive."
+msgstr "La cantidad debe ser positiva."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid ""
+"The route was never prepared on this device. Connect to the internet and "
+"prepare it."
+msgstr "La ruta nunca se ha preparado en este dispositivo. Conéctate a internet y prepárala."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "This customer has no usual product yet: add products from the catalog."
+msgstr "Este cliente aún no tiene productos habituales: añádelos desde el catálogo."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/res_partner.py:0
+msgid "This customer is not in your route."
+msgstr "Este cliente no está en tu ruta."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "This order is confirmed: it can't be changed from the tablet anymore."
+msgstr "Este pedido está confirmado: ya no se puede cambiar desde la tablet."
+
+#. module: sale_route_offline
+#: model:ir.model.constraint,message:sale_route_offline.constraint_sale_order_offline_uuid_unique
+msgid "This order was already received from the tablet."
+msgstr "Este pedido ya se recibió desde la tablet."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/sale_order.py:0
+msgid "This order was made by another user."
+msgstr "Este pedido lo hizo otro usuario."
+
+#. module: sale_route_offline
+#: model:ir.model.constraint,message:sale_route_offline.constraint_account_payment_offline_uuid_unique
+msgid "This payment was already received from the tablet."
+msgstr "Este cobro ya se recibió desde la tablet."
+
+#. module: sale_route_offline
+#. odoo-python
+#: code:addons/sale_route_offline/models/account_payment.py:0
+msgid "This payment was registered by another user."
+msgstr "Este cobro lo registró otro usuario."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "To pay"
+msgstr "Pendiente"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Untaxed"
+msgstr "Base imponible"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Usual quantities"
+msgstr "Cantidades habituales"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "Waiting for the connection"
+msgstr "Pendiente de conexión"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid ""
+"What waits for the connection is sent automatically. If an order fails, it "
+"shows in red in the sync menu at the top: review it here and save it again. "
+"If a payment fails, copy it before discarding it."
+msgstr "Lo pendiente de conexión se envía solo. Si un pedido falla, aparece en rojo en el menú de sincronización de arriba: revísalo aquí y guárdalo otra vez. Si falla un cobro, cópialo antes de descartarlo."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "customers in your route"
+msgstr "clientes en tu ruta"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "orders or payments waiting for the connection."
+msgstr "pedidos o cobros pendientes de conexión."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "overdue."
+msgstr "vencidos."
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "· Taxes"
+msgstr "· Impuestos"
+
+#. module: sale_route_offline
+#. odoo-javascript
+#: code:addons/sale_route_offline/static/src/route_screen/route_screen.xml:0
+msgid "· Usual"
+msgstr "· Habitual"

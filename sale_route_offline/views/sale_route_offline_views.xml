@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="sale_route_action" model="ir.actions.client">
+        <field name="name">Route Sales</field>
+        <field name="tag">sale_route_offline.route</field>
+        <!-- Also the start of the Odoo app installed on the tablet; it opens offline -->
+        <field name="path">route-sales</field>
+    </record>
+
+    <!-- An app of its own: the tablet opens it from the home screen -->
+    <menuitem id="sale_route_menu_root" name="Route Sales" action="sale_route_action"
+              web_icon="sale_route_offline,static/description/icon.png"
+              groups="sales_team.group_sale_salesman" sequence="31"/>
+
+    <record id="view_order_form_inherit_sale_route_offline" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.sale_route_offline</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <field name="client_order_ref" position="after">
+                <field name="offline_uuid" groups="base.group_no_one" invisible="not offline_uuid"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_payment_form_inherit_sale_route_offline" model="ir.ui.view">
+        <field name="name">account.payment.form.inherit.sale_route_offline</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <field name="memo" position="after">
+                <field name="offline_uuid" groups="base.group_no_one" invisible="not offline_uuid"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_payment_search_inherit_sale_route_offline" model="ir.ui.view">
+        <field name="name">account.payment.search.inherit.sale_route_offline</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_search"/>
+        <field name="arch" type="xml">
+            <filter name="outstanding" position="after">
+                <separator/>
+                <filter string="Route Payments" name="route_payments" domain="[('offline_uuid', '!=', False)]"
+                        help="Payments registered on the route tablet"/>
+            </filter>
+        </field>
+    </record>
+
+</odoo>
