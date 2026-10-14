@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <!-- Who is allowed to get real answers from the Chat AI bot in
+             Discuss. Everyone else gets the "not enabled" message instead.
+             noupdate="0" (resynced on every module upgrade) so the admin
+             seed below is never silently lost, matching the convention
+             already used by odoo_mcp_manager.group_mcp_consent_approver. -->
+        <record id="group_ai_chat_user" model="res.groups">
+            <field name="name">Conversaciones IA</field>
+            <field name="user_ids" eval="[(4, ref('base.user_admin'))]"/>
+        </record>
+
+        <!-- Whoever can approve sensitive AI tool consent requests should
+             also be able to chat with the AI at all — extend the existing
+             group from odoo_mcp_manager without touching its own file. -->
+        <record id="odoo_mcp_manager.group_mcp_consent_approver" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('chat_ai.group_ai_chat_user'))]"/>
+        </record>
+
+    </data>
+</odoo>

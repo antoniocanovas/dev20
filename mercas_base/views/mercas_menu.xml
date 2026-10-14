@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <menuitem
+        id="menu_mercas_root"
+        name="Mercas"
+        sequence="1"
+        web_icon="mercas_base,static/description/icon.svg"
+    />
+
+    <menuitem
+        id="menu_mercas_ventas"
+        name="Sales"
+        parent="menu_mercas_root"
+        action="sale.action_quotations_with_onboarding"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_mercas_compras"
+        name="Purchases"
+        parent="menu_mercas_root"
+        action="purchase.purchase_rfq"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_mercas_contactos"
+        name="Contacts"
+        parent="menu_mercas_root"
+        action="contacts.action_contacts"
+        sequence="30"
+    />
+
+    <menuitem
+        id="menu_mercas_productos"
+        name="Products"
+        parent="menu_mercas_root"
+        action="product.product_template_action_all"
+        sequence="40"
+    />
+
+    <menuitem
+        id="menu_mercas_lotes"
+        name="Lots"
+        parent="menu_mercas_root"
+        action="mercas_base.action_mercas_lotes"
+        sequence="50"
+    />
+
+    <menuitem
+        id="menu_mercas_facturas"
+        name="Invoices"
+        parent="menu_mercas_root"
+        sequence="60"
+    />
+
+    <menuitem
+        id="menu_mercas_facturas_invoices"
+        name="Customer Invoices"
+        parent="menu_mercas_facturas"
+        action="account.action_move_out_invoice_type"
+        sequence="10"
+    />
+
+    <menuitem
+        id="menu_mercas_facturas_credit_notes"
+        name="Credit Notes"
+        parent="menu_mercas_facturas"
+        action="account.action_move_out_refund_type"
+        sequence="20"
+    />
+
+    <menuitem
+        id="menu_mercas_facturas_bills"
+        name="Vendor Bills"
+        parent="menu_mercas_facturas"
+        action="account.action_move_in_invoice_type"
+        sequence="30"
+    />
+
+    <menuitem
+        id="menu_mercas_facturas_refunds"
+        name="Refunds"
+        parent="menu_mercas_facturas"
+        action="account.action_move_in_refund_type"
+        sequence="40"
+    />
+
+    <menuitem
+        id="menu_mercas_flotes"
+        name="Settlements"
+        parent="menu_mercas_root"
+        action="mercas_base.action_stock_lot_invoice_wizard_menu"
+        groups="account.group_account_manager"
+        sequence="70"
+    />
+
+    <menuitem
+        id="menu_mercas_inventario"
+        name="Inventory"
+        parent="menu_mercas_root"
+        action="stock.action_view_inventory_tree"
+        sequence="80"
+    />
+
+</odoo>

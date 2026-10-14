@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mercas_ai.ChatHistoryField">
+        <div t-ref="this.boxRef" class="o_mercas_chat_history" t-out="this.value"/>
+    </t>
+
+</templates>

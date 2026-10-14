@@ -1,0 +1,445 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mercas_ai
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-08-14 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: es\n"
+"Plural-Forms: \n"
+
+#. module: mercas_ai
+#: model:ir.model,name:mercas_ai.model_mercas_mcp_domain_chat_wizard
+msgid "AI Queries (debug — Sales / Purchases / Invoicing / Stock)"
+msgstr "Consultas IA (debug — Ventas / Compras / Facturación / Stock)"
+
+#. module: mercas_ai
+#: model:ir.model,name:mercas_ai.model_mercas_mcp_domain_chat_mixin
+msgid "Mercas MCP Chat — Domain Classification Mixin"
+msgstr "Mercas MCP Chat — Mixin de clasificación de dominio"
+
+#. module: mercas_ai
+#: model:ir.model.fields,field_description:mercas_ai.field_mercas_mcp_domain_chat_mixin__message
+msgid "Message"
+msgstr "Mensaje"
+
+#. module: mercas_ai
+#: model:ir.model.fields,field_description:mercas_ai.field_mercas_mcp_domain_chat_mixin__history_display
+msgid "Conversation"
+msgstr "Conversación"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "You"
+msgstr "Tú"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "AI"
+msgstr "IA"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Ask about sales, purchases, invoicing, stock, availability, boxes, lots or contacts."
+msgstr "Pregunta sobre ventas, compras, facturación, stock, existencias, cajas, lotes o contactos."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+#: code:addons/mercas_ai/models/chat_ai_responder.py:0
+msgid "There is no active AI provider configured. Ask an administrator to configure one in MCP Gateway → Configuration → Providers."
+msgstr "No hay ningún proveedor de IA activo configurado. Pide a un administrador que configure uno en MCP Gateway → Configuración → Proveedores."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "[Error] The \"%s\" tool is not installed."
+msgstr "[Error] La herramienta \"%s\" no está instalada."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "[Error] %s"
+msgstr "[Error] %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "[Error] An unexpected error occurred generating this reply. Try again or contact your administrator."
+msgstr "[Error] Ha ocurrido un error inesperado generando esta respuesta. Inténtalo de nuevo o contacta con tu administrador."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "supplier: %s"
+msgstr "proveedor: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "expires: %s"
+msgstr "caduca: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "no expiration date"
+msgstr "sin fecha de caducidad"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "original: %(o).2f%(u)s"
+msgstr "original: %(o).2f%(u)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "in stock: %(q).2f%(u)s"
+msgstr "en stock: %(q).2f%(u)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "I can't find any contact matching \"%s\"."
+msgstr "No encuentro ningún contacto que coincida con \"%s\"."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Contact: %s"
+msgstr "Contacto: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Phone: %s"
+msgstr "Teléfono: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Address: %s"
+msgstr "Dirección: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "State: %s"
+msgstr "Provincia: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Country: %s"
+msgstr "País: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Tax ID: %s"
+msgstr "NIF: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Company: %s"
+msgstr "Empresa: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "I can't find any customer/supplier matching \"%s\"."
+msgstr "No encuentro ningún cliente/proveedor que coincida con \"%s\"."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "%(partner)s has %(qty)s boxes in their warehouse."
+msgstr "%(partner)s tiene %(qty)s cajas en su almacén."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "I can't find any product matching \"%s\"."
+msgstr "No encuentro ningún producto que coincida con \"%s\"."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "There is no product with stock right now."
+msgstr "No hay ningún producto con existencias ahora mismo."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Product: %s"
+msgstr "Producto: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Variant: %s"
+msgstr "Variante: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Available stock: %(qty).2f %(uom)s"
+msgstr "Stock disponible: %(qty).2f %(uom)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Products with stock (the ones with the most stock first):"
+msgstr "Productos con existencias (los que más stock tienen primero):"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Lot: %s"
+msgstr "Lote: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Supplier: %s"
+msgstr "Proveedor: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Expiration: %s"
+msgstr "Caducidad: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Original: %(o).2f %(uom)s"
+msgstr "Original: %(o).2f %(uom)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "In stock: %(q).2f %(uom)s"
+msgstr "En almacén: %(q).2f %(uom)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Total: %(qty).2f %(uom)s"
+msgstr "Total: %(qty).2f %(uom)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "I can't find any lot/product matching \"%s\"."
+msgstr "No encuentro ningún lote/producto que coincida con \"%s\"."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "In stock: %(qty).2f %(uom)s"
+msgstr "En almacén: %(qty).2f %(uom)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Entry: %s"
+msgstr "Entrada: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Sales:"
+msgstr "Ventas:"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Total: %(qty).2f%(uom)s (%(count)s moves)"
+msgstr "Total: %(qty).2f%(uom)s (%(count)s movimientos)"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Total"
+msgstr "Total"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Lots in stock (by expiration):"
+msgstr "Lotes en stock (por caducidad):"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Total: %(total).2f %(currency)s (%(count)s lines)"
+msgstr "Total: %(total).2f %(currency)s (%(count)s líneas)"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Quantity sold"
+msgstr "Cantidad vendida"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Quantity purchased"
+msgstr "Cantidad comprada"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Quantity invoiced"
+msgstr "Cantidad facturada"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Quantity"
+msgstr "Cantidad"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Day: %s"
+msgstr "Día: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "%(label)s: %(qty).2f %(uom)s"
+msgstr "%(label)s: %(qty).2f %(uom)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Price/%(uom)s: %(price).2f %(currency)s"
+msgstr "Precio/%(uom)s: %(price).2f %(currency)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Amount: %(amount).2f %(currency)s"
+msgstr "Importe: %(amount).2f %(currency)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "In stock: %(s).2f %(uom)s"
+msgstr "En almacén: %(s).2f %(uom)s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "There are no invoices matching that search."
+msgstr "No hay facturas que coincidan con esa búsqueda."
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "• %(name)s — %(partner)s — %(date)s — %(total).2f %(currency)s (outstanding: %(residual).2f %(currency)s, %(state)s)"
+msgstr "• %(name)s — %(partner)s — %(date)s — %(total).2f %(currency)s (pendiente: %(residual).2f %(currency)s, %(state)s)"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "invoices"
+msgstr "facturas"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "orders"
+msgstr "pedidos"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "Outstanding"
+msgstr "Pendiente"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "%(label)s: %(total).2f %(currency)s (%(count)s %(unit)s)"
+msgstr "%(label)s: %(total).2f %(currency)s (%(count)s %(unit)s)"
+
+#. module: mercas_ai
+#: model:ir.model,name:mercas_ai.model_mercas_mcp_chat_wizard
+#: model_terms:ir.ui.view,arch_db:mercas_ai.res_config_settings_view_form_inherit_mercas_ai
+msgid "AI Chat (Sales / Purchases / Invoicing / Stock)"
+msgstr "Chat IA (Ventas / Compras / Facturación / Stock)"
+
+#. module: mercas_ai
+#: model:ir.model.fields.selection,name:mercas_ai.selection__ai_bot_channel__platform__web
+msgid "Web Widget"
+msgstr "Widget Web"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/models/ai_provider.py:0
+msgid "OpenAI API Error: %s"
+msgstr "Error de la API de OpenAI: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/models/ai_provider.py:0
+msgid "Google Gemini API Error: %s"
+msgstr "Error de la API de Google Gemini: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/models/ai_provider.py:0
+msgid "Anthropic API Error: %s"
+msgstr "Error de la API de Anthropic: %s"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/models/ai_provider.py:0
+msgid "Ollama API Error: %s"
+msgstr "Error de la API de Ollama: %s"
+
+#. module: mercas_ai
+#: model:ir.model.fields,field_description:mercas_ai.field_res_config_settings__mercas_ai_base_instructions
+#: model_terms:ir.ui.view,arch_db:mercas_ai.res_config_settings_view_form_inherit_mercas_ai
+msgid "General Instructions (fixed)"
+msgstr "Instrucciones generales (fijas)"
+
+#. module: mercas_ai
+#: model:ir.model.fields,field_description:mercas_ai.field_res_config_settings__mercas_ai_custom_instructions
+#: model_terms:ir.ui.view,arch_db:mercas_ai.res_config_settings_view_form_inherit_mercas_ai
+msgid "Custom Instructions"
+msgstr "Instrucciones personalizadas"
+
+#. module: mercas_ai
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+#: code:addons/mercas_ai/models/chat_ai_responder.py:0
+msgid "I can only answer questions about SALES, PURCHASES, INVOICING, STOCK, AVAILABILITY, BOXES, LOTS and CONTACTS."
+msgstr "Sólo puedo responder preguntas de VENTAS, COMPRAS, FACTURACIÓN, STOCK, EXISTENCIAS, CAJAS, LOTES y CONTACTOS."
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_domain_chat_wizard_view_form
+#: model:ir.actions.act_window,name:mercas_ai.ai_domain_chat_wizard_action
+msgid "AI Queries"
+msgstr "Consultas IA"
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_domain_chat_wizard_view_form
+msgid "[Debug] Original domain console, prior to the merge into \"AI Chat\" — kept only for debugging/comparison, same logic as AI Chat."
+msgstr "[Debug] Consola de dominio original, previa a la fusión en \"Chat IA\" — se mantiene solo para depuración/comparación, misma lógica que Chat IA."
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_domain_chat_wizard_view_form
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_chat_wizard_view_form
+msgid "E.g.: How much has Customer1 purchased this month? (Enter to send, Shift+Enter for a new line)"
+msgstr "Ej: ¿Cuánto ha comprado Cliente1 este mes? (Intro para enviar, Mayús+Intro para salto de línea)"
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_domain_chat_wizard_view_form
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_chat_wizard_view_form
+msgid "Send"
+msgstr "Enviar"
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_domain_chat_wizard_view_form
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_chat_wizard_view_form
+msgid "New Conversation"
+msgstr "Nueva conversación"
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_domain_chat_wizard_view_form
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_chat_wizard_view_form
+msgid "The current history will be archived. Continue?"
+msgstr "Se archivará el historial actual. ¿Continuar?"
+
+#. module: mercas_ai
+#: model:ir.ui.menu,name:mercas_ai.mcp_gateway_menu_domain_chat
+msgid "AI Queries (debug)"
+msgstr "Consultas IA (debug)"
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_chat_wizard_view_form
+#: model:ir.actions.act_window,name:mercas_ai.ai_chat_wizard_action
+#: model:ir.ui.menu,name:mercas_ai.mcp_gateway_menu_chat
+msgid "AI Chat"
+msgstr "Chat IA"
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.ai_chat_wizard_view_form
+msgid "Sales, purchases, invoicing and stock. Any other question will be rejected. Amounts/quantities come directly from Odoo — the AI never hallucinates them."
+msgstr "Ventas, compras, facturación y stock. Cualquier otra pregunta será rechazada. Los importes/cantidades vienen directamente de Odoo — no los alucina la IA."
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.res_config_settings_view_form_inherit_mercas_ai
+msgid "Business instructions that the module always applies to the classification of 'AI Chat' questions. Not editable from here — to change them, edit mercas_ai/prompts.py."
+msgstr "Instrucciones de negocio que el módulo aplica siempre a la clasificación de preguntas de 'Chat IA'. No son editables desde aquí — para cambiarlas hay que modificar mercas_ai/prompts.py."
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.res_config_settings_view_form_inherit_mercas_ai
+msgid "Free text added to the instructions above on every 'AI Chat' query. Useful to fine-tune behavior without touching code."
+msgstr "Texto libre que se añade a las instrucciones anteriores en cada consulta de 'Chat IA'. Útil para afinar el comportamiento sin tocar código."
+
+#. module: mercas_ai
+#: model_terms:ir.ui.view,arch_db:mercas_ai.res_config_settings_view_form_inherit_mercas_ai
+msgid "E.g.: purchase amounts should be shown without VAT..."
+msgstr "Ej: los importes de compras deben mostrarse sin IVA..."
+
+
+#. module: mercas_ai
+#. odoo-python
+#: code:addons/mercas_ai/wizard/domain_chat_mixin.py:0
+msgid "There is no stock of \"%s\" right now."
+msgstr "No hay existencias de \"%s\" ahora mismo."

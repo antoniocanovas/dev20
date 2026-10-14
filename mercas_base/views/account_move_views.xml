@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_move_form_mercas_compensation" model="ir.ui.view">
+        <field name="name">account.move.form.mercas.compensation</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- Next to Pay without outstanding credits (same invisible as its Pay) -->
+            <button id="account_invoice_payment_btn" position="after">
+                <button name="action_compensate"
+                        type="object"
+                        string="Offset"
+                        class="oe_highlight"
+                        data-hotkey="c"
+                        invisible="move_type != 'in_invoice' or state != 'posted' or payment_state in ('paid', 'in_payment') or invoice_has_outstanding"
+                        groups="account.group_account_invoice"/>
+            </button>
+            <!-- Next to Pay with outstanding credits (same invisible as its Pay) -->
+            <button id="account_invoice_payment_secondary_btn" position="after">
+                <button name="action_compensate"
+                        type="object"
+                        string="Offset"
+                        data-hotkey="c"
+                        invisible="move_type != 'in_invoice' or state != 'posted' or payment_state in ('paid', 'in_payment') or not invoice_has_outstanding"
+                        groups="account.group_account_invoice"/>
+            </button>
+        </field>
+    </record>
+
+</odoo>

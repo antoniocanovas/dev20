@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="product_category_envases" model="product.category">
+        <field name="name">Envases</field>
+    </record>
+
+    <record id="product_category_frutas_verduras" model="product.category">
+        <field name="name">Frutas y Verduras</field>
+    </record>
+
+</odoo>

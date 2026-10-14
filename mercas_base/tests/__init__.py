@@ -1,0 +1,6 @@
+from . import test_stock_lot_liquidation
+from . import test_stock_lot_change_wizard
+from . import test_mercas_label_print_wizard
+from . import test_sale_order_line_product_qty_datetime
+from . import test_mercas_box_orders
+from . import test_ui

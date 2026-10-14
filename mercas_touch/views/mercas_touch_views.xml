@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="mercas_touch_action" model="ir.actions.client">
+        <field name="name">Market Counter</field>
+        <field name="tag">mercas_touch.screen</field>
+        <!-- Also the start of the Odoo app installed on the tablet -->
+        <field name="path">mercas-touch</field>
+    </record>
+
+    <!-- An app of its own: the counter opens it from the home screen -->
+    <menuitem id="mercas_touch_menu_root" name="Market Counter" action="mercas_touch_action"
+              web_icon="mercas_touch,static/description/icon.png"
+              groups="stock.group_stock_user" sequence="2"/>
+
+    <record id="view_order_form_inherit_mercas_touch" model="ir.ui.view">
+        <field name="name">sale.order.form.inherit.mercas_touch</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <field name="client_order_ref" position="after">
+                <field name="mercas_touch_uuid" groups="base.group_no_one" invisible="not mercas_touch_uuid"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="purchase_order_form_inherit_mercas_touch" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.mercas_touch</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_ref" position="after">
+                <field name="mercas_touch_uuid" groups="base.group_no_one" invisible="not mercas_touch_uuid"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_account_payment_form_inherit_mercas_touch" model="ir.ui.view">
+        <field name="name">account.payment.form.inherit.mercas_touch</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <field name="memo" position="after">
+                <field name="mercas_touch_uuid" groups="base.group_no_one" invisible="not mercas_touch_uuid"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

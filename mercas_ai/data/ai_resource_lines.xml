@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- odoo_mcp_manager already seeds res.partner (resource_res_partner) —
+             not duplicated here. sale.order.line / purchase.order.line are
+             missing from its default set, needed so the generic MCP tools
+             (search_records/analyze_records, and LLMRouter's model list for
+             Telegram/WhatsApp/Web) can see line-level detail — order header
+             models alone don't expose per-product quantities/prices. Not used
+             by mercas_ai's own classify+tools pipeline, which never consults
+             ai.resource at all. -->
+
+        <record id="resource_sale_order_line" model="ai.resource">
+            <field name="sequence">55</field>
+            <field name="name">Sales Order Lines</field>
+            <field name="model_name">sale.order.line</field>
+            <field name="description">Individual product lines within sales orders (quantity, price, UoM per line)</field>
+        </record>
+
+        <record id="resource_purchase_order_line" model="ai.resource">
+            <field name="sequence">65</field>
+            <field name="name">Purchase Order Lines</field>
+            <field name="model_name">purchase.order.line</field>
+            <field name="description">Individual product lines within purchase orders (quantity, price, UoM per line)</field>
+        </record>
+
+    </data>
+</odoo>

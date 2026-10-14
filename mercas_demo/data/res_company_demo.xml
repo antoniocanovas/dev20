@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- La activación de la trazabilidad general y la configuración de la
+         compañía (categoría de cajas, margen, etc.) se hacen en hooks.py: son
+         actualizaciones sobre registros ya existentes de otros módulos
+         (base.main_company, base.group_user) y el mecanismo noupdate="1" de
+         las XML impide que se re-apliquen en una actualización del módulo si
+         el registro ya existía. -->
+
+</odoo>

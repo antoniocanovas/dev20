@@ -1,0 +1,60 @@
+/* ── Systray icon ── */
+.o_mercas_topbar_icon {
+    color: inherit;
+    opacity: 0.8;
+    padding: 0 10px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.o_mercas_topbar_icon:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Dropdown items ── */
+.o_mercas_item_fkey {
+    display: inline-block;
+    min-width: 2.4rem;
+    font-size: 0.68rem;
+    font-family: monospace;
+    font-weight: 700;
+    opacity: 0.55;
+    letter-spacing: 0.04em;
+    margin-right: 6px;
+}
+
+.o_mercas_item_label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+
+/* ── Launcher screen ── */
+.o_mercas_unified_screen {
+    height: 100%;
+}
+
+.o_mercas_mode_btn {
+    width: 130px;
+    height: 110px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-width: 2px;
+}
+
+.o_mercas_fkey {
+    font-size: 1.1rem;
+    font-weight: 700;
+    opacity: 0.6;
+    font-family: monospace;
+}
+
+.o_mercas_label {
+    font-size: 1.1rem;
+    font-weight: 600;
+}

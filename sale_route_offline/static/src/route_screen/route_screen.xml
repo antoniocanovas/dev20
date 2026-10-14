@@ -89,7 +89,7 @@
                     </button>
                     <button class="btn btn-primary d-flex align-items-center gap-3 text-start p-3 o_sale_route_customers"
                             data-available-offline="" t-att-disabled="!this.state.data" t-on-click="this.onShowCustomers">
-                        <i class="oi fs-2" data-icon="groups"/>
+                        <i class="oi fs-2" data-icon="group"/>
                         <span class="d-flex flex-column">
                             <span class="fs-5 fw-bold">Customers</span>
                             <span class="small">
@@ -141,7 +141,7 @@
                 <i class="oi me-2" data-icon="payments"/>Register payment
             </button>
             <a t-if="customer.phone" class="btn btn-light btn-lg" t-attf-href="tel:{{ customer.phone }}">
-                <i class="oi me-2" data-icon="call"/><t t-out="customer.phone"/>
+                <i class="oi me-2" data-icon="phone"/><t t-out="customer.phone"/>
             </a>
         </div>
 
@@ -319,7 +319,7 @@
                 <button t-att-class="'btn btn-lg o_sale_route_note_toggle ' + (line.note ? 'btn-primary' : 'btn-light')"
                         title="Text for the line" aria-label="Text for the line" data-available-offline=""
                         t-on-click="() => this.onToggleLineNote(line)">
-                    <i class="oi" data-icon="edit_note"/>
+                    <i class="oi" data-icon="edit"/>
                 </button>
                 <textarea t-if="line.showNote or line.note" rows="2" maxlength="500"
                           class="form-control w-100 o_sale_route_note_input" placeholder="Written under the product in the order"
@@ -335,7 +335,7 @@
             </div>
             <button class="btn btn-primary btn-lg o_sale_route_review" data-available-offline=""
                     t-att-disabled="!this.orderedLines().length" t-on-click="this.onReview">
-                <i class="oi me-2" data-icon="fact_check"/>Review order
+                <i class="oi me-2" data-icon="checklist"/>Review order
             </button>
         </div>
     </t>

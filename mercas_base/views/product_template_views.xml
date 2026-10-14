@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_product_template_form_mercas" model="ir.ui.view">
+        <field name="name">product.template.form.mercas</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Insert after the div containing qty_available (parent of uom_span) -->
+            <xpath expr="//span[@name='uom_span']/.." position="after">
+                <field name="is_box"/>
+                <field name="box_product_id"
+                       invisible="not is_storable or is_box"
+                       context="{'default_is_box': True}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_template_search_mercas" model="ir.ui.view">
+        <field name="name">product.template.search.mercas</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <filter name="filter_to_sell" position="after">
+                <separator/>
+                <filter string="Boxes" name="mercas_is_box" domain="[('is_box', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+
+</odoo>

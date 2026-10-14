@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mercas_keys.MercasTopBar">
+        <Dropdown>
+            <button class="o_mercas_topbar_icon btn" title="Mercas">
+                <i class="oi fs-5" data-icon="keyboard"/>
+            </button>
+            <t t-set-slot="content">
+                <t t-foreach="this.modes" t-as="mode" t-key="mode.fkey">
+                    <DropdownItem onSelected="() => this.openMode(mode)">
+                        <span class="o_mercas_item_fkey"><t t-out="mode.fkey"/></span>
+                        <span class="o_mercas_item_label"><t t-out="mode.label"/></span>
+                    </DropdownItem>
+                </t>
+                <div role="separator" class="dropdown-divider"/>
+                <DropdownItem onSelected="() => this.addLine()">
+                    <span class="o_mercas_item_fkey">Ins</span>
+                    <span class="o_mercas_item_label">New Line</span>
+                </DropdownItem>
+            </t>
+        </Dropdown>
+    </t>
+
+    <t t-name="mercas_keys.MercasUnifiedScreen">
+        <div class="o_mercas_unified_screen d-flex flex-column align-items-center justify-content-center h-100">
+            <div class="d-flex flex-wrap gap-4 justify-content-center">
+                <t t-foreach="this.modes" t-as="mode" t-key="mode.fkey">
+                    <button class="btn btn-outline-primary o_mercas_mode_btn"
+                            t-on-click="() => this.openMode(mode)"
+                            t-att-title="mode.fkey">
+                        <div class="o_mercas_fkey"><t t-out="mode.fkey"/></div>
+                        <div class="o_mercas_label"><t t-out="mode.label"/></div>
+                    </button>
+                </t>
+            </div>
+        </div>
+    </t>
+
+</templates>

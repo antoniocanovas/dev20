@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- The Chat AI persona. A real res.users (not just a res.partner)
+             so it is a genuine internal contact (share=False) and shows up
+             like any colleague in Discuss. Login is permanently blocked in
+             models/res_users.py._check_credentials — deliberately not left
+             to "no password was ever set", which a password-reset flow or
+             an admin mistake could undo later.
+
+             No password is set here on purpose, as a second, independent
+             layer on top of that hard block. group_ids is limited to
+             base.group_user only: this account never executes anything
+             itself — every ai.tool call runs as the real human asking the
+             question (see chat_ai_bot.py), so the bot needs no data-access
+             groups of its own. -->
+        <record id="user_chat_ai_bot" model="res.users">
+            <field name="login">chat_ai_bot</field>
+            <field name="name">Asistente IA</field>
+            <field name="email">chat_ai_bot@localhost.invalid</field>
+            <field name="notification_type">inbox</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[Command.link(ref('base.main_company'))]"/>
+            <field name="group_ids" eval="[Command.link(ref('base.group_user'))]"/>
+            <field name="image_1920" type="bytes" file="chat_ai/static/img/usuario_ia_melon.png"/>
+        </record>
+
+    </data>
+</odoo>

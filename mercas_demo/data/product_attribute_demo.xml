@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="product_attribute_calibre" model="product.attribute">
+        <field name="name">Calibre</field>
+        <field name="display_type">radio</field>
+        <field name="create_variant">always</field>
+    </record>
+    <record id="product_attribute_calibre_value_03" model="product.attribute.value">
+        <field name="name">03</field>
+        <field name="attribute_id" ref="product_attribute_calibre"/>
+        <field name="sequence">1</field>
+    </record>
+    <record id="product_attribute_calibre_value_04" model="product.attribute.value">
+        <field name="name">04</field>
+        <field name="attribute_id" ref="product_attribute_calibre"/>
+        <field name="sequence">2</field>
+    </record>
+    <record id="product_attribute_calibre_value_05" model="product.attribute.value">
+        <field name="name">05</field>
+        <field name="attribute_id" ref="product_attribute_calibre"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="product_attribute_marca" model="product.attribute">
+        <field name="name">Marca</field>
+        <field name="display_type">radio</field>
+        <field name="create_variant">always</field>
+    </record>
+    <record id="product_attribute_marca_value_granel" model="product.attribute.value">
+        <field name="name">Granel</field>
+        <field name="attribute_id" ref="product_attribute_marca"/>
+        <field name="sequence">1</field>
+    </record>
+    <record id="product_attribute_marca_value_sobrino" model="product.attribute.value">
+        <field name="name">Sobrino</field>
+        <field name="attribute_id" ref="product_attribute_marca"/>
+        <field name="sequence">2</field>
+    </record>
+    <record id="product_attribute_marca_value_abuelo" model="product.attribute.value">
+        <field name="name">Abuelo</field>
+        <field name="attribute_id" ref="product_attribute_marca"/>
+        <field name="sequence">3</field>
+    </record>
+
+</odoo>

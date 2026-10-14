@@ -1,0 +1,93 @@
+.o_mercas_touch {
+    touch-action: manipulation;
+
+    .o_mercas_touch_home_menu {
+        max-width: 36rem;
+    }
+
+    .o_mercas_touch_search {
+        max-width: 40rem;
+    }
+
+    .o_mercas_touch_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        gap: map-get($spacers, 2);
+    }
+
+    .o_mercas_touch_tile {
+        min-height: 5.5rem;
+        text-align: start;
+        white-space: normal;
+    }
+
+    .o_mercas_touch_product_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+        gap: map-get($spacers, 2);
+    }
+
+    .o_mercas_touch_product {
+        min-height: 5rem;
+    }
+
+    .o_mercas_touch_product_image {
+        width: 3.5rem;
+        height: 3.5rem;
+        flex-shrink: 0;
+        object-fit: cover;
+    }
+
+    .o_mercas_touch_ticket {
+        width: 26rem;
+        max-height: 100%;
+        flex-shrink: 0;
+
+        @include media-breakpoint-down(lg) {
+            width: auto;
+            max-height: none;
+        }
+    }
+
+    .o_mercas_touch_line_note {
+        white-space: pre-line;
+    }
+
+    .o_mercas_touch_box_qty {
+        width: 12rem;
+    }
+
+    .o_mercas_touch_box_product {
+        width: auto;
+        min-width: 12rem;
+    }
+
+    .o_mercas_touch_numpad {
+        grid-template-columns: repeat(3, 5rem);
+        grid-auto-rows: 4.5rem;
+        align-self: flex-start;
+
+        .btn {
+            font-size: 1.75rem;
+        }
+    }
+
+    .o_mercas_touch_lot_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+        gap: map-get($spacers, 2);
+    }
+
+    .o_mercas_touch_lot_progress {
+        height: 0.75rem;
+    }
+
+    .o_mercas_touch_lot_actions {
+        position: sticky;
+        bottom: -1 * map-get($spacers, 3);
+    }
+
+    .o_mercas_touch_done {
+        max-width: 40rem;
+    }
+}

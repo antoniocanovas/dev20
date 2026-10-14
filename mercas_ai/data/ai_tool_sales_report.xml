@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="tool_sales_report" model="ai.tool">
+            <field name="name">sales_report</field>
+            <field name="description">Totaliza las ventas (sale.order) por cliente y/o día con importes reales (amount_total), o el detalle por producto (con lote) si se agrupa por producto. Úsalo para cualquier pregunta sobre cuánto ha vendido/comprado un cliente, ventas de un día, totales de ventas o qué productos se han vendido.</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "customer": {"type": "string", "description": "Nombre (parcial) del cliente a filtrar. Vacío = todos los clientes."},
+                    "product": {"type": "string", "description": "Nombre (parcial) o referencia interna (código) del producto. Solo se aplica con group_by=product/product_day."},
+                    "date_from": {"type": "string", "description": "Fecha inicio YYYY-MM-DD. Vacío = sin límite."},
+                    "date_to": {"type": "string", "description": "Fecha fin YYYY-MM-DD. Vacío = sin límite."},
+                    "group_by": {"type": "string", "enum": ["customer", "day", "customer_day", "product", "product_day", "total"], "description": "Cómo agrupar: customer/day/customer_day/total totalizan importes; product/product_day dan el detalle por producto (con lote)."}
+                }
+            }</field>
+        </record>
+    </data>
+</odoo>

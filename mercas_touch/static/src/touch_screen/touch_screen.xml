@@ -1,0 +1,548 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mercas_touch.TouchScreen">
+        <div class="o_action o_mercas_touch d-flex flex-column h-100 bg-view">
+            <t t-if="!this.state.mode" t-call="mercas_touch.TouchScreenHome"/>
+            <t t-else="">
+                <div class="o_mercas_touch_header d-flex align-items-center gap-2 px-3 py-2 border-bottom">
+                    <button class="btn btn-light btn-lg o_mercas_touch_back" title="Back (Esc)"
+                            t-att-disabled="this.state.sending" t-on-click="this.onBack">
+                        <i class="oi fs-2" data-icon="arrow_back"/>
+                    </button>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fs-4 fw-bold text-truncate">
+                            <t t-out="this.currentMode.name"/>
+                            <t t-if="this.state.partner"> · <span class="o_mercas_touch_partner_name" t-out="this.state.partner.name"/></t>
+                        </div>
+                        <div t-if="this.state.partner" class="d-flex flex-wrap gap-2 small o_mercas_touch_partner_badges">
+                            <span t-if="this.state.partner.city" class="text-muted" t-out="this.state.partner.city"/>
+                            <span t-if="this.state.partner.debt.overdue > 0" class="badge text-bg-danger o_mercas_touch_overdue">
+                                Overdue <t t-out="this.formatAmount(this.state.partner.debt.overdue)"/>
+                            </span>
+                            <span t-elif="this.debtTotal() > 0" class="badge text-bg-warning">
+                                Debt <t t-out="this.formatAmount(this.debtTotal())"/>
+                            </span>
+                            <span t-if="this.isOverLimit()" class="badge text-bg-danger o_mercas_touch_risk">Risk exceeded</span>
+                            <t t-foreach="this.state.partner.boxes" t-as="box" t-key="box.product_id">
+                                <span t-if="box.customer" class="badge text-bg-info">
+                                    <i class="oi" data-icon="inventory_2"/> <t t-out="this.formatQty(box.customer)"/> <t t-out="box.name"/>
+                                </span>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="d-none d-md-flex gap-1 o_mercas_touch_tabs">
+                        <button t-foreach="this.modes" t-as="mode" t-key="mode.key"
+                                t-att-class="'btn ' + (mode.key === this.state.mode ? 'btn-primary' : 'btn-secondary')"
+                                t-att-title="mode.name" t-att-disabled="this.state.sending"
+                                t-on-click="() => this.openMode(mode.key)">
+                            <span class="small fw-bold" t-out="mode.fkey"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-grow-1 overflow-auto p-3 o_mercas_touch_body">
+                    <t t-if="this.state.mode === 'lots'" t-call="mercas_touch.TouchScreenLots"/>
+                    <t t-elif="!this.state.partner" t-call="mercas_touch.TouchScreenPartners"/>
+                    <t t-elif="this.state.done" t-call="mercas_touch.TouchScreenDone"/>
+                    <t t-elif="this.state.mode === 'sale' or this.state.mode === 'purchase'" t-call="mercas_touch.TouchScreenOrder"/>
+                    <t t-elif="this.state.mode === 'boxes'" t-call="mercas_touch.TouchScreenBoxes"/>
+                    <t t-elif="this.state.mode === 'payment'" t-call="mercas_touch.TouchScreenPayment"/>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Main menu: one big button per task, also opened with its function key -->
+    <t t-name="mercas_touch.TouchScreenHome">
+        <div class="flex-grow-1 overflow-auto w-100 pt-sm-3 bg-body-tertiary o_mercas_touch_home">
+            <div class="container d-flex flex-column bg-view shadow o_mercas_touch_home_menu">
+                <header class="d-flex align-items-center justify-content-between my-3 column-gap-2">
+                    <a href="#" title="Odoo" aria-label="Odoo" class="oi fs-2 me-3 text-body o_mercas_touch_odoo_home"
+                       data-icon="apps" t-on-click.prevent="this.onOdooHome"/>
+                    <span class="fs-2 me-auto">Market Counter</span>
+                    <a t-if="this.canInstall()" href="#" role="button"
+                       title="Install the app on this device" aria-label="Install the app on this device"
+                       class="btn btn-secondary d-flex align-items-center justify-content-center oi o_mercas_touch_pwa_install"
+                       data-icon="download" t-on-click.prevent="this.onInstall"/>
+                </header>
+                <footer class="d-grid gap-2 mb-3">
+                    <button t-foreach="this.modes" t-as="mode" t-key="mode.key"
+                            t-attf-class="btn btn-primary d-flex align-items-center gap-3 text-start p-3 o_mercas_touch_mode o_mercas_touch_mode_{{ mode.key }}"
+                            t-on-click="() => this.openMode(mode.key)">
+                        <i class="oi fs-2" t-att-data-icon="mode.icon"/>
+                        <span class="d-flex flex-column me-auto">
+                            <span class="fs-5 fw-bold" t-out="mode.name"/>
+                            <span class="small" t-out="mode.help"/>
+                        </span>
+                        <span class="badge text-bg-secondary fs-6" t-out="mode.fkey"/>
+                    </button>
+                </footer>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="mercas_touch.TouchScreenPartners">
+        <div class="input-group input-group-lg mb-3 o_mercas_touch_search">
+            <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+            <input type="search" class="form-control o_mercas_touch_partner_search" autocomplete="off"
+                   t-att-placeholder="this.partnerPlaceholder()"
+                   t-att-value="this.state.partnerSearch" t-on-input="this.onPartnerSearchInput"/>
+        </div>
+        <div t-if="!this.state.partners.length" class="alert alert-info">No partner found.</div>
+        <div class="o_mercas_touch_grid">
+            <button t-foreach="this.state.partners" t-as="partner" t-key="partner.id"
+                    class="btn btn-outline-secondary o_mercas_touch_tile o_mercas_touch_partner"
+                    t-on-click="() => this.onSelectPartner(partner.id)">
+                <div class="fs-5 fw-bold text-truncate" t-out="partner.name"/>
+                <div class="small text-muted text-truncate">
+                    <t t-out="partner.city"/><t t-if="partner.city and partner.vat"> · </t><t t-out="partner.vat"/>
+                </div>
+            </button>
+        </div>
+    </t>
+
+    <!-- Sale and purchase: the catalog, the lots or the line being edited, and the ticket -->
+    <t t-name="mercas_touch.TouchScreenOrder">
+        <div class="d-flex flex-column flex-lg-row gap-3 h-100">
+            <div class="flex-grow-1 min-w-0">
+                <t t-if="this.state.entry" t-call="mercas_touch.TouchScreenEntry"/>
+                <t t-elif="this.state.product" t-call="mercas_touch.TouchScreenProductLots"/>
+                <t t-else="" t-call="mercas_touch.TouchScreenCatalog"/>
+            </div>
+            <div class="o_mercas_touch_ticket d-flex flex-column border rounded p-2">
+                <t t-call="mercas_touch.TouchScreenTicket"/>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="mercas_touch.TouchScreenCatalog">
+        <div class="input-group input-group-lg mb-2 o_mercas_touch_search">
+            <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+            <input type="search" class="form-control o_mercas_touch_product_search" autocomplete="off"
+                   placeholder="Search a product or scan a label"
+                   t-att-value="this.state.productSearch" t-on-input="this.onProductSearchInput"/>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-3 o_mercas_touch_categories">
+            <button t-att-class="'btn ' + (!this.state.categoryId ? 'btn-primary' : 'btn-secondary')"
+                    t-on-click="() => this.onSelectCategory(false)">All</button>
+            <button t-foreach="this.categories()" t-as="category" t-key="category.id"
+                    t-att-class="'btn o_mercas_touch_category ' + (category.id === this.state.categoryId ? 'btn-primary' : 'btn-secondary')"
+                    t-on-click="() => this.onSelectCategory(category.id)" t-out="category.name"/>
+        </div>
+        <div t-if="!this.visibleProducts().length" class="alert alert-info">No product found.</div>
+        <div class="o_mercas_touch_product_grid">
+            <button t-foreach="this.visibleProducts()" t-as="product" t-key="product.id"
+                    class="btn btn-outline-secondary d-flex align-items-center gap-2 text-start p-2 o_mercas_touch_product"
+                    t-on-click="() => this.onSelectProduct(product)">
+                <img t-if="product.image_unique" class="o_mercas_touch_product_image rounded" alt=""
+                     t-att-src="this.productImage(product)"/>
+                <span t-else="" class="o_mercas_touch_product_image d-flex align-items-center justify-content-center rounded bg-body-secondary">
+                    <i class="oi fs-2 text-muted" data-icon="eco"/>
+                </span>
+                <span class="d-flex flex-column min-w-0">
+                    <span class="fw-bold text-truncate" t-out="product.name"/>
+                    <span class="small text-muted">
+                        <t t-out="this.formatAmount(product.price)"/> / <t t-out="product.uom"/>
+                        <t t-if="product.tracking"> · <i class="oi" data-icon="barcode"/> Lots</t>
+                    </span>
+                </span>
+            </button>
+        </div>
+    </t>
+
+    <!-- Lots of the product with stock, to sell from one of them -->
+    <t t-name="mercas_touch.TouchScreenProductLots">
+        <div class="d-flex align-items-center gap-2 mb-3">
+            <div class="fs-4 fw-bold me-auto" t-out="this.state.product.name"/>
+            <button class="btn btn-secondary" t-on-click="this.onBack">Other product</button>
+        </div>
+        <div t-if="this.state.lotsLoading" class="text-muted"><i class="spinner-border spinner-border-sm"/> Loading lots...</div>
+        <div t-elif="!this.state.lots.length" class="alert alert-warning o_mercas_touch_no_lots">There is no lot with stock of this product.</div>
+        <div class="o_mercas_touch_grid">
+            <button t-foreach="this.state.lots" t-as="lot" t-key="lot.id"
+                    class="btn btn-outline-secondary o_mercas_touch_tile o_mercas_touch_lot"
+                    t-att-disabled="this.lotAvailable(lot) &lt;= 0"
+                    t-on-click="() => this.onSelectLot(lot)">
+                <div class="d-flex align-items-start gap-2">
+                    <span class="fs-5 fw-bold text-truncate me-auto" t-out="lot.name"/>
+                    <span class="badge text-bg-success fs-6">
+                        <t t-out="this.formatQty(this.lotAvailable(lot))"/> <t t-out="this.state.product.uom"/>
+                    </span>
+                </div>
+                <div class="small text-truncate" t-out="lot.supplier"/>
+                <div class="small text-muted d-flex flex-wrap gap-2">
+                    <span t-out="this.formatDate(lot.date)"/>
+                    <span t-if="lot.origin" t-out="lot.origin"/>
+                    <span t-if="lot.firm" class="badge text-bg-info">Firm</span>
+                </div>
+            </button>
+        </div>
+    </t>
+
+    <!-- The line being added or changed: quantity, price, boxes, and on purchases the lot data -->
+    <t t-name="mercas_touch.TouchScreenEntry">
+        <t t-set="entry" t-value="this.state.entry"/>
+        <div class="d-flex flex-column flex-md-row gap-3 o_mercas_touch_entry">
+            <div class="flex-grow-1 min-w-0 d-flex flex-column gap-2">
+                <div>
+                    <div class="fs-4 fw-bold" t-out="entry.product.name"/>
+                    <div t-if="entry.lot" class="text-muted">
+                        Lot <strong t-out="entry.lot.name"/> · <t t-out="this.formatQty(this.lotAvailable(entry.lot, entry.line))"/> <t t-out="entry.product.uom"/> available
+                    </div>
+                </div>
+                <label class="form-label mb-0">Quantity (<t t-out="entry.product.uom"/>)</label>
+                <input type="text" inputmode="decimal" autocomplete="off"
+                       t-att-class="'form-control form-control-lg o_mercas_touch_qty ' + (entry.field === 'qty' ? 'border-primary border-2' : '')"
+                       t-att-value="entry.qty" t-on-focus="() => this.onEntryField('qty')"
+                       t-on-input="(ev) => this.onEntryInput('qty', ev)"/>
+                <label class="form-label mb-0">Price per <t t-out="entry.product.uom"/></label>
+                <input type="text" inputmode="decimal" autocomplete="off"
+                       t-att-class="'form-control form-control-lg o_mercas_touch_price ' + (entry.field === 'price' ? 'border-primary border-2' : '')"
+                       t-att-value="entry.price" t-on-focus="() => this.onEntryField('price')"
+                       t-on-input="(ev) => this.onEntryInput('price', ev)"/>
+                <label class="form-label mb-0">Boxes</label>
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="input-group input-group-lg o_mercas_touch_box_qty">
+                        <button class="btn btn-secondary" title="One box less" t-on-click="() => this.onBoxQtyStep(-1)">
+                            <i class="oi" data-icon="remove"/>
+                        </button>
+                        <input type="text" inputmode="numeric" autocomplete="off"
+                               t-att-class="'form-control text-center o_mercas_touch_box_qty_input ' + (entry.field === 'boxQty' ? 'border-primary border-2' : '')"
+                               t-att-value="entry.boxQty" t-on-focus="() => this.onEntryField('boxQty')"
+                               t-on-input="(ev) => this.onNumpadInput(ev.target.value)"/>
+                        <button class="btn btn-secondary" title="One box more" t-on-click="() => this.onBoxQtyStep(1)">
+                            <i class="oi" data-icon="add"/>
+                        </button>
+                    </div>
+                    <select class="form-select form-select-lg o_mercas_touch_box_product" t-on-change="this.onEntryBoxProduct">
+                        <option value="">Box…</option>
+                        <option t-foreach="this.boxProducts()" t-as="box" t-key="box.id" t-att-value="box.id"
+                                t-att-selected="box.id === entry.boxProductId" t-out="box.name"/>
+                    </select>
+                </div>
+                <t t-if="this.state.mode === 'purchase'">
+                    <div class="row g-2">
+                        <div t-if="this.state.data.origin.country" class="col-sm-6">
+                            <label class="form-label mb-0">Country of origin</label>
+                            <select class="form-select form-select-lg o_mercas_touch_origin_country" t-on-change="this.onEntryCountry">
+                                <option value="">—</option>
+                                <option t-foreach="this.state.data.origin.countries" t-as="country" t-key="country.id"
+                                        t-att-value="country.id" t-att-selected="country.id === entry.originCountryId" t-out="country.name"/>
+                            </select>
+                        </div>
+                        <div t-if="this.state.data.origin.state" class="col-sm-6">
+                            <label class="form-label mb-0">State of origin</label>
+                            <select class="form-select form-select-lg o_mercas_touch_origin_state" t-on-change="this.onEntryState">
+                                <option value="">—</option>
+                                <option t-foreach="this.originStates()" t-as="originState" t-key="originState.id"
+                                        t-att-value="originState.id" t-att-selected="originState.id === entry.originStateId" t-out="originState.name"/>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-sm-6">
+                            <label class="form-label mb-0">Lot (empty: a new one)</label>
+                            <input type="text" class="form-control form-control-lg o_mercas_touch_lot_name" autocomplete="off"
+                                   t-att-value="entry.lotName" t-on-input="(ev) => this.onEntryInput('lotName', ev)"/>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-check form-switch fs-5">
+                                <input class="form-check-input o_mercas_touch_firm" type="checkbox" role="switch" id="mercas_touch_firm"
+                                       t-att-checked="entry.firm" t-on-change="this.onEntryFirm"/>
+                                <label class="form-check-label" for="mercas_touch_firm">Firm negotiation</label>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+                <div>
+                    <button class="btn btn-link px-0 o_mercas_touch_note_toggle" t-on-click="this.toggleEntryNote">
+                        <i class="oi" data-icon="edit"/> Text of the line
+                    </button>
+                    <textarea t-if="entry.showNote" class="form-control o_mercas_touch_note" rows="2" maxlength="500"
+                              t-att-value="entry.note" t-on-input="(ev) => this.onEntryInput('note', ev)"/>
+                </div>
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-secondary btn-lg" t-on-click="this.onBack">Cancel</button>
+                    <button class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_add" t-on-click="this.onAddEntry">
+                        <t t-if="entry.line">Update line</t><t t-else="">Add</t>
+                    </button>
+                </div>
+            </div>
+            <TouchNumpad value="this.numpadValue()" onInput="(value) => this.onNumpadInput(value)"
+                         decimals="this.state.entry.field !== 'boxQty'"/>
+        </div>
+    </t>
+
+    <t t-name="mercas_touch.TouchScreenTicket">
+        <div class="fw-bold mb-2">
+            <t t-if="this.state.mode === 'sale'">Sale</t><t t-else="">Purchase</t>
+            <span class="text-muted fw-normal" t-if="this.state.lines.length === 1"> · 1 line</span>
+            <span class="text-muted fw-normal" t-elif="this.state.lines.length"> · <t t-out="this.state.lines.length"/> lines</span>
+        </div>
+        <div class="flex-grow-1 overflow-auto">
+            <div t-if="!this.state.lines.length" class="text-muted small">
+                Choose a product<t t-if="this.state.mode === 'sale'"> or scan the label of a box</t>.
+            </div>
+            <div t-foreach="this.state.lines" t-as="line" t-key="line.key"
+                 class="d-flex align-items-start gap-2 border-bottom py-2 o_mercas_touch_line">
+                <div class="flex-grow-1 min-w-0" role="button" t-on-click="() => this.onEditLine(line)">
+                    <div class="fw-bold text-truncate" t-out="line.product.name"/>
+                    <div class="small text-muted">
+                        <t t-if="line.lot">Lot <t t-out="line.lot.name"/> · </t>
+                        <t t-if="line.lotName">Lot <t t-out="line.lotName"/> · </t>
+                        <t t-out="this.formatQty(line.qty)"/> <t t-out="line.product.uom"/> × <t t-out="this.formatAmount(line.price)"/>
+                        <t t-if="line.boxQty"> · <t t-out="line.boxQty"/> <t t-out="this.boxName(line.boxProductId)"/></t>
+                    </div>
+                    <div t-if="line.note" class="small fst-italic o_mercas_touch_line_note" t-out="line.note"/>
+                </div>
+                <div class="text-end text-nowrap" t-out="this.formatAmount(this.lineSubtotal(line))"/>
+                <button class="btn btn-sm btn-link text-danger o_mercas_touch_remove_line" title="Remove"
+                        t-att-disabled="this.state.sending" t-on-click="() => this.onRemoveLine(line)">
+                    <i class="oi" data-icon="delete"/>
+                </button>
+            </div>
+        </div>
+        <div class="border-top pt-2 mt-2">
+            <div class="d-flex justify-content-between">
+                <span>Boxes</span><span class="o_mercas_touch_total_boxes" t-out="this.linesBoxes()"/>
+            </div>
+            <div class="d-flex justify-content-between fs-4 fw-bold">
+                <span>Total</span><span class="o_mercas_touch_total" t-out="this.formatAmount(this.linesTotal())"/>
+            </div>
+            <div class="small text-muted mb-2">Without taxes. The order computes the final amounts.</div>
+            <div t-if="this.state.mode === 'sale' and this.isOverLimit()" class="alert alert-danger py-2 small o_mercas_touch_risk_warning">
+                The customer exceeds their credit.
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-secondary btn-lg" title="Clear" t-att-disabled="this.state.sending or !this.state.lines.length"
+                        t-on-click="this.onClearOperation">
+                    <i class="oi" data-icon="clear_all"/>
+                </button>
+                <button t-if="this.state.mode === 'sale'" class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_sell"
+                        t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
+                        t-on-click="this.onSell">
+                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Sell and deliver
+                </button>
+                <button t-else="" class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_purchase"
+                        t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
+                        t-on-click="this.onPurchase">
+                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Purchase and receive
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Result of the last operation, with what can be printed -->
+    <t t-name="mercas_touch.TouchScreenDone">
+        <t t-set="done" t-value="this.state.done"/>
+        <div class="o_mercas_touch_done mx-auto text-center py-4">
+            <i class="oi display-3 text-success" data-icon="check_circle"/>
+            <div class="fs-3 fw-bold mt-2">
+                <t t-if="done.kind === 'sale'">
+                    <t t-if="done.state === 'sale'">Sale <t t-out="done.name"/> delivered</t>
+                    <t t-else="">Quotation <t t-out="done.name"/> waiting for the risk approval</t>
+                </t>
+                <t t-elif="done.kind === 'purchase'">Purchase <t t-out="done.name"/> received</t>
+                <t t-elif="done.kind === 'boxes'">Boxes registered in <t t-out="done.name"/></t>
+                <t t-elif="done.kind === 'payment'">Payment <t t-out="done.name"/> of <t t-out="this.formatAmount(done.amount)"/> registered</t>
+            </div>
+            <div t-if="done.amount_total" class="fs-5 text-muted" t-out="this.formatAmount(done.amount_total)"/>
+            <div t-if="done.lots and done.lots.length" class="mt-3 o_mercas_touch_done_lots">
+                <div class="fw-bold mb-1">Lots</div>
+                <div t-foreach="done.lots" t-as="lot" t-key="lot.lot_id">
+                    <t t-out="lot.product"/>: <strong t-out="lot.lot_name"/>
+                    <t t-if="lot.box_qty"> · <t t-out="lot.box_qty"/> boxes</t>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                <button t-if="done.kind === 'sale' and done.state === 'sale'" class="btn btn-secondary btn-lg o_mercas_touch_print_delivery"
+                        t-on-click="() => this.onPrint('delivery')">
+                    <i class="oi" data-icon="print"/> Delivery slip
+                </button>
+                <button t-if="(done.kind === 'sale' and done.state === 'sale') or done.kind === 'purchase'"
+                        class="btn btn-secondary btn-lg o_mercas_touch_print_labels" t-on-click="() => this.onPrint('labels')">
+                    <i class="oi" data-icon="label"/> Box labels
+                </button>
+                <button t-if="done.model !== 'account.payment'" class="btn btn-secondary btn-lg o_mercas_touch_open_document"
+                        t-on-click="this.onOpenDocument">
+                    <i class="oi" data-icon="open_in_new"/> Open
+                </button>
+                <button class="btn btn-primary btn-lg o_mercas_touch_new" t-on-click="this.onNewOperation">
+                    <i class="oi" data-icon="add"/> New
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="mercas_touch.TouchScreenBoxes">
+        <div class="btn-group w-100 mb-3 o_mercas_touch_box_direction" role="group">
+            <button t-att-class="'btn btn-lg ' + (this.state.boxDirection === 'return' ? 'btn-primary' : 'btn-secondary')"
+                    t-on-click="() => this.onBoxDirection('return')">The customer gives back boxes</button>
+            <button t-att-class="'btn btn-lg ' + (this.state.boxDirection === 'deliver' ? 'btn-primary' : 'btn-secondary')"
+                    t-on-click="() => this.onBoxDirection('deliver')">We give back boxes to the supplier</button>
+        </div>
+        <div t-if="!this.boxProducts().length" class="alert alert-warning">There is no product marked as a box.</div>
+        <div class="o_mercas_touch_grid">
+            <div t-foreach="this.boxProducts()" t-as="box" t-key="box.id" class="card o_mercas_touch_box">
+                <div class="card-body">
+                    <div class="fs-5 fw-bold text-truncate" t-out="box.name"/>
+                    <div class="small text-muted mb-2">
+                        <t t-if="this.state.boxDirection === 'return'">The customer has:</t>
+                        <t t-else="">We have of the supplier:</t>
+                        <strong class="ms-1" t-out="this.formatQty(this.boxBalance(box.id))"/>
+                    </div>
+                    <div class="input-group input-group-lg">
+                        <button class="btn btn-secondary" title="One box less" t-on-click="() => this.onBoxStep(box.id, -1)">
+                            <i class="oi" data-icon="remove"/>
+                        </button>
+                        <input type="text" inputmode="numeric" class="form-control text-center o_mercas_touch_box_move_qty"
+                               t-att-value="this.state.boxQty[box.id] or 0" t-on-input="(ev) => this.onBoxInput(box.id, ev)"/>
+                        <button class="btn btn-secondary" title="One box more" t-on-click="() => this.onBoxStep(box.id, 1)">
+                            <i class="oi" data-icon="add"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-end align-items-center gap-3 mt-3">
+            <span class="fs-5"><t t-out="this.boxTotal()"/> boxes</span>
+            <button class="btn btn-primary btn-lg o_mercas_touch_move_boxes"
+                    t-att-disabled="this.state.sending or !this.boxTotal()" t-on-click="this.onMoveBoxes">
+                <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>
+                <t t-if="this.state.boxDirection === 'return'">Receive and refund</t>
+                <t t-else="">Deliver and invoice</t>
+            </button>
+        </div>
+    </t>
+
+    <t t-name="mercas_touch.TouchScreenLots">
+        <t t-if="this.state.scrap">
+            <t t-set="scrap" t-value="this.state.scrap"/>
+            <div class="d-flex flex-column flex-md-row gap-3 o_mercas_touch_scrap">
+                <div class="flex-grow-1 d-flex flex-column gap-2">
+                    <div class="fs-4 fw-bold">Scrap the lot <t t-out="scrap.lot.name"/></div>
+                    <div class="text-muted"><t t-out="scrap.lot.product"/> · <t t-out="this.formatQty(scrap.lot.stock)"/> <t t-out="scrap.lot.uom"/> in stock</div>
+                    <label class="form-label mb-0">Quantity (<t t-out="scrap.lot.uom"/>)</label>
+                    <input type="text" inputmode="decimal" class="form-control form-control-lg border-primary border-2 o_mercas_touch_scrap_qty"
+                           autocomplete="off" t-att-value="scrap.qty" t-on-input="(ev) => this.onScrapInput(ev.target.value)"/>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-secondary btn-lg" t-on-click="this.onBack">Cancel</button>
+                        <button class="btn btn-danger btn-lg flex-grow-1 o_mercas_touch_confirm_scrap"
+                                t-att-disabled="this.state.sending" t-on-click="this.onConfirmScrap">Scrap</button>
+                    </div>
+                </div>
+                <TouchNumpad value="scrap.qty" onInput="(value) => this.onScrapInput(value)"/>
+            </div>
+        </t>
+        <t t-else="">
+            <div class="input-group input-group-lg mb-3 o_mercas_touch_search">
+                <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                <input type="search" class="form-control o_mercas_touch_lot_search" autocomplete="off"
+                       placeholder="Search a lot, product or supplier, or scan a label"
+                       t-att-value="this.state.lotSearch" t-on-input="this.onLotSearchInput"/>
+            </div>
+            <div t-if="!this.state.lotList.length" class="alert alert-info">No lot pending of invoicing.</div>
+            <div class="o_mercas_touch_lot_grid">
+                <div t-foreach="this.state.lotList" t-as="lot" t-key="lot.id"
+                     t-att-class="'card o_mercas_touch_lot_card ' + (this.state.lotSelection[lot.id] ? 'border-primary border-2' : '')">
+                    <div class="card-body p-2">
+                        <div class="d-flex align-items-start gap-2">
+                            <input type="checkbox" class="form-check-input fs-4 mt-0 o_mercas_touch_lot_select"
+                                   t-att-checked="this.state.lotSelection[lot.id]" t-on-change="() => this.toggleLotSelection(lot)"/>
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-bold text-truncate"><t t-out="lot.name"/> · <t t-out="lot.product"/></div>
+                                <div class="small text-muted text-truncate">
+                                    <t t-out="lot.supplier"/> · <t t-out="this.formatDate(lot.date)"/>
+                                </div>
+                            </div>
+                            <span t-if="lot.firm" class="badge text-bg-info">Firm</span>
+                            <span t-if="lot.completed" class="badge text-bg-secondary">Completed</span>
+                            <span t-if="lot.invoiceable" class="badge text-bg-warning">To invoice</span>
+                        </div>
+                        <t t-set="progress" t-value="this.lotProgress(lot)"/>
+                        <div class="progress my-2 o_mercas_touch_lot_progress" role="progressbar">
+                            <div class="progress-bar bg-success" t-att-style="'width: ' + progress.sold" title="Sold"/>
+                            <div class="progress-bar bg-danger" t-att-style="'width: ' + progress.scrapped" title="Scrapped"/>
+                            <div class="progress-bar bg-info" t-att-style="'width: ' + progress.stock" title="In stock"/>
+                        </div>
+                        <div class="d-flex flex-wrap gap-3 small">
+                            <span>Received <strong t-out="this.formatQty(lot.received or lot.purchased)"/></span>
+                            <span>Sold <strong t-out="this.formatQty(lot.sold)"/></span>
+                            <span>Scrapped <strong t-out="this.formatQty(lot.scrapped)"/></span>
+                            <span>Stock <strong t-out="this.formatQty(lot.stock)"/> <t t-out="lot.uom"/></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="small text-muted">Sold amount <t t-out="this.formatAmount(lot.sale_amount)"/></span>
+                            <button class="btn btn-secondary o_mercas_touch_scrap_lot" t-att-disabled="lot.stock &lt;= 0"
+                                    t-on-click="() => this.onScrapLot(lot)">
+                                <i class="oi" data-icon="delete"/> Scrap
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="o_mercas_touch_lot_actions d-flex flex-wrap align-items-center gap-2 mt-3 py-2 bg-view border-top">
+                <span class="me-auto"><t t-out="this.selectedLotIds().length"/> lots selected</span>
+                <button class="btn btn-primary btn-lg o_mercas_touch_settle" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
+                        t-on-click="() => this.onInvoiceLots('settle')">Settle</button>
+                <button class="btn btn-secondary btn-lg o_mercas_touch_advance" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
+                        t-on-click="() => this.onInvoiceLots('advance')">Invoice advance</button>
+                <button class="btn btn-secondary btn-lg o_mercas_touch_firm_invoice" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
+                        t-on-click="() => this.onInvoiceLots('firm')">Firm invoice</button>
+            </div>
+        </t>
+    </t>
+
+    <t t-name="mercas_touch.TouchScreenPayment">
+        <div class="d-flex flex-column flex-md-row gap-3">
+            <div class="flex-grow-1 min-w-0 d-flex flex-column gap-2">
+                <div class="fw-bold">Invoices to collect</div>
+                <div t-if="!this.state.partner.invoices.length" class="text-muted">The customer has no invoice to pay.</div>
+                <label t-foreach="this.state.partner.invoices" t-as="invoice" t-key="invoice.id"
+                       t-att-class="'d-flex align-items-center gap-2 border rounded p-2 o_mercas_touch_invoice ' + (this.state.invoiceIds.includes(invoice.id) ? 'border-primary border-2' : '')">
+                    <input type="checkbox" class="form-check-input fs-4 mt-0"
+                           t-att-checked="this.state.invoiceIds.includes(invoice.id)" t-on-change="() => this.toggleInvoice(invoice)"/>
+                    <span class="flex-grow-1">
+                        <span class="fw-bold" t-out="invoice.name"/>
+                        <span t-att-class="'small ms-2 ' + (invoice.overdue ? 'text-danger' : 'text-muted')">
+                            Due <t t-out="invoice.date_due"/>
+                        </span>
+                    </span>
+                    <span class="text-nowrap" t-out="this.formatAmount(invoice.residual)"/>
+                </label>
+                <label class="form-label mb-0 mt-2">Amount</label>
+                <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-lg border-primary border-2 o_mercas_touch_amount"
+                       t-att-value="this.state.amount" t-on-input="(ev) => this.onAmountInput(ev.target.value)"/>
+                <div class="d-flex flex-wrap gap-2 o_mercas_touch_journals">
+                    <button t-foreach="this.state.data.journals" t-as="journal" t-key="journal.id"
+                            t-att-class="'btn btn-lg ' + (journal.id === this.state.journalId ? 'btn-primary' : 'btn-secondary')"
+                            t-on-click="() => this.onSelectJournal(journal.id)">
+                        <i class="oi" t-att-data-icon="journal.type === 'cash' ? 'payments' : 'account_balance'"/> <t t-out="journal.name"/>
+                    </button>
+                </div>
+                <input type="text" class="form-control o_mercas_touch_memo" placeholder="Memo" autocomplete="off"
+                       t-att-value="this.state.memo" t-on-input="this.onMemoInput"/>
+                <button class="btn btn-primary btn-lg mt-2 o_mercas_touch_register_payment"
+                        t-att-disabled="this.state.sending" t-on-click="this.onRegisterPayment">
+                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Collect
+                </button>
+            </div>
+            <TouchNumpad value="this.state.amount" onInput="(value) => this.onAmountInput(value)"/>
+        </div>
+    </t>
+
+    <t t-name="mercas_touch.TouchNumpad">
+        <div class="o_mercas_touch_numpad d-grid gap-2">
+            <button t-foreach="this.keys" t-as="key" t-key="key" class="btn btn-secondary btn-lg o_mercas_touch_numpad_key"
+                    t-on-click="() => this.onKey(key)" t-out="key"/>
+            <button class="btn btn-secondary btn-lg" t-att-disabled="!this.props.decimals"
+                    t-on-click="() => this.onKey(this.decimalPoint)" t-out="this.decimalPoint"/>
+            <button class="btn btn-secondary btn-lg o_mercas_touch_numpad_key" t-on-click="() => this.onKey('0')">0</button>
+            <button class="btn btn-secondary btn-lg" title="Delete" t-on-click="this.onBackspace">
+                <i class="oi" data-icon="backspace"/>
+            </button>
+            <button class="btn btn-warning btn-lg o_mercas_touch_numpad_clear" style="grid-column: span 3" t-on-click="this.onClear">Clear</button>
+        </div>
+    </t>
+
+</templates>

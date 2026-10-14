@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="tool_purchase_report" model="ai.tool">
+            <field name="name">purchase_report</field>
+            <field name="description">Totaliza las compras (purchase.order) por proveedor y/o día con importes reales (amount_total), o el detalle por producto (con lote) si se agrupa por producto.</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "vendor": {"type": "string", "description": "Nombre (parcial) del proveedor a filtrar. Vacío = todos."},
+                    "product": {"type": "string", "description": "Nombre (parcial) o referencia interna (código) del producto. Solo se aplica con group_by=product/product_day."},
+                    "date_from": {"type": "string", "description": "Fecha inicio YYYY-MM-DD. Vacío = sin límite."},
+                    "date_to": {"type": "string", "description": "Fecha fin YYYY-MM-DD. Vacío = sin límite."},
+                    "group_by": {"type": "string", "enum": ["customer", "day", "customer_day", "product", "product_day", "total"], "description": "Cómo agrupar: customer/day/customer_day/total totalizan importes (customer = agrupa por proveedor); product/product_day dan el detalle por producto (con lote)."}
+                }
+            }</field>
+        </record>
+
+        <record id="tool_invoice_report" model="ai.tool">
+            <field name="name">invoice_report</field>
+            <field name="description">Totaliza facturas emitidas y/o recibidas (account.move, solo asientos contabilizados) por cliente/proveedor y/o día. Con pending=true, totaliza lo pendiente de pago (amount_residual) en vez del importe total. group_by=product/product_day da el detalle por producto (con lote); group_by=detail lista las facturas individuales con su estado de pago.</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "partner": {"type": "string", "description": "Nombre (parcial) del cliente o proveedor a filtrar. Vacío = todos."},
+                    "product": {"type": "string", "description": "Nombre (parcial) o referencia interna (código) del producto. Solo se aplica con group_by=product/product_day."},
+                    "date_from": {"type": "string", "description": "Fecha inicio YYYY-MM-DD. Vacío = sin límite."},
+                    "date_to": {"type": "string", "description": "Fecha fin YYYY-MM-DD. Vacío = sin límite."},
+                    "group_by": {"type": "string", "enum": ["customer", "day", "customer_day", "product", "product_day", "detail", "total"], "description": "Cómo agrupar: customer/day/customer_day/total totalizan importes; product/product_day dan el detalle por producto (con lote); detail lista las facturas individuales con su estado de pago."},
+                    "move_type": {"type": "string", "enum": ["customer", "vendor", "all"], "description": "customer = facturas emitidas, vendor = facturas recibidas, all = ambas."},
+                    "pending": {"type": "boolean", "description": "Si es true, filtra solo facturas no pagadas y totaliza el importe pendiente (amount_residual) en vez del total."}
+                }
+            }</field>
+        </record>
+
+        <record id="tool_box_stock_report" model="ai.tool">
+            <field name="name">box_stock_report</field>
+            <field name="description">Cantidad de cajas/envases en depósito en el almacén dedicado de un cliente o proveedor concreto (res.partner.mercas_box_qty).</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "partner": {"type": "string", "description": "Nombre (parcial) del cliente o proveedor."}
+                },
+                "required": ["partner"]
+            }</field>
+        </record>
+
+        <record id="tool_stock_lookup" model="ai.tool">
+            <field name="name">stock_lookup</field>
+            <field name="description">Cantidad disponible AHORA MISMO de uno o varios productos (product.product.qty_available) — no un rango de fechas ni movimientos, existencias actuales.</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "product": {"type": "string", "description": "Nombre (parcial) o referencia interna (código) del producto."}
+                },
+                "required": ["product"]
+            }</field>
+        </record>
+
+        <record id="tool_partner_info" model="ai.tool">
+            <field name="name">partner_info</field>
+            <field name="description">Datos generales de un cliente/proveedor/contacto (res.partner): telefono, direccion, provincia, pais, NIF y empresa relacionada si es un contacto individual (parent_id).</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "partner": {"type": "string", "description": "Nombre (parcial) del cliente, proveedor o contacto."}
+                },
+                "required": ["partner"]
+            }</field>
+        </record>
+
+        <record id="tool_lot_report" model="ai.tool">
+            <field name="name">lot_report</field>
+            <field name="description">Ficha de negocio de un lote (stock.lot): producto, cantidad en almacén, país/provincia de origen, proveedor, fecha de entrada, caducidad y a qué clientes se ha vendido y cuándo. Sin "lot" ni "product", lista todos los lotes actualmente en stock. Nunca incluye cajas/envases (is_box) ni información de facturación al proveedor.</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "lot": {"type": "string", "description": "Nombre exacto del lote, si se menciona uno."},
+                    "product": {"type": "string", "description": "Nombre (parcial) del producto, si no se da el nombre exacto del lote."}
+                }
+            }</field>
+        </record>
+
+        <record id="tool_stock_report" model="ai.tool">
+            <field name="name">stock_report</field>
+            <field name="description">Totaliza movimientos de stock (stock.move, solo movimientos hechos) por producto y/o día con cantidades reales.</field>
+            <field name="implementation">builtin</field>
+            <field name="input_schema">{
+                "type": "object",
+                "properties": {
+                    "product": {"type": "string", "description": "Nombre (parcial) o referencia interna (código) del producto a filtrar. Vacío = todos."},
+                    "date_from": {"type": "string", "description": "Fecha inicio YYYY-MM-DD. Vacío = sin límite."},
+                    "date_to": {"type": "string", "description": "Fecha fin YYYY-MM-DD. Vacío = sin límite."},
+                    "group_by": {"type": "string", "enum": ["product", "day", "product_day", "total"], "description": "Cómo agrupar las cantidades."},
+                    "direction": {"type": "string", "enum": ["in", "out", "internal"], "description": "Filtra por tipo de movimiento (entrada/salida/interno). Vacío = todos."},
+                    "only_boxes": {"type": "boolean", "description": "Si es true, filtra solo productos marcados como caja/envase retornable (is_box=True). Úsalo cuando el usuario pregunte por 'cajas' o 'envases' sin nombrar un producto concreto."}
+                }
+            }</field>
+        </record>
+
+    </data>
+</odoo>

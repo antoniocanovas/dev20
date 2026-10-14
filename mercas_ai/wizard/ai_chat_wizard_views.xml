@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ai_chat_wizard_view_form" model="ir.ui.view">
+        <field name="name">mercas.mcp.chat.wizard.form</field>
+        <field name="model">mercas.mcp.chat.wizard</field>
+        <field name="arch" type="xml">
+            <form string="AI Chat">
+                <div class="o_mercas_chat_container">
+                    <div class="oe_title">
+                        <h1>AI Chat</h1>
+                        <p class="text-muted">
+                            Sales, purchases, invoicing and stock. Any other question
+                            will be rejected. Amounts/quantities come directly
+                            from Odoo — the AI never hallucinates them.
+                        </p>
+                    </div>
+                    <field name="history_display" nolabel="1" widget="mercas_chat_history"/>
+                    <div class="o_mercas_chat_row mt-2">
+                        <field name="message" nolabel="1"
+                               placeholder="E.g.: How much has Customer1 purchased this month? (Enter to send, Shift+Enter for a new line)"
+                               widget="mercas_chat_message"/>
+                        <div class="o_mercas_chat_actions">
+                            <button name="action_send" type="object" string="Send"
+                                    class="btn-primary o_mercas_chat_send"/>
+                            <button name="action_reset" type="object" string="New Conversation"
+                                    class="btn-secondary" confirm="The current history will be archived. Continue?"/>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="ai_chat_wizard_action" model="ir.actions.act_window">
+        <field name="name">AI Chat</field>
+        <field name="res_model">mercas.mcp.chat.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem id="mcp_gateway_menu_chat"
+              name="AI Chat"
+              parent="odoo_mcp_manager.mcp_gateway_menu_root"
+              action="ai_chat_wizard_action"
+              sequence="5"/>
+
+</odoo>

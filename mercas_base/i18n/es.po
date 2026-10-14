@@ -1,0 +1,1078 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mercas_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: 2026-08-14 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: es\n"
+"Plural-Forms: \n"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_stock_lot_change_wizard
+msgid "Correct the Lot of a Sale Order Line, Delivered or Pending"
+msgstr "Corregir lote de una línea de venta, servida o pendiente"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard__sale_line_id
+msgid "Sale Order Line"
+msgstr "Línea de venta"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard__line_ids
+msgid "Deliveries"
+msgstr "Entregas"
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/stock_lot_change_wizard.py:0
+msgid "You haven't changed any lot."
+msgstr "No has cambiado ningún lote."
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/stock_lot_change_wizard.py:0
+msgid "The destination lot must be of the same product as the sale order line."
+msgstr "El lote de destino debe ser del mismo producto que la línea de venta."
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/stock_lot_change_wizard.py:0
+msgid "Cannot correct: the following lots already have their sale settlement fully invoiced to the supplier: %s"
+msgstr "No se puede corregir: los siguientes lotes ya tienen la liquidación por venta facturada por completo al proveedor: %s"
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/stock_lot_change_wizard.py:0
+msgid "Lot correction: %(qty)s %(uom)s from order %(order)s (%(product)s) moved from %(old)s to %(new)s by %(user)s."
+msgstr "Corrección de lote: %(qty)s %(uom)s del pedido %(order)s (%(product)s) trasladados de %(old)s a %(new)s por %(user)s."
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_stock_lot_change_wizard_line
+msgid "Delivery to Correct"
+msgstr "Entrega a corregir"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard_line__move_line_id
+msgid "Move Line"
+msgstr "Línea de albarán"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard_line__current_lot_id
+msgid "Current Lot"
+msgstr "Lote actual"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard_line__quantity
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__product_qty
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Quantity"
+msgstr "Cantidad"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard_line__new_lot_id
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Correct Lot"
+msgstr "Corregir lote"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_stock_lot_invoice_wizard
+msgid "Invoicing of Completed Lots"
+msgstr "Facturación de lotes completados"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard__partner_id
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__partner_id
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__partner_id
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_search_mercas
+msgid "Supplier"
+msgstr "Proveedor"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard__date_to
+msgid "Date To"
+msgstr "Fecha hasta"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard__show_all
+msgid "Show All"
+msgstr "Mostrar todos"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot_invoice_wizard__show_all
+msgid "Also shows lots that aren't invoiceable yet, although they can't be selected for invoicing."
+msgstr "Muestra también los lotes no facturables todavía, aunque no se pueden seleccionar para facturar."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard__line_ids
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_lotes
+#: model:ir.actions.act_window,name:mercas_base.action_mercas_lotes
+msgid "Lots"
+msgstr "Lotes"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard__amount_total
+msgid "Total Amount"
+msgstr "Importe total"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot_invoice_wizard__amount_total
+msgid "Amount of the lots currently selected in the list."
+msgstr "Importe de los lotes actualmente seleccionados en la lista."
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/stock_lot_invoice_wizard.py:0
+msgid "The following lots are under firm negotiation: %s. Use the 'Firm Invoice' button to invoice them."
+msgstr "Los siguientes lotes están en negociación en firme: %s. Usa el botón 'Factura firme' para facturarlos."
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/stock_lot_invoice_wizard.py:0
+msgid "The following lots don't have firm negotiation enabled: %s. Enable it on the lot (requires an Accounting Manager) before using this button."
+msgstr "Los siguientes lotes no tienen activada la negociación en firme: %s. Actívala en el lote (requiere Gestor de contabilidad) antes de usar este botón."
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/stock_lot_invoice_wizard.py:0
+msgid "There are no lots to invoice."
+msgstr "No hay lotes para facturar."
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_stock_lot_invoice_wizard_line
+msgid "Lot Invoicing Line"
+msgstr "Línea de facturación de lotes"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__selected
+msgid "Selected"
+msgstr "Seleccionado"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot_invoice_wizard_line__selected
+msgid "Can only be edited if part of the material has been sold/scrapped (settlement) or the lot is marked as firm invoicing with pending kg to invoice."
+msgstr "Solo se puede editar si se ha vendido/desechado parte del material (liquidación) o el lote está marcado como facturación firme con kg pendientes de facturar."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__lot_id
+#: model:ir.model.fields,field_description:mercas_base.field_account_move_line__lot_id
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard_line__lot_id
+msgid "Lot"
+msgstr "Lote"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__create_date
+msgid "Creation Date"
+msgstr "Fecha creación"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__partner_ids
+msgid "Transfer to"
+msgstr "Trasladar a"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__product_id
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard_line__product_id
+msgid "Product"
+msgstr "Producto"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__mercas_firm_negotiation
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__mercas_firm_negotiation
+#: model:ir.model.fields,field_description:mercas_base.field_res_partner__mercas_firm_negotiation
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__mercas_firm_negotiation
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_search_mercas
+msgid "Firm Negotiation"
+msgstr "Facturación firme"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__purchase_kg
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__purchase_kg
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_list_mercas
+msgid "Purchased"
+msgstr "Comprado"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__received_kg
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__received_kg
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_list_mercas
+msgid "Received"
+msgstr "Recibido"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__net_invoiced_kg
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__net_invoiced_kg
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_list_mercas
+msgid "Net Invoiced"
+msgstr "Facturados"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__sale_kg
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__sale_kg
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_list_mercas
+msgid "Sold"
+msgstr "Vendido"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__scrap_kg
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__scrap_kg
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_list_mercas
+msgid "Scrapped"
+msgstr "Desechado"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__sale_amount
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__sale_amount
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_list_mercas
+msgid "Sold Amount"
+msgstr "Importe vendido"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__mercas_margin
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__mercas_margin
+msgid "Margin (%)"
+msgstr "Margen (%)"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__supplier_price_kg
+msgid "Price/Kg"
+msgstr "Precio/kg"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__supplier_amount
+msgid "Amount"
+msgstr "Importe"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__net_invoiced_amount
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_list_mercas
+msgid "Invoiced Amount"
+msgstr "Importe facturado"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__amount_to_invoice
+msgid "Amount to Invoice"
+msgstr "Importe a facturar"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_mercas_label_print_wizard
+msgid "Print Box Labels (product + lot)"
+msgstr "Imprimir etiquetas de caja (producto + lote)"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard__purchase_id
+msgid "Purchase Order"
+msgstr "Pedido de compra"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard__sale_id
+msgid "Sale Order"
+msgstr "Pedido de venta"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard__print_format
+msgid "Format"
+msgstr "Formato"
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__mercas_label_print_wizard__print_format__dymo
+msgid "Dymo"
+msgstr "Dymo"
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__mercas_label_print_wizard__print_format__2x7xprice
+msgid "2 x 7 with price"
+msgstr "2 x 7 con precio"
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__mercas_label_print_wizard__print_format__4x7xprice
+msgid "4 x 7 with price"
+msgstr "4 x 7 con precio"
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__mercas_label_print_wizard__print_format__4x12
+msgid "4 x 12"
+msgstr "4 x 12"
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__mercas_label_print_wizard__print_format__4x12xprice
+msgid "4 x 12 with price"
+msgstr "4 x 12 con precio"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard__line_ids
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard_line__quantity
+msgid "Labels"
+msgstr "Etiquetas"
+
+#. module: mercas_base
+#: code:addons/mercas_base/wizard/mercas_label_print_wizard.py:0
+msgid "Enter a label quantity greater than zero on at least one line."
+msgstr "Indica una cantidad de etiquetas mayor que cero en al menos una línea."
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_mercas_label_print_wizard_line
+msgid "Label Print Line"
+msgstr "Línea de impresión de etiquetas"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "This invoice is already paid or in the process of being paid."
+msgstr "Esta factura ya está pagada o en proceso de pago."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "There is no outstanding amount on this invoice."
+msgstr "No hay importe pendiente en esta factura."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "Configure the offsetting journal on the Mercas tab of the company."
+msgstr "Configure el diario de compensación en la pestaña Mercas de la empresa."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "No outstanding payable line was found on the invoice."
+msgstr "No se encontró línea de cuenta a pagar pendiente en la factura."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "Partner '%s' has no receivable account configured."
+msgstr "El partner '%s' no tiene cuenta a cobrar configurada."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "Offset %s"
+msgstr "Compensación %s"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_country__mercas_origin
+#: model:ir.model.fields,field_description:mercas_base.field_res_country_state__mercas_origin
+msgid "Merca Origin"
+msgstr "Origen Mercas"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order__box_delivery_purchase_id
+msgid "Source Purchase (Box Delivery)"
+msgstr "Compra origen (entrega cajas)"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order__mercas_is_box_delivery
+msgid "Is Box Delivery to Supplier"
+msgstr "Es entrega de cajas a proveedor"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/sale_order.py:0
+msgid "Assign a lot to the following products before sending: %s"
+msgstr "Asigna lote a los siguientes productos antes de enviar: %s"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/sale_order.py:0
+#: code:addons/mercas_base/models/purchase_order.py:0
+#: code:addons/mercas_base/models/res_partner.py:0
+msgid "There is no product marked as a box/container."
+msgstr "No hay ningún producto marcado como caja/envase."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/sale_order.py:0
+#: code:addons/mercas_base/models/purchase_order.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_mercas_label_print_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_purchase_order_form_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas
+msgid "Print Labels"
+msgstr "Imprimir etiquetas"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_account_move_line__mercas_is_firm_line
+msgid "Firm Supply Line"
+msgstr "Línea de suministro firme"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_account_move_line__mercas_is_firm_line
+msgid "Marks vendor bill lines that represent received kg invoiced under the firm negotiation regime, so pending kg can be tracked without mixing them with sale settlement advances or settlements."
+msgstr "Marca las líneas de factura de proveedor que representan kg recibidos facturados en régimen de negociación en firme, para poder llevar la cuenta de kilos pendientes sin mezclarlas con anticipos o liquidaciones por venta."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__box_qty
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__box_qty
+#: model:ir.model.fields,field_description:mercas_base.field_res_partner__mercas_box_qty
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_product_template_search_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_partner_form_mercas
+msgid "Boxes"
+msgstr "Cajas"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__box_sale_line_id
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__box_purchase_line_id
+msgid "Product Line"
+msgstr "Línea de producto"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__box_product_id
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__box_product_id
+#: model:ir.model.fields,field_description:mercas_base.field_product_template__box_product_id
+msgid "Box"
+msgstr "Caja"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_sale_order_line__mercas_has_assigned_lot
+msgid "Has at least one delivery move line (done or pending) with a lot assigned: the lot can be corrected, before or after the order is delivered."
+msgstr "Tiene al menos una línea de albarán (validada o pendiente) con lote asignado: se puede corregir el lote, antes o después de servir el pedido."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__product_qty_datetime
+msgid "Quantity Updated On"
+msgstr "Cantidad actualizada el"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_sale_order_line__product_qty_datetime
+msgid "Date and time the line was created (with its initial quantity) or, if later, when the quantity was last modified."
+msgstr "Fecha y hora en que se creó la línea (con la cantidad inicial) o, si es posterior, en que se modificó la cantidad por última vez."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/sale_order_line.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_change_wizard_form
+msgid "Correct Sale Lot"
+msgstr "Corregir lote de venta"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order__mercas_is_box_return
+msgid "Is Box Return"
+msgstr "Es devolución de envases"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__origin_country_id
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__origin_country_id
+msgid "Country of Origin"
+msgstr "País origen"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__origin_state_id
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__origin_state_id
+msgid "State of Origin"
+msgstr "Provincia origen"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_purchase_order_line__mercas_firm_negotiation
+msgid "The supplier is paid in full for what was received on this line, regardless of what was sold. Defaults to the value configured on the supplier, but can be changed here. It is carried over to the lot when the purchase is confirmed."
+msgstr "Se paga al proveedor la totalidad de lo recibido en esta línea, con independencia de lo vendido. Por defecto toma el valor configurado en el proveedor, pero se puede cambiar aquí. Se traslada al lote al confirmar la compra."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_product_template__is_box
+msgid "Is Box/Container"
+msgstr "Es caja/envase"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_product_template__is_box
+msgid "Marks this product as a box or container: used to detect box return/delivery orders and to exclude it from label printing and from the box count at locations."
+msgstr "Marca este producto como caja o envase: se usa para detectar pedidos de devolución/entrega de cajas y para excluirlo de la impresión de etiquetas y del cálculo de cajas en ubicaciones."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_product_template__box_product_id
+msgid "Container product used when selling this product."
+msgstr "Producto de envase utilizado al vender este producto."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__mercas_customer_location_id
+msgid "Customer Warehouse"
+msgstr "Almacén clientes"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__mercas_customer_location_id
+msgid "Parent location under which a per-customer location will be automatically created when the sale is confirmed, if it doesn't already exist."
+msgstr "Ubicación padre sobre la que se creará automáticamente una ubicación por cliente al confirmar la venta, si no existe previamente."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__mercas_supplier_location_id
+msgid "Supplier Warehouse"
+msgstr "Almacén proveedores"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__mercas_supplier_location_id
+msgid "Parent location under which a per-supplier location will be automatically created when the purchase is confirmed, if it doesn't already exist."
+msgstr "Ubicación padre sobre la que se creará automáticamente una ubicación por proveedor al confirmar la compra, si no existe previamente."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__purchase_lot_autocomplete
+msgid "Auto Purchase Lot"
+msgstr "Creación automática de lote de compra"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__purchase_lot_autocomplete
+msgid "Automatically create purchase lots on confirm if not already set."
+msgstr "Creación automática de lotes de compra al confirmar si no están establecidos."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__origin_country
+msgid "Country of Origin Column"
+msgstr "Columna país origen"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__origin_country
+msgid "Shows the country of origin column on purchase order lines."
+msgstr "Muestra la columna de país de origen en las líneas de pedido de compra."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__origin_state
+msgid "State of Origin Column"
+msgstr "Columna provincia origen"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__origin_state
+msgid "Shows the state of origin column on purchase order lines."
+msgstr "Muestra la columna de provincia de origen en las líneas de pedido de compra."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__origin_filter
+msgid "Origin Filter"
+msgstr "Filtro origen"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__origin_filter
+msgid "Restricts the country/state selection to those marked as Merca Origin."
+msgstr "Restringe la selección de país/provincia a los marcados como Origen Mercas."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__mercas_margin
+#: model:ir.model.fields,field_description:mercas_base.field_res_partner__mercas_margin
+msgid "Merca Margin (%)"
+msgstr "Margen Merca (%)"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__mercas_margin
+msgid "General margin when not in partner."
+msgstr "Margen general cuando no está en el partner."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__auto_confirm_supplier_invoice
+msgid "Auto-Confirm Supplier Invoice"
+msgstr "Confirmar factura proveedor automáticamente"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__compensation_journal_id
+msgid "Offsetting Journal"
+msgstr "Diario de compensación"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__compensation_journal_id
+msgid "Miscellaneous operations journal used to offset purchase invoices against sale invoices of the same partner. The resulting entry appears as an outstanding credit on the customer invoices."
+msgstr "Diario de operaciones diversas para compensar facturas de compra con facturas de venta del mismo partner. El asiento resultante aparece como crédito pendiente en las facturas de cliente."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__liquidation_mode
+msgid "Settlement Mode"
+msgstr "Modo de liquidación"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__liquidation_mode
+msgid "How the sale line is generated on the sale-settlement invoice (does not affect lots under firm negotiation):\n- Average price: a single line with the gross amount spread over sold + scrapped kg (scrap dilutes the displayed price/kg).\n- Average price + scrap separate: the gross amount is spread only over sold kg, and an extra line at price 0 is added for the scrapped kg, so the invoice makes explicit that it isn't paid."
+msgstr "Cómo se genera la línea de venta en la factura de liquidación por venta (no afecta a lotes en facturación firme):\n- Precio medio: una única línea con el importe bruto repartido entre kg vendidos + desechados (el desecho diluye el precio/kg mostrado).\n- Precio medio + desecho aparte: el importe bruto se reparte solo entre los kg vendidos, y se añade una línea adicional a precio 0 por los kg desechados, para que quede explícito en la factura que no se pagan."
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__res_company__liquidation_mode__average_price
+msgid "Average price (single line)"
+msgstr "Precio medio (una línea)"
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__res_company__liquidation_mode__average_price_scrap_split
+msgid "Average price + scrap separate"
+msgstr "Precio medio + desecho aparte"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__liquidation_show_sale_breakdown
+msgid "Sale Breakdown on Invoice"
+msgstr "Detalle de ventas en factura"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__liquidation_show_sale_breakdown
+msgid "Adds, in the description of the sale-settlement invoice line, an accumulated breakdown (date, order, quantity and unit price) of every sale of the lot up to that date. Informational text only: it does not affect the invoiced amount or quantity. Does not apply to lots under firm negotiation."
+msgstr "Añade, en la descripción de la línea de venta de la factura de liquidación por venta, un desglose acumulado (fecha, pedido, cantidad y precio unitario) de cada venta del lote hasta la fecha. Solo texto informativo: no afecta al importe ni a la cantidad facturada. No aplica a lotes en facturación firme."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_partner__mercas_margin
+msgid "Partner mercas margin used when not null."
+msgstr "Margen mercas del partner usado cuando no es nulo."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_partner__mercas_firm_negotiation
+msgid "Default value of the 'Firm Negotiation' field on new purchase order lines for this supplier. It can be changed manually on each line."
+msgstr "Valor por defecto del campo 'Facturación firme' en las nuevas líneas de pedido de compra a este proveedor. Se puede cambiar manualmente en cada línea."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_partner__mercas_box_qty
+msgid "Number of boxes (products marked as box/container) present in this contact's own customer and supplier locations."
+msgstr "Cantidad de cajas (productos marcados como caja/envase) presentes en las ubicaciones propias de cliente y proveedor de este contacto."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_partner__mercas_has_box_location
+msgid "Has Box Location"
+msgstr "Tiene ubicación de cajas"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_partner__mercas_has_box_location
+msgid "The contact has its own customer or supplier location and there is at least one product marked as box/container, even if there is no stock right now. Controls the visibility of the boxes button."
+msgstr "El contacto tiene ubicación propia de cliente o proveedor y hay algún producto marcado como caja/envase, aunque ahora mismo no haya existencias. Controla la visibilidad del botón de cajas."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/res_partner.py:0
+msgid "Box Summary"
+msgstr "Resumen de cajas"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__purchase_line_ids
+msgid "Purchase Lines"
+msgstr "Líneas de compra"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__sale_line_ids
+msgid "Sale Lines"
+msgstr "Líneas de venta"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__supplier_invoice_line_ids
+msgid "Supplier Invoice Lines"
+msgstr "Líneas factura proveedor"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__customer_invoice_line_ids
+msgid "Customer Invoice Lines"
+msgstr "Líneas factura cliente"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__scrap_line_ids
+msgid "Scraps"
+msgstr "Desechos"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__stock_move_line_ids
+msgid "Stock Moves"
+msgstr "Movimientos de stock"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__completed
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_search_mercas
+msgid "Completed"
+msgstr "Completado"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot__mercas_firm_negotiation
+msgid "The supplier is paid in full for what was received of this lot, regardless of what was sold, instead of settling by sale. Takes its initial value from the source purchase line. Only an Accounting Manager can change it, and only while the lot has no firm invoicing recorded."
+msgstr "Se paga al proveedor la totalidad de lo recibido de este lote, con independencia de lo vendido, en vez de liquidar por venta. Toma su valor inicial de la línea de compra de origen. Solo lo puede cambiar un Gestor de contabilidad, y solo mientras el lote no tenga facturación en firme registrada."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot__received_kg
+msgid "Kg physically received from the supplier (validated incoming transfers)."
+msgstr "Kg recibidos físicamente del proveedor (albaranes de entrada validados)."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot__net_invoiced_kg
+msgid "Kg of validated supplier invoices minus kg of validated credit notes."
+msgstr "Kg de facturas de proveedor validadas menos kg de abonos validados."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__net_invoiced_amount
+msgid "Net Invoiced Amount"
+msgstr "Importe facturado (neto)"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot__net_invoiced_amount
+msgid "Amount of posted supplier invoices minus posted credit notes of this lot."
+msgstr "Importe de facturas de proveedor posteadas menos abonos posteados de este lote."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__invoiced
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+msgid "Invoiced"
+msgstr "Facturado"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot__invoiced
+msgid "Indicates whether the lot is considered fully invoiced to the supplier. Updated automatically, but can be forced manually; once edited by hand it stops being recalculated on its own."
+msgstr "Indica si el lote se considera completamente facturado al proveedor. Se actualiza automáticamente, pero puede forzarse manualmente; una vez editado a mano deja de recalcularse solo."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__invoiced_locked
+msgid "Invoiced Manually Locked"
+msgstr "Facturado fijado manualmente"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__invoiceable
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_search_mercas
+msgid "Invoiceable"
+msgstr "Facturable"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_stock_lot__invoiceable
+msgid "Candidate to invoice to the supplier: under the full-payment regime, it has received kg pending invoicing; under the sale-settlement regime, there is a pending amount on what has been sold (and scrapped) so far, whether it is completed (final settlement) or still has stock available (advance)."
+msgstr "Candidato a facturar al proveedor: en régimen de pago total, tiene kg recibidos pendientes de facturar; en régimen de liquidación por venta, hay importe pendiente sobre lo vendido (y desechado) hasta ahora, ya esté completado (liquidación final) o con stock todavía disponible (anticipo)."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__supplier_amount
+msgid "Supplier Amount"
+msgstr "Importe proveedor"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__supplier_price_kg
+msgid "Supplier Price/Kg"
+msgstr "Precio/kg proveedor"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__margin
+msgid "Margin Amount"
+msgstr "Margen importe"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Scrap"
+msgstr "Desechar"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "The firm negotiation of lot '%s' cannot be changed: it already has firm invoicing recorded."
+msgstr "No se puede cambiar la negociación en firme del lote '%s': ya tiene facturación en firme registrada."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "Only an Accounting Manager can change the firm negotiation of a lot."
+msgstr "Solo un Gestor de contabilidad puede cambiar la negociación en firme de un lote."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "Lot '%(lot)s' has purchase lines from different suppliers (%(partners)s). For traceability, a lot can only be associated with a single supplier."
+msgstr "El lote '%(lot)s' tiene líneas de compra de distintos proveedores (%(partners)s). Por trazabilidad, un lote solo puede estar asociado a un único proveedor."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "(-) Advances pending to deduct"
+msgstr "(-) Anticipos pendientes de descontar"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Settlement"
+msgstr "Liquidación"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "Settlement advance (estimated)"
+msgstr "Anticipo liquidación (estimado)"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "(-) Advance already invoiced: %(invoice)s on %(date)s"
+msgstr "(-) Anticipo ya facturado: %(invoice)s del %(date)s"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "There are no invoiceable lots (completed, with a pending sale advance, or with pending received quantity under the full-payment regime) that are unbilled and have a supplier assigned."
+msgstr "No hay lotes facturables (completados, con anticipo de venta pendiente, o con recibido pendiente en régimen de pago total) sin facturar y con proveedor asignado."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "The following lots already have draft invoices: %s. Confirm or delete those invoices before generating new ones."
+msgstr "Los siguientes lotes ya tienen facturas en borrador: %s. Confirma o elimina esas facturas antes de generar otras nuevas."
+
+#. module: mercas_base
+#: model:res.groups,name:mercas_base.group_correct_lots
+msgid "Mercas: Correct Lots"
+msgstr "Mercas: Corregir lotes"
+
+#. module: mercas_base
+#: model:res.groups,comment:mercas_base.group_correct_lots
+msgid "Can correct the lot of a sale order line, delivered or pending delivery (delivery move line(s), validated or not, draft customer invoice, and the sale order line's lot field). Does not allow the change if any of the lots involved already has supplier invoicing recorded."
+msgstr "Puede corregir el lote de una línea de venta, servida o pendiente de servir (línea/s de albarán, validadas o no, factura de cliente en borrador y campo lote de la línea de venta). No permite el cambio si alguno de los lotes implicados ya tiene facturación al proveedor registrada."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_change_wizard_form
+msgid "This corrects sale traceability (delivery line, delivered or pending, sale order line and, if still in draft, the customer invoice) and recalculates the sold kg/amount of each lot. If the delivery line was already done, it also corrects the product's physical stock (stock.quant) at the source and destination of that specific delivery, moving the quantity from the old lot to the new one."
+msgstr "Esto corrige la trazabilidad de venta (línea de albarán, servida o pendiente, línea de venta y, si sigue en borrador, la factura de cliente) y recalcula los kg/importe vendidos de cada lote. Si la línea de albarán ya estaba servida, también corrige las existencias físicas (stock.quant) del producto en el origen y destino de esa entrega concreta, trasladando la cantidad del lote antiguo al nuevo."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_change_wizard_form
+msgid "Apply Correction"
+msgstr "Aplicar corrección"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_change_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_mercas_label_print_wizard_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+msgid "Invoice Completed Lots"
+msgstr "Facturar lotes completados"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+msgid "Settle"
+msgstr "Liquidar"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+msgid "Invoice Advance"
+msgstr "Facturar adelanto"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+msgid "Firm Invoice"
+msgstr "Factura firme"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_purchase_order_form_mercas
+msgid "FN"
+msgstr "FN"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+msgid "Created"
+msgstr "Alta"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_invoice_wizard_form
+msgid "To Invoice"
+msgstr "A facturar"
+
+#. module: mercas_base
+#: model:ir.actions.act_window,name:mercas_base.action_stock_lot_invoice_wizard_menu
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_flotes
+msgid "Settlements"
+msgstr "Liquidaciones"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_purchase_order_form_mercas
+msgid "Purchase & Receive"
+msgstr "Comprar y recibir"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_purchase_order_form_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_partner_form_mercas
+msgid "Deliver Boxes"
+msgstr "Entrega cajas"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_purchase_order_form_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas
+msgid "Receive & Invoice"
+msgstr "Recibir y facturar"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_purchase_order_form_mercas
+msgid "FN: Firm Negotiation. The supplier is paid in full for what was received on this line, regardless of what was sold. Defaults to the value configured on the supplier, but can be changed here. It is carried over to the lot when the purchase is confirmed."
+msgstr "FF: Facturación firme. Se paga al proveedor la totalidad de lo recibido en esta línea, con independencia de lo vendido. Por defecto toma el valor configurado en el proveedor, pero se puede cambiar aquí. Se traslada al lote al confirmar la compra."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_company_form_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_country_form_mercas
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_root
+msgid "Mercas"
+msgstr "Mercas"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_company_form_mercas
+msgid "Warehouse"
+msgstr "Almacén"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_company_form_mercas
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_compras
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Purchases"
+msgstr "Compras"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_company_form_mercas
+msgid "Accounting"
+msgstr "Contabilidad"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_move_form_mercas_compensation
+msgid "Offset"
+msgstr "Compensar"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_partner_form_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas
+msgid "Return Boxes"
+msgstr "Devolución cajas"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_ventas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Sales"
+msgstr "Ventas"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_contactos
+msgid "Contacts"
+msgstr "Contactos"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_productos
+msgid "Products"
+msgstr "Productos"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_facturas
+msgid "Invoices"
+msgstr "Facturas"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_facturas_invoices
+msgid "Customer Invoices"
+msgstr "Facturas de cliente"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_facturas_credit_notes
+msgid "Credit Notes"
+msgstr "Facturas rectificativas"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_facturas_bills
+msgid "Vendor Bills"
+msgstr "Facturas de proveedor"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_facturas_refunds
+msgid "Refunds"
+msgstr "Reembolsos"
+
+#. module: mercas_base
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_inventario
+msgid "Inventory"
+msgstr "Inventario"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas
+msgid "Sold & Sent"
+msgstr "Vender y servir"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Invoice Lot"
+msgstr "Facturar lote"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "General"
+msgstr "General"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Negotiation"
+msgstr "Negociación"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Quantities"
+msgstr "Cantidades"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Order"
+msgstr "Pedido"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Proposed Price"
+msgstr "Precio propuesto"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Achieved Price"
+msgstr "Precio conseguido"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Supplier Inv."
+msgstr "F.Proveedor"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Description"
+msgstr "Descripción"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Customer Inv."
+msgstr "F.Cliente"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Reference"
+msgstr "Referencia"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "UoM"
+msgstr "UdM"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Date"
+msgstr "Fecha"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_search_mercas
+msgid "Not Invoiced"
+msgstr "No facturados"
+
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_report_mercas_base_report_mercas_box_label
+msgid "Mercas Box Label"
+msgstr "Etiqueta de caja Mercas"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_report_mercas_base_report_mercas_box_label_dymo
+msgid "Mercas Box Label (Dymo)"
+msgstr "Etiqueta de caja Mercas (Dymo)"
+
+#. module: mercas_base
+#: model:ir.actions.report,name:mercas_base.action_report_mercas_box_label
+msgid "Box Labels (PDF)"
+msgstr "Etiquetas de caja (PDF)"
+
+#. module: mercas_base
+#: model:ir.actions.report,name:mercas_base.action_report_mercas_box_label_dymo
+msgid "Box Labels Dymo (PDF)"
+msgstr "Etiquetas de caja Dymo (PDF)"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.mercas_box_label_content
+msgid "Lot:"
+msgstr "Lote:"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.mercas_box_label_content
+msgid "Exp.:"
+msgstr "Cad.:"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.mercas_box_label_content
+msgid "Origin:"
+msgstr "Origen:"

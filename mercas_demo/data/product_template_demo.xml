@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- ============================================================= -->
+    <!-- Envases: almacenables, sin trazabilidad                       -->
+    <!-- ============================================================= -->
+
+    <record id="product_caja1" model="product.product">
+        <field name="name">Caja1</field>
+        <field name="categ_id" ref="product_category_envases"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking" eval="False"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="is_box">True</field>
+    </record>
+
+    <record id="product_caja2" model="product.product">
+        <field name="name">Caja2</field>
+        <field name="categ_id" ref="product_category_envases"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking" eval="False"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="is_box">True</field>
+    </record>
+
+    <!-- ============================================================= -->
+    <!-- Frutas y verduras: almacenables, trazables por lote, kg       -->
+    <!-- ============================================================= -->
+
+    <record id="product_template_manzana" model="product.template">
+        <field name="name">Manzana</field>
+        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking">lot</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="box_product_id" ref="product_caja1"/>
+        <field name="image_1920" type="bytes" file="mercas_demo/static/img/manzana.png"/>
+    </record>
+    <record id="product_template_manzana_attr_calibre" model="product.template.attribute.line">
+        <field name="product_tmpl_id" ref="product_template_manzana"/>
+        <field name="attribute_id" ref="product_attribute_calibre"/>
+        <field name="value_ids" eval="[(6, 0, [
+            ref('product_attribute_calibre_value_03'),
+            ref('product_attribute_calibre_value_04'),
+            ref('product_attribute_calibre_value_05'),
+        ])]"/>
+    </record>
+    <record id="product_template_manzana_attr_marca" model="product.template.attribute.line">
+        <field name="product_tmpl_id" ref="product_template_manzana"/>
+        <field name="attribute_id" ref="product_attribute_marca"/>
+        <field name="value_ids" eval="[(6, 0, [
+            ref('product_attribute_marca_value_granel'),
+            ref('product_attribute_marca_value_sobrino'),
+            ref('product_attribute_marca_value_abuelo'),
+        ])]"/>
+    </record>
+
+    <record id="product_template_pera" model="product.template">
+        <field name="name">Pera</field>
+        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking">lot</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="box_product_id" ref="product_caja1"/>
+        <field name="image_1920" type="bytes" file="mercas_demo/static/img/pera.png"/>
+    </record>
+
+    <record id="product_template_platano" model="product.template">
+        <field name="name">Plátano</field>
+        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking">lot</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="uom_ids" eval="[(6, 0, [ref('uom.product_uom_pack_6')])]"/>
+        <field name="box_product_id" ref="product_caja2"/>
+        <field name="image_1920" type="bytes" file="mercas_demo/static/img/platano.png"/>
+    </record>
+
+    <record id="product_template_tomate" model="product.template">
+        <field name="name">Tomate</field>
+        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking">lot</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="box_product_id" ref="product_caja2"/>
+        <field name="image_1920" type="bytes" file="mercas_demo/static/img/tomate.png"/>
+    </record>
+    <record id="product_template_tomate_attr_calibre" model="product.template.attribute.line">
+        <field name="product_tmpl_id" ref="product_template_tomate"/>
+        <field name="attribute_id" ref="product_attribute_calibre"/>
+        <field name="value_ids" eval="[(6, 0, [
+            ref('product_attribute_calibre_value_03'),
+            ref('product_attribute_calibre_value_04'),
+            ref('product_attribute_calibre_value_05'),
+        ])]"/>
+    </record>
+
+    <record id="product_template_lechuga" model="product.template">
+        <field name="name">Lechuga</field>
+        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking">lot</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="box_product_id" ref="product_caja2"/>
+        <field name="image_1920" type="bytes" file="mercas_demo/static/img/lechuga.png"/>
+    </record>
+
+</odoo>

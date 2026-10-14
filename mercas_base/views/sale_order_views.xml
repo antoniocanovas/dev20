@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_sale_order_form_mercas" model="ir.ui.view">
+        <field name="name">sale.order.form.mercas</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Sold & Sent button next to Confirm -->
+            <button name="action_confirm" position="after">
+                <button name="button_sold_and_sent"
+                        string="Sold &amp; Sent"
+                        type="object"
+                        class="btn-primary"
+                        data-hotkey="s"
+                        invisible="state not in ('draft', 'sent')"/>
+            </button>
+
+            <!-- Return Boxes button (visible on confirmed orders) -->
+            <button name="button_sold_and_sent" position="after">
+                <button name="action_open_box_return"
+                        string="Return Boxes"
+                        type="object"
+                        class="btn-secondary"
+                        data-hotkey="d"
+                        invisible="state not in ('sale', 'done')"/>
+            </button>
+
+            <!-- Receive & Invoice button (only for already confirmed box-delivery
+                 to supplier orders: explicit action, not automatic on confirm) -->
+            <button name="action_open_box_return" position="after">
+                <button name="action_mercas_box_deliver_and_invoice"
+                        string="Receive &amp; Invoice"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="not mercas_is_box_delivery or state not in ('sale', 'done')"/>
+            </button>
+
+            <!-- Print Labels button (visible on confirmed orders) -->
+            <button name="action_mercas_box_deliver_and_invoice" position="after">
+                <button name="action_print_mercas_labels"
+                        string="Print Labels"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="state not in ('sale', 'done')"/>
+            </button>
+
+            <!-- Boxes and Box columns on order lines (list view) -->
+            <xpath expr="//field[@name='order_line']/list/column[@name='sol_uom']"
+                   position="after">
+                <field name="mercas_product_is_box" column_invisible="1"/>
+                <field name="box_qty"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"
+                       optional="show"/>
+                <field name="box_product_id"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"
+                       optional="show"/>
+            </xpath>
+
+            <!-- Boxes and Box on the line's form (mobile form/kanban view) -->
+            <xpath expr="//field[@name='order_line']/form//field[@name='product_uom_id']"
+                   position="after">
+                <field name="mercas_product_is_box" invisible="1"/>
+                <field name="box_qty"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"/>
+                <field name="box_product_id"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"/>
+            </xpath>
+
+            <!-- Show stock/available next to the lot name in the dropdown,
+                 and hide lots already invoiced to the supplier (settled) -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='lot_id']"
+                   position="attributes">
+                <attribute name="domain">[('product_id', '=', product_id), ('invoiced', '=', False)]</attribute>
+                <attribute name="context">{'default_product_id': product_id, 'lot_display_with_qty': 1}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='lot_id']"
+                   position="attributes">
+                <attribute name="domain">[('product_id', '=', product_id), ('invoiced', '=', False)]</attribute>
+                <attribute name="context">{'default_product_id': product_id, 'lot_display_with_qty': 1}</attribute>
+            </xpath>
+
+            <!-- Correct lot (sale order line with a lot assigned on a
+                 delivery, delivered or pending delivery) -->
+            <xpath expr="//field[@name='order_line']/list/field[@name='lot_id']"
+                   position="after">
+                <field name="mercas_has_assigned_lot" column_invisible="1"/>
+                <button name="action_open_lot_change_wizard" type="object"
+                        icon="shuffle" title="Correct Lot" width="32px"
+                        invisible="not mercas_has_assigned_lot"
+                        groups="mercas_base.group_correct_lots"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/form//field[@name='lot_id']"
+                   position="after">
+                <field name="mercas_has_assigned_lot" invisible="1"/>
+                <button name="action_open_lot_change_wizard" type="object"
+                        icon="shuffle" title="Correct Lot"
+                        invisible="not mercas_has_assigned_lot"
+                        groups="mercas_base.group_correct_lots"/>
+            </xpath>
+
+            <!-- Date of the last quantity change, icon before the trash can -->
+            <xpath expr="//field[@name='order_line']/list/widget[@name='section_state']"
+                   position="before">
+                <field name="product_qty_datetime" widget="mercas_product_qty_datetime_icon" string="" nolabel="1" readonly="1" width="32px"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>

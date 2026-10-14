@@ -230,3 +230,64 @@ El tour de la pantalla (`test_meat_cutting_ui`) necesita Chrome y la librería `
 | Módulo | Depende de | Qué aporta |
 |---|---|---|
 | `sale_route_offline` | `sale`, `account` | Aplicación *Ruta de venta* para la tablet de los comerciales de preventa. Sin conexión: clientes con deuda y últimos pedidos, pedidos con productos habituales y catálogo, revisión y confirmación, y cobros. Todo se sincroniza al recuperar la conexión. Ver [su README](sale_route_offline/README.md) |
+
+## Mercas (migrado desde dev19)
+
+Solución para mercados mayoristas de fruta, traída del repositorio `dev19` (Odoo 19) y migrada a Odoo 20, más el mostrador táctil nuevo.
+
+| Módulo | Origen | Qué aporta |
+|---|---|---|
+| `mercas_base` | dev19 | Venta y compra con lotes y cajas (*Vender y Entregar*, *Comprar y Recibir*), fianza y devolución de envases, etiquetas de caja, origen, liquidación de lotes al proveedor y compensación. Ver [su README](mercas_base/README.md) |
+| `mercas_touch` | **nuevo** | Aplicación *Mostrador* para pantalla táctil: venta con lotes (F1), compra con lotes nuevos (F2), cajas (F3), lotes, desechos y liquidación (F4) y cobros (F5). Ver [su README](mercas_touch/README.md) |
+| `mercas_keys` | dev19 | Pantalla unificada del backend con F1-F4 y navegación con flechas en las listas |
+| `mercas_ai` | dev19 | Consultas en lenguaje natural sobre ventas, compras, lotes y facturación (asistente y chat en Discuss) |
+| `mercas_demo` | dev19 | Datos de ejemplo: productos de fruta y verdura, cajas, clientes y proveedores |
+| `chat_ai` | dev19 | Bot de chat en Discuss sobre el que trabaja `mercas_ai` |
+| `stock_restrict_lot` | OCA 19.0 | Lote obligatorio en los movimientos de stock. Base de los dos siguientes |
+| `purchase_lot` | OCA (PR 19.0) | Lote en la línea de compra |
+| `sale_order_lot_selection` | OCA 19.0, con cambios propios | Lote en la línea de venta, y selector de varios lotes en el popover de stock |
+| `account_financial_risk`, `sale_financial_risk` | OCA 19.0 | Riesgo financiero del cliente. Opcionales: *Vender y Entregar* los usa si están instalados |
+| `odoo_mcp_manager` | CybroAddons 20.0 | Proveedores de IA y servidor MCP, usado por `chat_ai` y `mercas_ai` |
+
+### Qué cambió al migrar
+
+Los módulos de OCA **no están migrados a 20.0 en OCA** (a fecha de 14/10/2026 las ramas `20.0` están casi vacías y no hay PR de migración). Aquí se han migrado como copias locales, así que conviene llevar los cambios a OCA o sustituirlas cuando OCA publique la 20.0.
+
+Se aplicaron los scripts oficiales de Odoo 20 (`odoo-bin upgrade_code`: `ir.access.csv`, Owl 3, `t-call`, `t-out`…) y, además, a mano:
+
+- **Interfaz:**
+  - Las líneas de pedido de compra y venta agrupan producto, descripción, cantidad y unidad en `<column>`: se adaptaron las vistas heredadas.
+  - El informe de pedido de venta muestra `line.label`.
+  - Componentes con `props = useProps(...)` en lugar de `static props`, referencias con `signal.ref()`, y el servicio `action` en lugar de un plugin que no existe.
+  - Odoo 20 ya no carga FontAwesome: los iconos `fa-*` pasan a los iconos `oi` (Material Symbols).
+- **Stock:**
+  - `stock.scrap` desaparece: los desechos son `stock.move` con `is_scrap`. Se adaptaron la pestaña y el botón de desechos del lote.
+  - La devolución de albaranes ya no tiene asistente: `stock_restrict_lot` conserva el lote en `stock.picking._prepare_return_move_default_values`.
+  - Cambios de API: los dominios de ubicación son cinco, la firma de `_push_prepare_move_copy_values`, y la UdM pasa a `uom_id` en compras y movimientos.
+  - El seguimiento "sin lote" es `False` en lugar de `'none'`.
+- **Otros:**
+  - Parámetros de configuración con `get_bool`/`get_str`.
+  - `uom.round()` en lugar de `rounding`.
+  - `_setup_complete` desaparece: el grupo extra del límite de crédito se declara en el campo.
+  - `_message_post_after_hook(message)` sin `msg_vals`.
+  - `company_type` desaparece de los contactos de demo.
+  - `report_file` desaparece de los informes.
+- **Correcciones encontradas al probar:**
+  - `mercas_base` creaba la ubicación propia del cliente o proveedor con los permisos del usuario, así que un usuario de almacén sin ser administrador no podía vender ni comprar. Ahora la crea como superusuario.
+  - Los kg desechados de un lote no se recalculaban al desechar.
+  - El módulo `odoo_mcp_manager` de CybroAddons 20.0 importaba un módulo JS que no existe en Odoo 20 y usaba `static props`. Al instalarlo se rompía el backend; está corregido aquí.
+  - Algunos iconos de `sale_route_offline` (`groups`, `call`, `edit_note`, `fact_check`) no existen en Odoo 20 y se han cambiado.
+- **Tests de OCA:**
+  - En Odoo 20 los tests de `BaseCommon` se ejecutan con un usuario interno básico.
+  - Solo se pueden enlazar rutas seleccionables.
+  - Las transacciones de pago se escriben con `payment_safe_write`.
+
+### Tests
+
+```bash
+odoo-bin -c odoo20.conf -d <bd> -i mercas_touch,mercas_keys,mercas_ai,mercas_demo,sale_financial_risk \
+  --test-tags /stock_restrict_lot,/purchase_lot,/sale_order_lot_selection,/account_financial_risk,/sale_financial_risk,/mercas_base,/mercas_keys,/mercas_ai,/chat_ai,/odoo_mcp_manager,/mercas_touch,/mercas_demo \
+  --stop-after-init
+```
+
+Incluye tours en el navegador del mostrador, del formulario de venta (fecha de la cantidad y lotes en el popover de stock), de `mercas_keys` y de `mercas_ai`. Necesitan Chrome y `websocket-client`.

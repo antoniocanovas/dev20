@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="ai_domain_chat_wizard_view_form" model="ir.ui.view">
+        <field name="name">mercas.mcp.domain.chat.wizard.form</field>
+        <field name="model">mercas.mcp.domain.chat.wizard</field>
+        <field name="arch" type="xml">
+            <form string="AI Queries">
+                <div class="o_mercas_chat_container">
+                    <div class="oe_title">
+                        <h1>AI Queries</h1>
+                        <p class="text-muted">
+                            [Debug] Original domain console, prior to the merge into
+                            "AI Chat" — kept only for debugging/comparison,
+                            same logic as AI Chat.
+                        </p>
+                    </div>
+                    <field name="history_display" nolabel="1" widget="mercas_chat_history"/>
+                    <div class="o_mercas_chat_row mt-2">
+                        <field name="message" nolabel="1"
+                               placeholder="E.g.: How much has Customer1 purchased this month? (Enter to send, Shift+Enter for a new line)"
+                               widget="mercas_chat_message"/>
+                        <div class="o_mercas_chat_actions">
+                            <button name="action_send" type="object" string="Send"
+                                    class="btn-primary o_mercas_chat_send"/>
+                            <button name="action_reset" type="object" string="New Conversation"
+                                    class="btn-secondary" confirm="The current history will be archived. Continue?"/>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="ai_domain_chat_wizard_action" model="ir.actions.act_window">
+        <field name="name">AI Queries</field>
+        <field name="res_model">mercas.mcp.domain.chat.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Debug-only: its logic was merged into "AI Chat" (ai_chat_wizard.py). Kept
+         without deleting for debugging/comparison, visible only with
+         developer mode active. -->
+    <menuitem id="mcp_gateway_menu_domain_chat"
+              name="AI Queries (debug)"
+              parent="odoo_mcp_manager.mcp_gateway_menu_root"
+              action="ai_domain_chat_wizard_action"
+              groups="base.group_no_one"
+              sequence="6"/>
+
+</odoo>

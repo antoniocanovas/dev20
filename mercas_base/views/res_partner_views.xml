@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_partner_form_mercas" model="ir.ui.view">
+        <field name="name">res.partner.form.mercas</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority" eval="1"/>
+        <field name="arch" type="xml">
+            <group name="sale" position="inside">
+                <field name="mercas_margin"/>
+                <field name="mercas_firm_negotiation" widget="boolean_toggle"/>
+            </group>
+            <div name="button_box" position="inside">
+                <field name="mercas_has_box_location" invisible="1"/>
+                <button
+                    name="action_view_mercas_box_quants"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="inventory_2"
+                    invisible="not mercas_has_box_location"
+                >
+                    <field name="mercas_box_qty" widget="statinfo" string="Boxes"/>
+                </button>
+                <button
+                    name="action_mercas_open_box_delivery"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="local_shipping"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Deliver Boxes</span>
+                    </div>
+                </button>
+                <button
+                    name="action_mercas_open_box_return"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="undo"
+                >
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Return Boxes</span>
+                    </div>
+                </button>
+            </div>
+        </field>
+    </record>
+
+</odoo>

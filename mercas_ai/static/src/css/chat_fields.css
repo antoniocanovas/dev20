@@ -1,0 +1,41 @@
+.o_mercas_chat_container {
+    max-width: 700px;
+    margin-right: auto;
+}
+
+.o_mercas_chat_history {
+    display: block;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.o_mercas_chat_row {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    width: 100%;
+}
+
+/* .o_field_widget defaults to display:inline-block (and so does the
+   <textarea class="o_input"> inside it), so neither stretches to fill the
+   flex row on its own — force block/100% width down the whole chain. */
+.o_mercas_chat_row > .o_field_widget {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: block;
+}
+
+.o_mercas_chat_row > .o_field_widget > div,
+.o_mercas_chat_row > .o_field_widget textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.o_mercas_chat_actions {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    flex: 0 0 auto;
+}

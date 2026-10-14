@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="view_stock_lot_form_mercas" model="ir.ui.view">
+        <field name="name">stock.lot.form.mercas</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Action button in the header -->
+            <xpath expr="//sheet" position="before">
+                <header>
+                    <button
+                        name="action_create_supplier_invoices"
+                        string="Invoice Lot"
+                        type="object"
+                        class="btn-primary"
+                        invisible="not invoiceable"
+                    />
+                    <button
+                        name="action_open_scrap"
+                        string="Scrap"
+                        type="object"
+                        class="btn-secondary"
+                    />
+                </header>
+            </xpath>
+
+            <!-- Origin fields in the standard form header -->
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="partner_id"/>
+            </xpath>
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="origin_country_id"/>
+                <field name="origin_state_id"/>
+            </xpath>
+
+            <!-- Traceability notebook at the end of the sheet -->
+            <xpath expr="//sheet" position="inside">
+                <notebook>
+                    <page string="General" name="mercas_general">
+                        <field name="can_edit_margin" invisible="1"/>
+                        <field name="can_edit_firm_negotiation" invisible="1"/>
+                        <group>
+                            <group string="Negotiation">
+                                <field name="mercas_firm_negotiation"
+                                       widget="boolean_toggle"
+                                       readonly="not can_edit_firm_negotiation"/>
+                            </group>
+                            <group string="Quantities">
+                                <field name="purchase_kg" readonly="1"/>
+                                <field name="received_kg" readonly="1" invisible="not mercas_firm_negotiation"/>
+                                <field name="sale_kg" readonly="1"/>
+                                <field name="scrap_kg" readonly="1"/>
+                                <field name="product_qty" readonly="1"/>
+                            </group>
+                            <group string="Settlement">
+                                <field name="sale_amount" readonly="1" invisible="mercas_firm_negotiation"/>
+                                <field name="mercas_margin" readonly="not can_edit_margin" invisible="mercas_firm_negotiation"/>
+                                <field name="supplier_amount" readonly="1" invisible="mercas_firm_negotiation"/>
+                                <field name="supplier_price_kg" readonly="not can_edit_margin" invisible="mercas_firm_negotiation"/>
+                                <field name="margin" readonly="1" invisible="mercas_firm_negotiation"/>
+                                <field name="net_invoiced_amount" readonly="1" invisible="mercas_firm_negotiation"/>
+                                <field name="net_invoiced_kg" readonly="1" invisible="not mercas_firm_negotiation"/>
+                                <field name="invoiced"/>
+                            </group>
+                        </group>
+                    </page>
+                    <page string="Purchases" name="purchase_lines">
+                        <field name="purchase_line_ids" readonly="1" no_open="0">
+                            <list>
+                                <field name="order_id" string="Order"/>
+                                <field name="product_id"/>
+                                <field name="product_qty" string="Quantity" sum="Quantity"/>
+                                <field name="price_unit" string="Proposed Price"/>
+                                <field name="price_subtotal" string="Subtotal" sum="Subtotal"/>
+                                <field name="currency_id" column_invisible="1"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Sales" name="sale_lines">
+                        <field name="sale_line_ids" readonly="1" no_open="0">
+                            <list>
+                                <field name="order_id" string="Order"/>
+                                <field name="product_id"/>
+                                <field name="product_uom_qty" string="Quantity" sum="Quantity"/>
+                                <field name="price_unit" string="Achieved Price"/>
+                                <field name="price_subtotal" string="Subtotal" sum="Subtotal"/>
+                                <field name="currency_id" column_invisible="1"/>
+                                <field name="mercas_has_assigned_lot" column_invisible="1"/>
+                                <button name="action_open_lot_change_wizard" type="object"
+                                        string="Correct Lot" icon="shuffle"
+                                        invisible="not mercas_has_assigned_lot"
+                                        groups="mercas_base.group_correct_lots"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Supplier Inv." name="supplier_invoice_lines">
+                        <field name="supplier_invoice_line_ids" readonly="1" no_open="0">
+                            <list>
+                                <field name="move_id" string="Invoice"/>
+                                <field name="partner_id"/>
+                                <field name="name" string="Description"/>
+                                <field name="quantity" sum="Quantity"/>
+                                <field name="price_unit"/>
+                                <field name="price_subtotal" sum="Subtotal"/>
+                                <field name="currency_id" column_invisible="1"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Customer Inv." name="customer_invoice_lines">
+                        <field name="customer_invoice_line_ids" readonly="1" no_open="0">
+                            <list>
+                                <field name="move_id" string="Invoice"/>
+                                <field name="partner_id"/>
+                                <field name="name" string="Description"/>
+                                <field name="quantity" sum="Quantity"/>
+                                <field name="price_unit"/>
+                                <field name="price_subtotal" sum="Subtotal"/>
+                                <field name="currency_id" column_invisible="1"/>
+                            </list>
+                        </field>
+                    </page>
+                    <page string="Scrap" name="scrap_lines">
+                        <field name="scrap_line_ids" readonly="1" no_open="0">
+                            <list>
+                                <field name="reference" string="Reference"/>
+                                <field name="product_id"/>
+                                <field name="quantity" string="Quantity" sum="Quantity"/>
+                                <field name="uom_id" string="UoM"/>
+                                <field name="location_id"/>
+                                <field name="date" string="Date"/>
+                                <field name="state"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+
+        </field>
+    </record>
+
+
+    <record id="view_stock_lot_list_mercas" model="ir.ui.view">
+        <field name="name">stock.lot.list.mercas</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='product_id']" position="after">
+                <field name="partner_id" optional="show"/>
+                <field name="mercas_firm_negotiation" optional="show"/>
+            </xpath>
+            <xpath expr="//list/field[last()]" position="after">
+                <field name="completed" optional="show"/>
+                <field name="sale_kg" optional="show" sum="Sold"/>
+                <field name="purchase_kg" optional="show" sum="Purchased"/>
+                <field name="received_kg" optional="hide" sum="Received"/>
+                <field name="scrap_kg" optional="show" sum="Scrapped"/>
+                <field name="sale_amount" optional="show" sum="Sold Amount"/>
+                <field name="supplier_amount" optional="hide"/>
+                <field name="supplier_price_kg" optional="hide"/>
+                <field name="net_invoiced_kg" optional="hide" sum="Net Invoiced"/>
+                <field name="net_invoiced_amount" optional="hide" sum="Invoiced Amount"/>
+                <field name="invoiceable" optional="show"/>
+                <field name="invoiced" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_lot_search_mercas" model="ir.ui.view">
+        <field name="name">stock.lot.search.mercas</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[1]" position="before">
+                <field name="partner_id"/>
+            </xpath>
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter
+                    string="Not Invoiced"
+                    name="not_invoiced"
+                    domain="[('invoiced', '=', False)]"
+                />
+                <filter
+                    string="Invoiceable"
+                    name="invoiceable"
+                    domain="[('invoiceable', '=', True)]"
+                />
+                <filter
+                    string="Completed"
+                    name="completed"
+                    domain="[('completed', '=', True)]"
+                />
+                <filter
+                    string="Firm Negotiation"
+                    name="firm_negotiation"
+                    domain="[('mercas_firm_negotiation', '=', True)]"
+                />
+                <separator/>
+                <filter
+                    string="Supplier"
+                    name="group_partner_id"
+                    context="{'group_by': 'partner_id'}"
+                />
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="action_mercas_lotes" model="ir.actions.act_window">
+        <field name="name">Lots</field>
+        <field name="res_model">stock.lot</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{"search_default_not_invoiced": 1}</field>
+    </record>
+
+</odoo>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Content of one box label. Expects: label (dict from
+         report.mercas_base.report_mercas_box_label), with_price, company,
+         barcode_size, font_size. -->
+    <template id="mercas_box_label_content">
+        <t t-set="product" t-value="label['product']"/>
+        <t t-set="lot" t-value="label['lot']"/>
+        <div t-attf-style="font-size:{{ font_size }};line-height:120%;">
+            <div class="o_label_name" style="padding:1px 3px;">
+                <strong t-out="product.display_name"/>
+            </div>
+            <!-- Plain text before each t-out (no <span> around it): that's what
+                 makes "Lot:", "Exp.:" and "Origin:" separate translatable terms
+                 matching the msgids in i18n/es.po. -->
+            <div t-if="lot" style="padding:0 3px;">Lot: <strong t-out="lot.name"/></div>
+            <div t-if="label['expiration']" style="padding:0 3px;">Exp.: <t t-out="label['expiration']" t-options="{'widget': 'date'}"/></div>
+            <div t-if="label['origin']" style="padding:0 3px;">Origin: <t t-out="label['origin']"/></div>
+            <div t-if="with_price" class="text-end" style="padding:0 3px;">
+                <strong t-out="product.lst_price"
+                        t-options="{'widget': 'monetary', 'display_currency': company.currency_id}"/>
+            </div>
+            <div t-if="label['barcode']" class="text-center" style="padding:0;">
+                <div t-out="label['barcode']" style="padding:0"
+                     t-options="{'widget': 'barcode', 'symbology': 'Code128', 'quiet': 0, 'img_style': barcode_size}"/>
+                <span t-out="label['barcode']"/>
+            </div>
+        </div>
+    </template>
+
+    <!-- A4 sheets: 2x7, 4x7, 4x12 (same grid as the standard product labels) -->
+    <template id="report_mercas_box_label">
+        <t t-call="web.html_container">
+            <t t-if="print_format == '2x7xprice'">
+                <t t-set="cell_size" t-value="'width:97mm;height:37.1mm;'"/>
+                <t t-set="barcode_size" t-value="'width:60mm;height:10mm'"/>
+                <t t-set="font_size" t-value="'100%'"/>
+            </t>
+            <t t-elif="print_format == '4x7xprice'">
+                <t t-set="cell_size" t-value="'width:47mm;height:37.1mm;'"/>
+                <t t-set="barcode_size" t-value="'width:42mm;height:8mm'"/>
+                <t t-set="font_size" t-value="'70%'"/>
+            </t>
+            <t t-else="">
+                <t t-set="cell_size" t-value="'width:43mm;height:19mm;'"/>
+                <t t-set="barcode_size" t-value="'width:38mm;height:4mm'"/>
+                <t t-set="font_size" t-value="'55%'"/>
+            </t>
+            <t t-set="border" t-value="'border: 1px solid %s;' % (company.primary_color or 'black')"/>
+            <!-- div.article: without it Odoo sends the bare fragment to
+                 wkhtmltopdf, with no <meta charset="utf-8"> (web.minimal_layout),
+                 and accents come out garbled ("EspaÃ±a"). -->
+            <div class="article" t-att-data-oe-lang="env.context.get('lang')">
+                <div t-foreach="pages" t-as="page" class="o_label_sheet" t-att-style="padding_page">
+                    <table class="my-0 table table-sm table-borderless">
+                        <tr t-foreach="page" t-as="row">
+                            <td t-foreach="row" t-as="label"
+                                t-att-style="not label and 'visibility:hidden;'">
+                                <div class="o_label_full" t-att-style="cell_size + border + 'overflow:hidden;'">
+                                    <t t-if="label" t-call="mercas_base.mercas_box_label_content"/>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Dymo: one 57x32 mm label per page -->
+    <template id="report_mercas_box_label_dymo">
+        <t t-call="web.html_container" barcode_size.f="width:50mm;height:6mm" font_size.f="80%">
+            <div class="article" t-att-data-oe-lang="env.context.get('lang')">
+                <div t-foreach="labels" t-as="label" class="o_label_sheet o_label_dymo" style="padding: 2mm">
+                    <div class="o_label_full" style="width:100%;height:28mm;overflow:hidden;">
+                        <t t-call="mercas_base.mercas_box_label_content"/>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <record id="action_report_mercas_box_label" model="ir.actions.report">
+        <field name="name">Box Labels (PDF)</field>
+        <field name="model">stock.lot</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mercas_base.report_mercas_box_label</field>
+        <field name="paperformat_id" ref="product.paperformat_label_sheet"/>
+        <field name="print_report_name">'Box Labels'</field>
+    </record>
+
+    <record id="action_report_mercas_box_label_dymo" model="ir.actions.report">
+        <field name="name">Box Labels Dymo (PDF)</field>
+        <field name="model">stock.lot</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mercas_base.report_mercas_box_label_dymo</field>
+        <field name="paperformat_id" ref="product.paperformat_label_sheet_dymo"/>
+        <field name="print_report_name">'Box Labels'</field>
+    </record>
+
+</odoo>

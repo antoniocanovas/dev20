@@ -1,0 +1,7 @@
+id,name,model_id,group_id/id,operation,domain
+access_stock_lot_invoice_wizard,access.stock.lot.invoice.wizard,stock.lot.invoice.wizard,base.group_user,crud,
+access_stock_lot_invoice_wizard_line,access.stock.lot.invoice.wizard.line,stock.lot.invoice.wizard.line,base.group_user,crud,
+access_stock_lot_change_wizard,access.stock.lot.change.wizard,stock.lot.change.wizard,mercas_base.group_correct_lots,crud,
+access_stock_lot_change_wizard_line,access.stock.lot.change.wizard.line,stock.lot.change.wizard.line,mercas_base.group_correct_lots,crud,
+access_mercas_label_print_wizard,access.mercas.label.print.wizard,mercas.label.print.wizard,base.group_user,crud,
+access_mercas_label_print_wizard_line,access.mercas.label.print.wizard.line,mercas.label.print.wizard.line,base.group_user,crud,
