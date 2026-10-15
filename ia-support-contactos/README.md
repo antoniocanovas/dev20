@@ -111,14 +111,16 @@ curl "$A/log?sesion=abc123"
 
 Archivo: `n8n/flujo-prueba-contactos.json`, importado en n8n como **"Prueba API contactos"** (https://ia-support-n8n.kw2y1s.easypanel.host/workflow/EJw0EPoA3D3s4QzS). Nodos en cadena (todos HTTP Request sin credenciales y sin nodos comunitarios):
 
-`Manual Trigger → Set (sesion = test-<ms>) → Buscar (GET ?q=azure) → Alta (POST T001) → Modificar (PATCH teléfono) → Deshacer (POST /log/{log_id}/undo) → Baja (DELETE) → Ver log (GET /log?sesion=)`
+`Manual Trigger → Set (sesion = test-<ms>) → Buscar (GET ?q=azure) → Buscar T001 previo → Archivar T001 previo → Alta (POST T001) → Modificar (PATCH teléfono) → Deshacer (POST /log/{log_id}/undo) → Baja (DELETE) → Ver log (GET /log?sesion=)`
+
+**Limpieza previa**: si una ejecución anterior se quedó a medias (por ejemplo, al lanzar solo el nodo Alta con *Execute step*), queda un T001 activo y el siguiente alta daría 409 por código duplicado. Los nodos "Buscar T001 previo" y "Archivar T001 previo" lo archivan antes del alta. Si no hay ninguno, la API responde 404; el nodo tiene *On Error → Continue*, así que sigue en verde y muestra el 404 en su salida.
 
 **Cómo lanzarlo**: abrir el flujo → **Execute workflow**. Todos los nodos deben quedar en verde; al pulsar cada uno se ve su respuesta. El último ("Ver log") muestra los 4 cambios de la sesión: ALTA, MODIF (revertido), UNDO y BAJA.
 
 **Qué mirar en Odoo**: Contactos → Filtros → **Archivados** (o quitar el filtro por defecto) → buscar por *Referencia* `T001`.
 - Después del flujo, el contacto "Contacto Prueba n8n" aparece **archivado**, sin teléfono (el deshacer lo dejó vacío), y el tipo de dirección es Factura.
 - Para ver cada paso por separado, ejecuta los nodos uno a uno ("Execute step") y refresca la ficha en Odoo: tras **Alta** aparece activo, tras **Modificar** muestra el teléfono 600111222, tras **Deshacer** lo pierde y tras **Baja** queda archivado.
-- Cada ejecución crea un T001 nuevo, porque el anterior ya está archivado.
+- Cada ejecución crea un T001 nuevo, porque el anterior ya está archivado. Para ver los pasos uno a uno, lanza también antes los dos nodos de limpieza.
 
 ## Operación
 

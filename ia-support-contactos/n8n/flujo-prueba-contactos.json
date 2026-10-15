@@ -52,6 +52,38 @@
     },
     {
       "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/contactos?q=T001",
+        "options": {}
+      },
+      "id": "49e92803-a3d8-43e2-a766-f11dcca627d0",
+      "name": "Buscar T001 previo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $json.resultados.length ? $json.resultados[0].id : 0 }}?sesion={{ $('Set').item.json.sesion }}&usuario=n8n-limpieza",
+        "options": {}
+      },
+      "id": "90b260a8-dec5-4959-8ecb-0746feb9bde3",
+      "name": "Archivar T001 previo",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        300
+      ],
+      "onError": "continueRegularOutput",
+      "notes": "Archiva un T001 activo que haya dejado una ejecución incompleta. Si no hay ninguno, la API responde 404 y el flujo sigue."
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "=http://ia-support_contactos-api:8000/contactos",
         "options": {},
@@ -64,7 +96,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        660,
+        1100,
         300
       ]
     },
@@ -82,7 +114,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        880,
+        1320,
         300
       ]
     },
@@ -100,7 +132,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1100,
+        1540,
         300
       ]
     },
@@ -115,7 +147,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1320,
+        1760,
         300
       ]
     },
@@ -130,7 +162,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1540,
+        1980,
         300
       ]
     }
@@ -159,6 +191,28 @@
       ]
     },
     "Buscar": {
+      "main": [
+        [
+          {
+            "node": "Buscar T001 previo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar T001 previo": {
+      "main": [
+        [
+          {
+            "node": "Archivar T001 previo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archivar T001 previo": {
       "main": [
         [
           {
