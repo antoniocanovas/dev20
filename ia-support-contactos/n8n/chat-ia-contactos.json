@@ -1,0 +1,351 @@
+{
+  "name": "Chat IA contactos",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "authentication": "n8nUserAuth",
+        "initialMessages": "Hola 👋 Soy el asistente de contactos. Puedo buscar, dar de alta, modificar, dar de baja y deshacer cambios. ¿Qué necesitas?",
+        "options": {
+          "title": "Asistente de contactos",
+          "subtitle": "ia-support · Odoo 20",
+          "inputPlaceholder": "Ej.: busca Azure / da de alta una tienda de entrega…"
+        }
+      },
+      "id": "49fe4ff8-0430-413a-981f-af193806244d",
+      "name": "Chat",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "81c5b9ef-bcae-409c-b294-be99feab1920"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres el asistente de mantenimiento de contactos de clientes (ERP Odoo). Hablas en español, con frases breves y claras. Trabajas SOLO con las herramientas; nunca inventes datos, ids ni resultados.\n\n## Conceptos\n- CADENA: empresa o cadena de tiendas (cliente principal).\n- FACTURA: dirección de facturación, normalmente dentro de una cadena (cadena_id).\n- ALBARAN: dirección de entrega / envío / tienda, normalmente dentro de una cadena.\n- Los contactos de Odoo que no son ninguno de los anteriores aparecen con tipo \"contact\" u \"other\"; se pueden consultar, pero al crear o cambiar el tipo solo se usan FACTURA, ALBARAN o CADENA.\n- código = referencia interna del cliente (única entre activos). NIF = NIF/NIE/CIF español.\n- Dar de baja = archivar (nunca se borra). Todo cambio se puede deshacer.\n\n## Cómo trabajar\n1. Identifica siempre el contacto con buscar_contactos antes de leer, modificar, dar de baja o usarlo como cadena. Si el usuario da un id explícito, puedes usar ficha_contacto.\n2. Si la búsqueda devuelve requiere_eleccion = true, muestra una lista numerada corta (nombre completo, código, NIF, tipo, id) y pide que elija. No elijas tú.\n3. Si no hay resultados, dilo y sugiere buscar de otra forma (o incluir bajas si busca algo archivado).\n4. ANTES de cualquier escritura (alta_contacto, modificar_contacto, baja_contacto, deshacer_cambio) resume exactamente lo que vas a hacer, con los datos finales, y pregunta \"¿Confirmas?\". Ejecuta SOLO después de un sí explícito del usuario en su siguiente mensaje (\"sí\", \"ok\", \"adelante\", \"confirmo\"...). Si cambia algo, vuelve a resumir y a pedir confirmación. Una confirmación vale para una sola operación.\n5. Para un alta pide lo que falte de lo obligatorio: nombre y tipo. Si es FACTURA o ALBARAN pregunta si pertenece a una cadena (y búscala para obtener su id). Código, NIF, teléfono y email son opcionales.\n6. En modificar_contacto envía solo los campos que cambian.\n7. \"Deshaz lo último\" / \"deshacer\": consulta historial_sesion y elige el cambio más reciente que se pueda deshacer (revertido = false y acción ALTA, MODIF o BAJA). Explícalo en términos de negocio (qué contacto y cómo volverá a quedar), sin mencionar log_id, UNDO, \"revertido\" ni nombres técnicos de campos, y pide confirmación.\n8. Tras cada escritura confirma el resultado en una línea (nombre completo, código, lo que cambió). Después de un alta, modificación o baja recuerda que se puede deshacer. Después de DESHACER un cambio no ofrezcas deshacerlo otra vez (no es posible); si el usuario quiere volver atrás, que pida de nuevo el cambio original.\n9. Si una herramienta devuelve {\"error\": ...}, explícalo en lenguaje natural (p. ej. código ya usado, NIF no válido, el contacto cambió después y no se puede deshacer) y propone cómo seguir. No muestres JSON, ids de log ni términos internos (UNDO, revertido, partner_id).\n10. Si te piden algo fuera de contactos (pedidos, surtidos, precios...), indica que en esta fase solo gestionas contactos.",
+          "maxIterations": 10
+        }
+      },
+      "id": "d716e319-9d08-4a1f-a0c6-ee4fd9af2cde",
+      "name": "Agente contactos",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        300,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "anthropic/claude-haiku-5.5",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "id": "b4e47e65-d2c7-4e1c-881f-5bb7e156d909",
+      "name": "OpenRouter",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 20
+      },
+      "id": "3b8782c7-cb39-40a7-9269-396904d6b7e6",
+      "name": "Memoria",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca contactos por NIF, código o parte del nombre (también 'Cadena, Contacto'). Devuelve hasta 10 con id, nombre_completo, codigo, nif, tipo, cadena, telefono, email, activo y requiere_eleccion.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/contactos?q={{ encodeURIComponent($fromAI('texto', 'NIF, código o parte del nombre a buscar', 'string')) }}&incluir_bajas={{ $fromAI('incluir_bajas', 'true solo si el usuario busca contactos dados de baja/archivados; si no, false', 'boolean') }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "c4f94074-1424-427f-be49-21bc5dff592a",
+      "name": "buscar_contactos",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Devuelve la ficha completa de un contacto por su id numérico (incluye dados de baja).",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $fromAI('id', 'id numérico del contacto', 'number') }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "57da32f1-fbf7-4853-8212-9ad72f55519e",
+      "name": "ficha_contacto",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Da de alta un contacto nuevo. Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/contactos",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $fromAI('datos', `Objeto JSON con el contacto. Obligatorios: nombre (texto) y tipo (FACTURA, ALBARAN o CADENA). Opcionales: codigo, nif, cadena_id (número, id de la CADENA a la que pertenece), telefono, email. No incluyas campos que el usuario no haya dado.`, 'json'), { sesion: $('Chat').first().json.sessionId, usuario: 'chat' })) }}"
+      },
+      "id": "60723dfa-afe8-43a6-86b4-a445c8e88000",
+      "name": "alta_contacto",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Modifica campos de un contacto existente. Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "PATCH",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $fromAI('id', 'id numérico del contacto a modificar', 'number') }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify(Object.assign({}, $fromAI('cambios', `Objeto JSON solo con los campos a cambiar, de entre: codigo, nif, nombre, tipo (FACTURA, ALBARAN o CADENA), cadena_id (número o null), telefono, email, activo (true para reactivar).`, 'json'), { sesion: $('Chat').first().json.sessionId, usuario: 'chat' })) }}"
+      },
+      "id": "c1e7d250-4be4-4e2a-96d7-1c4f2bad4088",
+      "name": "modificar_contacto",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Da de baja (archiva) un contacto. Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "DELETE",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $fromAI('id', 'id numérico del contacto a dar de baja', 'number') }}?sesion={{ $('Chat').first().json.sessionId }}&usuario=chat",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "787fdc55-0d59-4223-90a3-441b0e74b572",
+      "name": "baja_contacto",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Deshace un cambio del historial por su log_id. Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/log/{{ $fromAI('log_id', 'log_id del cambio a deshacer (de historial_sesion)', 'number') }}/undo",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ sesion: $('Chat').first().json.sessionId, usuario: 'chat' }) }}"
+      },
+      "id": "5627e304-ec85-495c-bda3-d25870bd8fba",
+      "name": "deshacer_cambio",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Lista los cambios hechos en esta conversación, del más reciente al más antiguo (log_id, partner_id, accion, antes, despues, revertido).",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/log?sesion={{ $('Chat').first().json.sessionId }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "30291428-ed36-4c99-8eb0-f302d03872a3",
+      "name": "historial_sesion",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria": {
+      "ai_memory": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_contactos": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ficha_contacto": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "alta_contacto": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "modificar_contacto": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "baja_contacto": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "deshacer_cambio": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "historial_sesion": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

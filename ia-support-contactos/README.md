@@ -122,6 +122,40 @@ Archivo: `n8n/flujo-prueba-contactos.json`, importado en n8n como **"Prueba API 
 - Para ver cada paso por separado, ejecuta los nodos uno a uno ("Execute step") y refresca la ficha en Odoo: tras **Alta** aparece activo, tras **Modificar** muestra el teléfono 600111222, tras **Deshacer** lo pierde y tras **Baja** queda archivado.
 - Cada ejecución crea un T001 nuevo, porque el anterior ya está archivado. Para ver los pasos uno a uno, lanza también antes los dos nodos de limpieza.
 
+## Chat IA (lenguaje natural)
+
+Archivo: `n8n/chat-ia-contactos.json`, importado en n8n como **"Chat IA contactos"** (https://ia-support-n8n.kw2y1s.easypanel.host/workflow/op8niOnmjKQMQ3Nr).
+
+```
+Chat (Chat Trigger) → Agente contactos (AI Agent)
+                        ├─ OpenRouter (anthropic/claude-haiku-5.5, temperatura 0,1; credencial "OpenRouter account")
+                        ├─ Memoria (Simple Memory, últimos 20 mensajes por conversación)
+                        └─ Herramientas HTTP → contactos-api:
+                           buscar_contactos · ficha_contacto · alta_contacto · modificar_contacto
+                           baja_contacto · deshacer_cambio · historial_sesion
+```
+
+- **Cómo usarlo**: abre el flujo y usa el panel **Chat** de abajo, o pulsa **Publish** para tener la URL del chat (`/webhook/81c5b9ef-bcae-409c-b294-be99feab1920/chat`). Esa URL exige iniciar sesión en n8n (*n8n User Auth*), porque el asistente escribe en el ERP.
+- **Sesión**: el `sessionId` del chat se manda como `sesion` a la API. Cada conversación tiene su propio historial en `api.contactos_log` (con `usuario = chat`), y "deshaz lo último" solo afecta a esa conversación.
+- **Reglas del agente** (en las instrucciones del nodo): siempre busca antes de actuar. Si hay varios candidatos, da una lista numerada y deja elegir. **Pide confirmación explícita antes de cada alta, modificación, baja o deshacer**, y una confirmación vale para una sola operación. Explica los errores de la API en lenguaje natural. No inventa ids. Fuera de contactos no actúa.
+- **Modelo**: se cambia en el nodo OpenRouter. Haiku 5.5 cuesta unos 0,10 $ por millón de tokens de entrada y 0,50 $ de salida; cada mensaje consume entre 6.000 y 9.000 tokens.
+- **Memoria**: la Simple Memory vive en el proceso de n8n y se pierde si n8n se reinicia. Para que sea persistente habría que usar *Postgres Chat Memory* con su propia BD.
+
+Conversación de prueba real (15/10/2026), con todos los pasos verificados en la BD:
+
+| Usuario | Asistente |
+|---|---|
+| busca Azure | Lista numerada de 4 contactos y pide elegir |
+| Da de alta una dirección de entrega llamada Tienda Azure Murcia, código ALB-AZ01, teléfono 968111222, dentro de la cadena Azure Interior | Resume (ALBARAN en la cadena Azure Interior) y pide confirmación; no escribe hasta el "sí" |
+| sí | Crea el id 54 "Azure Interior, Tienda Azure Murcia" con el NIF heredado de la cadena |
+| cámbiale el teléfono a 600999888 → adelante | Teléfono cambiado |
+| deshaz lo último → sí | Teléfono restaurado a 968111222 |
+| ponle el NIF 12345678A | Avisa de que la letra no es válida (sería Z) y ofrece opciones; un "sí" ambiguo no lo toma como confirmación |
+| la 2 → sí, confirmo | La API lo rechaza (422) y lo explica sin cambiar nada |
+| cambia su código a TC01 → sí | La API devuelve 409: "TC01 ya lo usa otro contacto"; no cambia nada |
+| da de baja esa tienda → sí / deshaz la baja → sí | La archiva y luego la reactiva |
+| ¿cuántos pedidos tiene Azure este mes? | Responde que en esta fase solo gestiona contactos |
+
 ## Operación
 
 ```sh
@@ -153,6 +187,6 @@ El filestore de Odoo está en el volumen `odoo20-data` (`/var/lib/odoo`). Con so
 
 ```
 api/            Código de la API (main.py, nif.py, Dockerfile, requirements.txt)
-n8n/            flujo-prueba-contactos.json
+n8n/            flujo-prueba-contactos.json · chat-ia-contactos.json (agente IA)
 pruebas/        pruebas_api.sh (batería curl de punta a punta)
 ```
