@@ -1,0 +1,221 @@
+{
+  "name": "Prueba API contactos",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "506e1c43-c083-4c50-ad68-a5f9d5692be1",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b87eba11-40a0-4d11-941b-a3d1c54f0cea",
+              "name": "sesion",
+              "value": "=test-{{ $now.toMillis() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "bfd6b9ab-aed7-448d-bf8d-ae3af305d2fe",
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/contactos?q=azure",
+        "options": {}
+      },
+      "id": "38c80427-ea10-498d-9c22-08bd6fd20d7f",
+      "name": "Buscar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/contactos",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"codigo\":\"T001\",\"nombre\":\"Contacto Prueba n8n\",\"tipo\":\"FACTURA\",\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "e386eba0-da83-4a89-b1eb-53baf7d38537",
+      "name": "Alta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $json.id }}",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"telefono\":\"600111222\",\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "29b0fb0a-07b1-4597-ad52-96dacb06a36a",
+      "name": "Modificar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/log/{{ $json.log_id }}/undo",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "4463fa56-1504-4b64-b22f-d37d2742b0b9",
+      "name": "Deshacer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $('Alta').item.json.id }}?sesion={{ $('Set').item.json.sesion }}&usuario=n8n",
+        "options": {}
+      },
+      "id": "9957c458-444b-46b5-92b9-70cfae0f1605",
+      "name": "Baja",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/log?sesion={{ $('Set').item.json.sesion }}",
+        "options": {}
+      },
+      "id": "f0f4948f-08b0-4c07-96de-988939426033",
+      "name": "Ver log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        300
+      ]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Buscar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar": {
+      "main": [
+        [
+          {
+            "node": "Alta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alta": {
+      "main": [
+        [
+          {
+            "node": "Modificar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Modificar": {
+      "main": [
+        [
+          {
+            "node": "Deshacer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deshacer": {
+      "main": [
+        [
+          {
+            "node": "Baja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baja": {
+      "main": [
+        [
+          {
+            "node": "Ver log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
