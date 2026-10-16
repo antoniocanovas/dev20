@@ -12,3 +12,11 @@ class PurchaseOrder(models.Model):
         'UNIQUE (mercas_touch_uuid)',
         "This document was already received from the touch screen.",
     )
+
+
+class PurchaseOrderLine(models.Model):
+    _inherit = 'purchase.order.line'
+
+    mercas_touch_lot_name = fields.Char(
+        'Lot to Receive', copy=False,
+        help="Name of the lot asked for on the touch screen, given to the lot when the purchase is received.")

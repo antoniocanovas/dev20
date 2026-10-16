@@ -12,6 +12,8 @@ PARTNER_LIMIT = 60
 PRODUCT_LIMIT = 500
 # Lots shown in the lots mode
 LOT_LIMIT = 200
+# Drafts shown when starting a sale or a purchase
+DRAFT_LIMIT = 100
 # Most lines of a sale, a purchase or a box movement
 MAX_LINES = 100
 # Longest text of a line, written under the product description
@@ -69,12 +71,12 @@ class MercasTouch(models.AbstractModel):
             ('type', 'in', ('bank', 'cash')),
             *self.env['account.journal']._check_company_domain(company),
         ], order='sequence, id')
-        Country = self.env['res.country']
-        countries = Country.search([('mercas_origin', '=', True)]) if company.origin_filter else Country
-        countries |= company.country_id
-        states = self.env['res.country.state'].search([
-            '|', ('mercas_origin', '=', True), ('country_id', '=', company.country_id.id),
-        ], order='country_id, name')
+        # With the origin filter of the company, only the countries and states marked as origin;
+        # without it, every country, and the states of each country when it is chosen
+        origin_domain = [('mercas_origin', '=', True)] if company.origin_filter else []
+        countries = self.env['res.country'].search(origin_domain, order='name')
+        states = self.env['res.country.state'].search(origin_domain, order='country_id, name') \
+            if company.origin_filter else self.env['res.country.state']
         return {
             'company_id': company.id,
             'currency_id': company.currency_id.id,
@@ -88,7 +90,7 @@ class MercasTouch(models.AbstractModel):
                 'country': company.origin_country,
                 'state': company.origin_state,
                 'filter': company.origin_filter,
-                'countries': [{'id': country.id, 'name': country.name} for country in countries.sorted('name')],
+                'countries': [{'id': country.id, 'name': country.name} for country in countries],
                 'states': [
                     {'id': state.id, 'name': state.name, 'country_id': state.country_id.id}
                     for state in states
@@ -96,6 +98,17 @@ class MercasTouch(models.AbstractModel):
             },
             'has_risk': 'risk_exception' in self.env['res.partner']._fields,
         }
+
+    @api.model
+    def get_origin_states(self, country_id):
+        """ States of origin of a country, as the purchase offers them. """
+        if not is_record_id(country_id):
+            raise ValidationError(self.env._("Invalid country."))
+        domain = [('country_id', '=', country_id)]
+        if self.env.company.origin_filter:
+            domain.append(('mercas_origin', '=', True))
+        states = self.env['res.country.state'].search(domain, order='name')
+        return [{'id': state.id, 'name': state.name, 'country_id': state.country_id.id} for state in states]
 
     def _get_product_data(self, product):
         return {
@@ -334,31 +347,157 @@ class MercasTouch(models.AbstractModel):
     # Operations
     # ------------------------------------------------------------------
 
+    # Drafts: the sale or the purchase being made is saved after each change, as a quotation
+    # or a request for quotation in draft, so that it can be resumed later
+
+    @api.model
+    def get_drafts(self, kind, query='', state_filter='draft'):
+        """ Sales or purchases, the last changed first: a sale or a purchase starts by resuming
+        one in draft, or a new one. The confirmed ones can be looked up and invoiced.
+
+        :param str state_filter: 'draft' (in progress), 'to_invoice' (confirmed and not fully
+            invoiced) or 'all' (every one but the cancelled ones)
+        """
+        Order = self.env[self._get_draft_model(kind)]
+        confirmed = 'sale' if kind == 'sale' else 'purchase'
+        state_domains = {
+            'draft': [('state', '=', 'draft')],
+            'to_invoice': [('state', '=', confirmed), ('invoice_status', '=', 'to invoice')],
+            'all': [('state', '!=', 'cancel')],
+        }
+        if state_filter not in state_domains:
+            raise ValidationError(self.env._("Invalid filter."))
+        domain = [*state_domains[state_filter], ('company_id', '=', self.env.company.id)]
+        query = (query or '').strip() if isinstance(query, str) else ''
+        if query:
+            domain += ['|', ('name', 'ilike', query), ('partner_id', 'ilike', query)]
+        orders = Order.search(domain, limit=DRAFT_LIMIT, order='write_date desc, id desc')
+        return [{
+            'id': order.id,
+            'name': order.name,
+            'partner': order.partner_id.display_name,
+            'partner_id': order.partner_id.commercial_partner_id.id,
+            'date': fields.Datetime.to_string(order.write_date),
+            'user': order.user_id.name or '',
+            'amount_untaxed': order.amount_untaxed,
+            'line_count': len(order.order_line.filtered(lambda line: not line.display_type)),
+            **self._get_order_states(order),
+        } for order in orders]
+
+    def _get_order_states(self, order):
+        """ State and invoice status of an order, with their labels as in the backend. """
+        fields_info = order.fields_get(['state', 'invoice_status'], ['selection'])
+        labels = {name: dict(info['selection']) for name, info in fields_info.items()}
+        return {
+            'state': order.state,
+            'state_label': labels['state'].get(order.state, ''),
+            'invoice_status': order.invoice_status or False,
+            'invoice_status_label': labels['invoice_status'].get(order.invoice_status, ''),
+        }
+
+    @api.model
+    def get_order_summary(self, kind, order_id):
+        """ A confirmed sale or purchase to look up: its lines, its state and invoice status,
+        its last invoice, and what can be printed. """
+        if not is_record_id(order_id):
+            raise ValidationError(self.env._("Invalid order."))
+        order = self.env[self._get_draft_model(kind)].browse(order_id).exists()
+        if not order:
+            raise ValidationError(self.env._("The order doesn't exist anymore."))
+        order.check_access('read')
+        result = self._get_sale_result(order) if kind == 'sale' else self._get_purchase_result(order)
+        product_lines = order.order_line.filtered(lambda line: not line.display_type)
+        result.update(
+            kind=kind,
+            model=order._name,
+            partner_id=order.partner_id.commercial_partner_id.id,
+            invoice=self._get_last_invoice(order),
+            lines=[{
+                'product': line.product_id.display_name,
+                'lot': line.lot_id.name or '',
+                'qty': line.product_uom_qty if kind == 'sale' else line.product_qty,
+                'uom': (line.product_uom_id if kind == 'sale' else line.uom_id).name,
+                'price': line.price_unit,
+                'subtotal': line.price_subtotal,
+            } for line in product_lines],
+        )
+        return result
+
+    def _get_last_invoice(self, order):
+        move_type = 'out_invoice' if order._name == 'sale.order' else 'in_invoice'
+        invoice = order.invoice_ids.filtered(
+            lambda move: move.state == 'posted' and move.move_type == move_type).sorted('id')[-1:]
+        return invoice and self._get_invoice_result(invoice)
+
+    @api.model
+    def invoice_purchase(self, order_id):
+        """ The standard bill of a received purchase, in draft, to review it in a dialog. """
+        if not is_record_id(order_id):
+            raise ValidationError(self.env._("Invalid order."))
+        order = self.env['purchase.order'].browse(order_id).exists()
+        if not order or order.state != 'purchase':
+            raise UserError(self.env._("Only a confirmed purchase can be invoiced."))
+        if order.invoice_status != 'to invoice':
+            raise UserError(self.env._("There is nothing to invoice in %s.", order.name))
+        action = self._get_client_action(order.action_create_invoice())
+        action['target'] = 'new'
+        return action
+
+    @api.model
+    def get_draft(self, kind, order_id):
+        """ A sale or a purchase in draft to go on with: its partner and its product lines. """
+        order = self._get_draft(kind, order_id)
+        return self._get_draft_data(order)
+
+    @api.model
+    def save_draft(self, kind, vals):
+        """ Save the sale or the purchase being made, so that it can be resumed later. The first
+        save creates it; the next ones update its product lines: the lines known by the screen
+        (`line_id`) are updated, the new ones added and the missing ones removed. Sections and
+        notes are kept.
+
+        :param str kind: 'sale' or 'purchase'
+        :param dict vals: {
+            'uuid': str, 'partner_id': int, 'order_id': int (once created),
+            'lines': [{'line_id': int (optional), 'product_id': int, 'qty': float,
+                       'price_unit': float (optional), 'box_qty': int (optional),
+                       'box_product_id': int (optional), 'note': str (only when it changed),
+                       sale: 'lot_id': int (optional),
+                       purchase: 'lot_name': str, 'firm': bool, 'origin_country_id': int,
+                       'origin_state_id': int (all optional)}],
+        }
+        :return: the draft, with the id of each line in the order of the lines sent
+        """
+        vals, operation_uuid = self._check_operation(vals)
+        order, line_ids = self._save_draft(kind, vals, operation_uuid)
+        return dict(self._get_draft_data(order), line_ids=line_ids)
+
+    @api.model
+    def cancel_draft(self, kind, order_id):
+        """ Cancel a sale or a purchase in draft that won't go on. """
+        order = self._get_draft(kind, order_id)
+        if kind == 'sale':
+            order.action_cancel()
+        else:
+            order.button_cancel()
+        return True
+
     @api.model
     def sell(self, vals):
-        """ Sell and deliver at once, as "Sold & Sent" does in the sale order.
+        """ Sell and deliver at once, as "Sold & Sent" does in the sale order: the quotation
+        is saved with the lines of the screen, then confirmed and delivered.
 
-        :param dict vals: {
-            'uuid': str, 'partner_id': int,
-            'lines': [{'product_id': int, 'qty': float, 'lot_id': int (optional),
-                       'price_unit': float (optional), 'box_qty': int (optional),
-                       'box_product_id': int (optional), 'note': str (optional)}],
-        }
+        :param dict vals: as `save_draft`
         :return: {'order': {...}} and, if the customer exceeds their risk, the 'action' of the
             standard risk dialog; the order stays as a quotation until it is accepted there.
         """
         vals, operation_uuid = self._check_operation(vals)
-        existing = self.env['sale.order'].search([('mercas_touch_uuid', '=', operation_uuid)], limit=1)
-        if existing:
-            return {'order': self._get_sale_result(existing)}
-        partner = self._get_partner(vals.get('partner_id'))
-        lines = self._prepare_lines(vals.get('lines'), 'sale')
-        order = self.env['sale.order'].create({
-            'partner_id': partner.id,
-            'mercas_touch_uuid': operation_uuid,
-            'order_line': [Command.create(self._get_sale_line_vals(line)) for line in lines],
-        })
-        self._add_line_notes(order.order_line, lines)
+        order = self._find_draft('sale', vals, operation_uuid)
+        if order and order.state != 'draft':
+            # Sent again after it was sold: nothing left to do
+            return {'order': self._get_sale_result(order)}
+        order, _line_ids = self._save_draft('sale', vals, operation_uuid)
+        self._check_has_lines(order)
         action = order.button_sold_and_sent()
         self._notify_lots_changed(order.order_line.product_id)
         result = {'order': self._get_sale_result(order)}
@@ -366,12 +505,217 @@ class MercasTouch(models.AbstractModel):
             result['action'] = self._get_client_action(action)
         return result
 
-    def _get_sale_line_vals(self, line):
-        vals = {'product_id': line['product_id'], 'product_uom_qty': line['qty']}
-        for key in ('lot_id', 'price_unit', 'box_qty', 'box_product_id'):
-            if key in line:
-                vals[key] = line[key]
+    @api.model
+    def purchase(self, vals):
+        """ Buy and receive at once, as "Purchase & Receive" does in the purchase order: the
+        request for quotation is saved with the lines of the screen, then confirmed and
+        received. Each tracked line gets a lot: the one named on the screen, or a new one.
+
+        :param dict vals: as `save_draft`
+        """
+        vals, operation_uuid = self._check_operation(vals)
+        order = self._find_draft('purchase', vals, operation_uuid)
+        if order and order.state != 'draft':
+            return {'order': self._get_purchase_result(order)}
+        order, _line_ids = self._save_draft('purchase', vals, operation_uuid)
+        self._check_has_lines(order)
+        for line in order.order_line.filtered(lambda line: line.mercas_touch_lot_name and not line.lot_id):
+            line.lot_id = self._get_purchase_lot(line)
+        order._mercas_autocreate_lots()
+        order.button_purchase_and_receive()
+        self._notify_lots_changed(order.order_line.product_id)
+        return {'order': self._get_purchase_result(order)}
+
+    def _get_draft_model(self, kind):
+        if kind not in ('sale', 'purchase'):
+            raise ValidationError(self.env._("Invalid kind of order."))
+        return 'sale.order' if kind == 'sale' else 'purchase.order'
+
+    def _get_draft(self, kind, order_id):
+        if not is_record_id(order_id):
+            raise ValidationError(self.env._("Invalid order."))
+        order = self.env[self._get_draft_model(kind)].browse(order_id).exists()
+        if not order:
+            raise ValidationError(self.env._("The order doesn't exist anymore."))
+        order.check_access('write')
+        if order.state != 'draft':
+            raise UserError(self.env._("%s is not in draft anymore.", order.name))
+        return order
+
+    def _find_draft(self, kind, vals, operation_uuid):
+        """ The order of the screen: the one resumed, or the one it created. """
+        Order = self.env[self._get_draft_model(kind)]
+        if vals.get('order_id') is not None:
+            if not is_record_id(vals['order_id']):
+                raise ValidationError(self.env._("Invalid order."))
+            return Order.browse(vals['order_id']).exists()
+        return Order.search([('mercas_touch_uuid', '=', operation_uuid)], limit=1)
+
+    def _check_has_lines(self, order):
+        if not order.order_line.filtered(lambda line: not line.display_type):
+            raise ValidationError(self.env._("Add between 1 and %s lines.", MAX_LINES))
+
+    def _save_draft(self, kind, vals, operation_uuid):
+        Order = self.env[self._get_draft_model(kind)]
+        order = self._find_draft(kind, vals, operation_uuid)
+        partner = self._get_partner(vals.get('partner_id'))
+        if order:
+            order = self._get_draft(kind, order.id)
+            if order.partner_id.commercial_partner_id != partner:
+                raise ValidationError(self.env._("The partner of an order can't be changed."))
+            lines = self._prepare_lines(vals.get('lines'), kind, order)
+            before = order.order_line
+            order.write({'order_line': self._get_draft_line_commands(kind, order, lines)})
+        else:
+            lines = self._prepare_lines(vals.get('lines'), kind, Order)
+            before = order.order_line.browse()
+            order = Order.create({
+                'partner_id': partner.id,
+                'mercas_touch_uuid': operation_uuid,
+                'order_line': [Command.create(self._get_draft_line_vals(kind, line)) for line in lines],
+            })
+        # The new lines are created in the order of the lines of the screen
+        created = iter((order.order_line - before).sorted('id'))
+        line_ids = []
+        for line in lines:
+            record = order.order_line.browse(line['line_id']) if line.get('line_id') in order.order_line.ids else None
+            record = record or next(created)
+            line_ids.append(record.id)
+            if 'note' in line:
+                record.name = '\n'.join(part for part in (self._get_default_description(record), line['note']) if part)
+        return order, line_ids
+
+    def _get_draft_line_commands(self, kind, order, lines):
+        """ Commands to make the product lines of the order match the ones of the screen. """
+        product_lines = order.order_line.filtered(lambda line: not line.display_type)
+        kept = product_lines.browse()
+        commands = []
+        for line in lines:
+            current = product_lines.filtered(lambda l: l.id == line.get('line_id')) - kept
+            vals = self._get_draft_line_vals(kind, line, current)
+            if current and current.product_id.id == line['product_id']:
+                kept |= current
+                del vals['product_id']
+                commands.append(Command.update(current.id, vals))
+            else:
+                # Also a line removed in the backend meanwhile: it comes back
+                commands.append(Command.create(self._get_draft_line_vals(kind, line)))
+        commands += [Command.unlink(line.id) for line in product_lines - kept]
+        return commands
+
+    def _get_draft_line_vals(self, kind, line, current=None):
+        vals = {'product_id': line['product_id'], 'box_qty': line.get('box_qty', 0)}
+        if line.get('box_qty'):
+            vals['box_product_id'] = line.get('box_product_id', False)
+        if 'price_unit' in line:
+            vals['price_unit'] = line['price_unit']
+        if kind == 'sale':
+            vals.update(product_uom_qty=line['qty'], lot_id=line.get('lot_id', False))
+            return vals
+        vals.update(
+            product_qty=line['qty'],
+            origin_country_id=line.get('origin_country_id', False),
+            origin_state_id=line.get('origin_state_id', False),
+        )
+        if 'firm' in line:
+            vals['mercas_firm_negotiation'] = line['firm']
+        # The lot asked for is kept by name until the purchase is received; a lot set in the
+        # backend stays while the screen shows the same name
+        lot_name = line.get('lot_name') or ''
+        if current and current.lot_id and current.lot_id.name == lot_name:
+            vals['mercas_touch_lot_name'] = False
+        else:
+            vals.update(lot_id=False, mercas_touch_lot_name=lot_name or False)
         return vals
+
+    def _get_default_description(self, line):
+        """ Description of an order line without the text of the screen. """
+        if line._name == 'sale.order.line':
+            return line.with_context(
+                lang=line.order_id._get_lang())._get_sale_order_line_multiline_description_sale()
+        lang = line.order_id.partner_id.lang or self.env.lang
+        return line._get_product_purchase_description(line.product_id.with_context(lang=lang))
+
+    def _get_line_note(self, line):
+        """ Text of a line under the description of its product, as written on the screen. """
+        description = self._get_default_description(line)
+        name = line.name or ''
+        if not description:
+            return name
+        if name.startswith(description):
+            return name[len(description):].lstrip('\n')
+        # Description changed by hand in the backend: kept as it is
+        return ''
+
+    def _get_draft_data(self, order):
+        product_lines = order.order_line.filtered(lambda line: not line.display_type)
+        lots = product_lines.lot_id
+        quants = {
+            lot: (quantity, reserved) for lot, quantity, reserved in self.env['stock.quant']._read_group(
+                [('lot_id', 'in', lots.ids), ('location_id.usage', '=', 'internal')],
+                ['lot_id'], ['quantity:sum', 'reserved_quantity:sum'],
+            )
+        }
+        is_sale = order._name == 'sale.order'
+        lines = []
+        for line in product_lines:
+            vals = {
+                'line_id': line.id,
+                'product': self._get_product_data(line.product_id),
+                'price': line.price_unit,
+                'box_qty': line.box_qty,
+                'box_product_id': line.box_product_id.id,
+                'note': self._get_line_note(line),
+            }
+            if is_sale:
+                quantity, reserved = quants.get(line.lot_id, (0.0, 0.0))
+                vals.update(
+                    qty=line.product_uom_qty,
+                    lot=line.lot_id and self._get_lot_data(
+                        line.lot_id, line.product_id.uom_id.round(quantity - reserved)),
+                )
+            else:
+                vals.update(
+                    qty=line.product_qty,
+                    lot_name=line.lot_id.name or line.mercas_touch_lot_name or '',
+                    firm=line.mercas_firm_negotiation,
+                    origin_country_id=line.origin_country_id.id,
+                    origin_state_id=line.origin_state_id.id,
+                )
+            lines.append(vals)
+        return {
+            'id': order.id,
+            'name': order.name,
+            'partner_id': order.partner_id.commercial_partner_id.id,
+            'lines': lines,
+        }
+
+    @api.model
+    def invoice_sale(self, order_id):
+        """ Invoice a sale made on the screen, and post the invoice so that it can be collected
+        right away. Sent again, it returns the invoice already made. """
+        if not is_record_id(order_id):
+            raise ValidationError(self.env._("Invalid order."))
+        order = self.env['sale.order'].browse(order_id).exists()
+        if not order or order.state != 'sale':
+            raise UserError(self.env._("Only a confirmed sale can be invoiced."))
+        if order.invoice_status == 'to invoice':
+            invoices = order._create_invoices()
+            invoices.filtered(lambda move: move.state == 'draft').action_post()
+        invoice = order.invoice_ids.filtered(
+            lambda move: move.state == 'posted' and move.move_type == 'out_invoice').sorted('id')[-1:]
+        if not invoice:
+            raise UserError(self.env._("There is nothing to invoice in %s.", order.name))
+        return dict(self._get_invoice_result(invoice), order=self._get_order_states(order))
+
+    def _get_invoice_result(self, invoice):
+        return {
+            'id': invoice.id,
+            'name': invoice.name,
+            'amount_total': invoice.amount_total,
+            'residual': invoice.amount_residual,
+            'payment_state': invoice.payment_state,
+        }
 
     def _get_sale_result(self, order):
         return {
@@ -382,66 +726,25 @@ class MercasTouch(models.AbstractModel):
             'delivered': bool(order.picking_ids) and all(
                 picking.state in ('done', 'cancel') for picking in order.picking_ids),
             'picking_ids': order.picking_ids.filtered(lambda picking: picking.state == 'done').ids,
+            **self._get_order_states(order),
         }
 
-    @api.model
-    def purchase(self, vals):
-        """ Buy and receive at once, as "Purchase & Receive" does in the purchase order. Each
-        tracked line gets a lot: the one named on the screen, or a new one.
-
-        :param dict vals: {
-            'uuid': str, 'partner_id': int,
-            'lines': [{'product_id': int, 'qty': float, 'price_unit': float (optional),
-                       'box_qty': int (optional), 'box_product_id': int (optional),
-                       'origin_country_id': int (optional), 'origin_state_id': int (optional),
-                       'firm': bool (optional), 'lot_name': str (optional),
-                       'note': str (optional)}],
-        }
-        """
-        vals, operation_uuid = self._check_operation(vals)
-        existing = self.env['purchase.order'].search([('mercas_touch_uuid', '=', operation_uuid)], limit=1)
-        if existing:
-            return {'order': self._get_purchase_result(existing)}
-        partner = self._get_partner(vals.get('partner_id'))
-        lines = self._prepare_lines(vals.get('lines'), 'purchase')
-        order = self.env['purchase.order'].create({
-            'partner_id': partner.id,
-            'mercas_touch_uuid': operation_uuid,
-            'order_line': [Command.create(self._get_purchase_line_vals(line, partner)) for line in lines],
-        })
-        self._add_line_notes(order.order_line, lines)
-        order._mercas_autocreate_lots()
-        order.button_purchase_and_receive()
-        self._notify_lots_changed(order.order_line.product_id)
-        return {'order': self._get_purchase_result(order)}
-
-    def _get_purchase_line_vals(self, line, partner):
-        vals = {'product_id': line['product_id'], 'product_qty': line['qty']}
-        for key in ('price_unit', 'box_qty', 'box_product_id', 'origin_country_id', 'origin_state_id'):
-            if key in line:
-                vals[key] = line[key]
-        if 'firm' in line:
-            vals['mercas_firm_negotiation'] = line['firm']
-        if line.get('lot_name'):
-            vals['lot_id'] = self._get_purchase_lot(line, partner).id
-        return vals
-
-    def _get_purchase_lot(self, line, partner):
+    def _get_purchase_lot(self, line):
         """ The lot named on the screen: an existing lot of the product, or a new one. """
         Lot = self.env['stock.lot']
         lot = Lot.search([
-            ('name', '=', line['lot_name']),
-            ('product_id', '=', line['product_id']),
+            ('name', '=', line.mercas_touch_lot_name),
+            ('product_id', '=', line.product_id.id),
             *Lot._check_company_domain(self.env.company),
         ], limit=1)
         return lot or Lot.create({
-            'name': line['lot_name'],
-            'product_id': line['product_id'],
+            'name': line.mercas_touch_lot_name,
+            'product_id': line.product_id.id,
             'company_id': self.env.company.id,
-            'partner_id': partner.id,
-            'origin_country_id': line.get('origin_country_id', False),
-            'origin_state_id': line.get('origin_state_id', False),
-            'mercas_firm_negotiation': line.get('firm', partner.mercas_firm_negotiation),
+            'partner_id': line.order_id.partner_id.id,
+            'origin_country_id': line.origin_country_id.id,
+            'origin_state_id': line.origin_state_id.id,
+            'mercas_firm_negotiation': line.mercas_firm_negotiation,
         })
 
     def _get_purchase_result(self, order):
@@ -453,6 +756,7 @@ class MercasTouch(models.AbstractModel):
             'amount_total': order.amount_total,
             'received': bool(order.picking_ids) and all(
                 picking.state in ('done', 'cancel') for picking in order.picking_ids),
+            **self._get_order_states(order),
             'lots': [{
                 'product': line.product_id.display_name,
                 'lot_id': line.lot_id.id,
@@ -647,7 +951,7 @@ class MercasTouch(models.AbstractModel):
     def get_print_action(self, model, order_id, kind):
         """ What to print after an operation: the delivery slip of a sale, or the box labels
         of a sale or a purchase (the wizard of `mercas_base`, to choose how many). """
-        if model not in ('sale.order', 'purchase.order') or kind not in ('delivery', 'labels'):
+        if model not in ('sale.order', 'purchase.order') or kind not in ('delivery', 'labels', 'invoice'):
             raise ValidationError(self.env._("Nothing to print."))
         if not is_record_id(order_id):
             raise ValidationError(self.env._("Invalid order."))
@@ -656,6 +960,11 @@ class MercasTouch(models.AbstractModel):
             raise ValidationError(self.env._("The order doesn't exist anymore."))
         if kind == 'labels':
             return self._get_client_action(order.action_print_mercas_labels())
+        if kind == 'invoice':
+            invoices = order.invoice_ids.filtered(lambda move: move.state == 'posted')
+            if model != 'sale.order' or not invoices:
+                raise UserError(self.env._("There is no invoice to print."))
+            return self._get_client_action(self.env.ref('account.account_invoices').report_action(invoices))
         pickings = order.picking_ids.filtered(lambda picking: picking.state == 'done')
         if model != 'sale.order' or not pickings:
             raise UserError(self.env._("There is no delivery to print."))
@@ -676,9 +985,11 @@ class MercasTouch(models.AbstractModel):
             raise ValidationError(self.env._("Invalid operation."))
         return vals, check_uuid(self.env, vals.get('uuid'))
 
-    def _prepare_lines(self, lines, kind):
-        """ Check the lines sent by the screen for a sale, a purchase or a box movement. """
-        if not isinstance(lines, list) or not lines or len(lines) > MAX_LINES:
+    def _prepare_lines(self, lines, kind, order=None):
+        """ Check the lines sent by the screen for a sale, a purchase or a box movement. A
+        quotation being made (`order`) may have no line yet, and keeps the products it already
+        has even if they can't be sold anymore. """
+        if not isinstance(lines, list) or (not lines and order is None) or len(lines) > MAX_LINES:
             raise ValidationError(self.env._("Add between 1 and %s lines.", MAX_LINES))
         Product = self.env['product.product']
         prepared = []
@@ -699,7 +1010,8 @@ class MercasTouch(models.AbstractModel):
         if len(products) != len({line['product_id'] for line in prepared}):
             raise ValidationError(self.env._("Some products don't exist anymore."))
         allowed = {'sale': 'sale_ok', 'purchase': 'purchase_ok'}.get(kind)
-        if allowed and not all(products.mapped(allowed)):
+        new_products = products - (order.order_line.product_id if order else products.browse())
+        if allowed and not all(new_products.mapped(allowed)):
             raise ValidationError(self.env._("Some products can't be sold or bought."))
         if kind == 'box' and not all(products.mapped('is_box')):
             raise ValidationError(self.env._("Only boxes can be returned or delivered."))
@@ -715,7 +1027,7 @@ class MercasTouch(models.AbstractModel):
 
     def _prepare_line_options(self, line, kind):
         vals = {}
-        for key in ('lot_id', 'box_product_id', 'origin_country_id', 'origin_state_id'):
+        for key in ('line_id', 'lot_id', 'box_product_id', 'origin_country_id', 'origin_state_id'):
             value = line.get(key)
             if value is None or value is False:
                 continue
@@ -725,6 +1037,10 @@ class MercasTouch(models.AbstractModel):
         if kind != 'purchase':
             vals.pop('origin_country_id', None)
             vals.pop('origin_state_id', None)
+        else:
+            vals.pop('lot_id', None)
+        if kind == 'box':
+            vals.pop('line_id', None)
         price = line.get('price_unit')
         if price is not None:
             if not is_number(price) or price < 0:
@@ -746,20 +1062,13 @@ class MercasTouch(models.AbstractModel):
                     raise ValidationError(self.env._("Invalid lot name."))
                 vals['lot_name'] = lot_name.strip()
         note = line.get('note')
-        if note:
+        # Sent empty, it removes the text of a line of a quotation
+        if note is not None:
             if not isinstance(note, str) or len(note) > MAX_NOTE_LENGTH:
                 raise ValidationError(self.env._(
                     "The text of a line can't be longer than %s characters.", MAX_NOTE_LENGTH))
             vals['note'] = note.strip()
         return vals
-
-    def _add_line_notes(self, order_lines, lines):
-        """ Write the text of each line under the description of its product. Order lines are
-        created in the order of the lines of the screen; the box lines come after them. """
-        product_lines = order_lines.filtered(lambda line: not line.display_type)
-        for order_line, line in zip(product_lines, lines):
-            if line.get('note'):
-                order_line.name = '\n'.join(part for part in (order_line.name, line['note']) if part)
 
     def _notify_lots_changed(self, products):
         """ Tell the screens open elsewhere that the stock of the lots of `products` changed. """

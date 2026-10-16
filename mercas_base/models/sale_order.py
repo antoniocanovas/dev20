@@ -69,10 +69,7 @@ class SaleOrder(models.Model):
             # Redirect destination from virtual customer to the supplier's physical location
             if supplier_loc:
                 picking.move_line_ids.write({"location_dest_id": supplier_loc.id})
-            picking.with_context(
-                skip_immediate=True,
-                skip_backorder=True,
-            ).button_validate()
+            picking._mercas_validate()
 
         # Create and immediately post the customer invoice
         invoices = self._create_invoices()
@@ -271,7 +268,4 @@ class SaleOrder(models.Model):
                 lambda m: m.state not in ("done", "cancel")
             ):
                 move.quantity = move.product_uom_qty
-            picking.with_context(
-                skip_immediate=True,
-                skip_backorder=True,
-            ).button_validate()
+            picking._mercas_validate()

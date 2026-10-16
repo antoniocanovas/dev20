@@ -11,7 +11,7 @@ El botón **Vender y Entregar** en el pedido de venta ejecuta en un solo clic:
 1. Valida que todas las líneas de producto trazadas tengan lote asignado.
 2. Comprueba el riesgo financiero del cliente (requiere `sale_financial_risk` / `account_financial_risk`). Si se supera el riesgo, muestra el aviso estándar de OCA; si el usuario acepta continuar, el flujo continúa automáticamente.
 3. Confirma el pedido.
-4. Valida el albarán de salida asignando la cantidad hecha igual a la demandada (sin pedir confirmación de retroactivos).
+4. Valida el albarán de salida asignando la cantidad hecha igual a la demandada, sin los avisos de la validación estándar (entrega inmediata, pedido pendiente y confirmación del SMS de `stock_sms`). Si el albarán no queda validado, da un error en lugar de dejar el pedido como entregado.
 
 ### Ventas — Aviso de edición concurrente
 

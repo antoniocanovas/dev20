@@ -3,13 +3,13 @@ import { localization } from "@web/core/l10n/localization";
 
 /**
  * Keypad for the quantities, prices and amounts of the counter: big keys for a touch screen.
- * It edits the text of a field; a scale or a keyboard can still type into the field itself.
+ * It only tells which key was pressed ("0"-"9", the decimal point, "backspace" or "clear"):
+ * the screen applies it to the field being edited, so the keypad doesn't keep any value.
  */
 export class TouchNumpad extends Component {
     static template = "mercas_touch.TouchNumpad";
     props = useProps({
-        value: t.string(),
-        onInput: t.function(),
+        onKey: t.function(),
         decimals: t.boolean().optional(true),
     });
 
@@ -22,18 +22,21 @@ export class TouchNumpad extends Component {
     }
 
     onKey(key) {
-        const value = this.props.value || "";
-        if (key === this.decimalPoint && value.includes(key)) {
-            return;
-        }
-        this.props.onInput(value + key);
+        this.props.onKey(key);
     }
+}
 
-    onBackspace() {
-        this.props.onInput((this.props.value || "").slice(0, -1));
+/** The text of a field after pressing `key` on the keypad. */
+export function applyNumpadKey(value, key) {
+    value = value || "";
+    if (key === "clear") {
+        return "";
     }
-
-    onClear() {
-        this.props.onInput("");
+    if (key === "backspace") {
+        return value.slice(0, -1);
     }
+    if (key === localization.decimalPoint && value.includes(key)) {
+        return value;
+    }
+    return value + key;
 }

@@ -217,10 +217,7 @@ class PurchaseOrder(models.Model):
             # Redirect source from virtual supplier to the customer's physical location
             if customer_loc:
                 picking.move_line_ids.write({"location_id": customer_loc.id})
-            picking.with_context(
-                skip_immediate=True,
-                skip_backorder=True,
-            ).button_validate()
+            picking._mercas_validate()
 
         # Create and immediately post the vendor bill (deposit refund)
         self.action_create_invoice()
@@ -258,10 +255,7 @@ class PurchaseOrder(models.Model):
                 lambda m: m.state not in ("done", "cancel")
             ):
                 move.quantity = move.product_uom_qty
-            picking.with_context(
-                skip_immediate=True,
-                skip_backorder=True,
-            ).button_validate()
+            picking._mercas_validate()
 
 
 class PurchaseOrderLine(models.Model):

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Resultado</title>
+<style>
+
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;
+  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;
+  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;
+  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;
+    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;
+    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;
+  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;
+  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }
+header h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }
+main { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+a { color: var(--accent); }
+button, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
+.tabla-wrap { overflow-x: auto; }
+.muted { color: var(--muted); font-size: 13px; }
+.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }
+.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }
+.bloque { padding: 16px; display: grid; gap: 10px; }
+h2 { margin: 0; font-size: 20px; }
+.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }
+tr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }
+</style>
+</head>
+<body>
+<script id="datos" type="application/json">__DATOS__</script>
+<header><h1 id="titulo">Resultado</h1><a href="__BASE__revision">Pendientes</a><a href="__BASE__subir">Subir otra foto</a></header>
+<main><div class="panel"><div class="bloque" id="bloque"></div></div></main>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var fmt = function (n) { return n == null ? "—" : (Math.round(n * 1000) / 1000).toLocaleString("es-ES"); };
+  var ESTADOS = { recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Error", "bad"],
+    verificado: ["Verificado", "ok"], pendiente_revision: ["Pendiente de revisión", "warn"], aprobada: ["Aprobada", "ok"],
+    corregida: ["Corregida", "ok"], rechazada: ["Rechazada", "bad"], rectificada: ["Rectificada en el ERP", "ok"] };
+  var chip = function (e) { var x = ESTADOS[e] || [e, "neutral"]; return '<span class="chip ' + x[1] + '">' + esc(x[0]) + "</span>"; };
+  var d = JSON.parse($("datos").textContent || "{}");
+  var h = "";
+  if (d.titulo) { $("titulo").textContent = d.titulo; document.title = d.titulo; }
+  if (d.estado) h += "<div>" + chip(d.estado) + (d.duplicada ? ' <span class="muted">Esta foto ya se había subido: se muestra la incidencia existente.</span>' : "") + "</div>";
+  if (d.albaran) h += "<h2>Albarán " + esc(d.albaran) + "</h2>";
+  if (d.cliente) h += '<div class="muted">' + esc(d.cliente) + (d.origen_numero ? " · número leído por " + (d.origen_numero === "codigo_barras" ? "código de barras" : "visión") : "") + "</div>";
+  if (d.error) h += '<div class="error">' + esc(d.error) + "</div>";
+  (d.avisos || []).forEach(function (a) { h += '<div class="aviso">' + esc(a) + "</div>"; });
+  if (d.tabla && d.tabla.length) {
+    h += '<div class="tabla-wrap"><table><thead><tr><th>Artículo</th><th class="num">ERP</th><th class="num">IA</th><th class="num">Confianza</th><th>Resultado</th></tr></thead><tbody>' +
+      d.tabla.map(function (r) {
+        return '<tr class="' + (r.estado !== "verificado" ? "revisar " : "") + (r.ia !== r.erp ? "dif" : "") + '"><td>' + esc(r.articulo) + '</td><td class="num">' + fmt(r.erp) +
+          '</td><td class="num">' + (r.ia == null ? "?" : fmt(r.ia)) + '</td><td class="num">' + (r.confianza == null ? "—" : Math.round(r.confianza * 100) + "%") +
+          "</td><td>" + (r.estado === "verificado" ? "OK" : esc(r.motivos || "revisar")) + "</td></tr>"; }).join("") + "</tbody></table></div>";
+  }
+  if (d.pasos && d.pasos.length) h += "<div><b>" + (d.dry_run ? "Simulación (DRY_RUN): se haría" : "Hecho en el ERP") + "</b><ul>" + d.pasos.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul></div>";
+  if (d.mensaje) h += "<div>" + esc(d.mensaje) + "</div>";
+  if (d.enlace) h += '<div><a class="boton" href="' + esc(d.enlace) + '">' + esc(d.enlace_texto || "Abrir") + "</a></div>";
+  $("bloque").innerHTML = h;
+})();
+</script>
+</body>
+</html>

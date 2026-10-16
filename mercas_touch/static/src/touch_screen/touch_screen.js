@@ -1,11 +1,12 @@
-import { Component, onWillStart, onWillUnmount, proxy, useListener, useProps, usePlugin } from "@odoo/owl";
+import { Component, onPatched, onWillStart, onWillUnmount, proxy, useListener, useProps, usePlugin } from "@odoo/owl";
 import { BarcodePlugin } from "@barcodes/barcode_plugin";
 import { BusPlugin } from "@bus/services/bus_plugin";
 import { browser } from "@web/core/browser/browser";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { isDisplayStandalone } from "@web/core/browser/feature_detection";
 import { formatCurrency } from "@web/core/currency";
 import { _t } from "@web/core/l10n/translation";
-import { deserializeDateTime, formatDate } from "@web/core/l10n/dates";
+import { deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
 import { normalize } from "@web/core/l10n/utils";
 import { registry } from "@web/core/registry";
 import { useBus, useService } from "@web/core/utils/hooks";
@@ -13,7 +14,8 @@ import { formatFloat } from "@web/core/utils/numbers";
 import { imageUrl } from "@web/core/utils/urls";
 import { parseFloat } from "@web/views/fields/parsers";
 import { standardActionServiceProps } from "@web/webclient/actions/action_plugin";
-import { TouchNumpad } from "./touch_numpad";
+import { applyNumpadKey, TouchNumpad } from "./touch_numpad";
+import { localization } from "@web/core/l10n/localization";
 
 const MODEL = "mercas.touch";
 // Sent by the server when the stock of some lots changes
@@ -47,6 +49,7 @@ export class TouchScreen extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
         this.pwa = useService("pwa");
         // The home menu of Odoo Enterprise; Community has none
         this.homeMenu = "home_menu" in this.env.services ? useService("home_menu") : null;
@@ -62,6 +65,16 @@ export class TouchScreen extends Component {
             mode: false,
             data: null,
             sending: false,
+            // Sale and purchase: the drafts to resume, or the partner of a new one
+            drafts: [],
+            draftSearch: "",
+            // "draft" (in progress), "to_invoice" or "all"
+            draftFilter: "draft",
+            choosingCustomer: false,
+            // Draft of the sale or purchase being made, saved after each change: { id, name }
+            order: null,
+            // false, "saving", "saved" or "error"
+            saveState: false,
             // Partner of the sale, purchase, boxes or payment, with their debt, risk and boxes
             partnerSearch: "",
             partners: [],
@@ -76,6 +89,11 @@ export class TouchScreen extends Component {
             entry: null,
             // Lines of the sale or the purchase
             lines: [],
+            // States of origin of each country, loaded when the country is chosen (without the
+            // origin filter of the company, which sends the few states of origin at once)
+            originStates: {},
+            // Price of a line being changed from the ticket: { key, value, fresh }
+            priceEdit: null,
             // Result of the last operation, shown until the next one starts
             done: null,
             // Boxes
@@ -93,6 +111,22 @@ export class TouchScreen extends Component {
             memo: "",
         });
         this.searchTimeout = null;
+        // Saves of the draft being made, one after the other; a new operation starts a
+        // new token, so that a late answer doesn't change it
+        this.saveToken = {};
+        this.saveDirty = false;
+        this.savePromise = null;
+        // The price field is focused and selected each time the editor moves to a line, so
+        // that a keyboard or a scale replaces the price
+        this.focusPrice = false;
+        onPatched(() => {
+            if (this.focusPrice) {
+                this.focusPrice = false;
+                const input = document.querySelector(".o_mercas_touch_price_edit_input");
+                input?.focus();
+                input?.select();
+            }
+        });
 
         onWillStart(async () => {
             this.state.data = await this.orm.call(MODEL, "get_screen_data", []);
@@ -137,6 +171,7 @@ export class TouchScreen extends Component {
         if (this.state.sending) {
             return;
         }
+        await this.flushSave();
         this.resetOperation();
         this.state.partner = null;
         this.state.partnerSearch = "";
@@ -144,6 +179,8 @@ export class TouchScreen extends Component {
         this.state.mode = mode;
         if (mode === "lots") {
             await this.loadLots();
+        } else if (this.hasDrafts()) {
+            await this.loadDrafts();
         } else {
             await this.searchPartners();
         }
@@ -154,6 +191,7 @@ export class TouchScreen extends Component {
         this.state.lots = [];
         this.state.entry = null;
         this.state.lines = [];
+        this.state.priceEdit = null;
         this.state.done = null;
         this.state.categoryId = false;
         this.state.productSearch = "";
@@ -164,14 +202,22 @@ export class TouchScreen extends Component {
         this.state.memo = "";
         this.state.scrap = null;
         this.state.lotSelection = {};
+        this.state.order = null;
+        this.state.saveState = false;
+        this.state.choosingCustomer = false;
         this.operationUuid = null;
+        this.saveToken = {};
+        this.saveDirty = false;
+        this.savePromise = null;
     }
 
-    onBack() {
+    async onBack() {
         if (this.state.sending) {
             return;
         }
-        if (this.state.entry) {
+        if (this.state.priceEdit) {
+            this.onClosePriceEdit();
+        } else if (this.state.entry) {
             this.state.entry = null;
             if (!this.state.lots.length) {
                 this.state.product = null;
@@ -181,6 +227,12 @@ export class TouchScreen extends Component {
             this.state.lots = [];
         } else if (this.state.scrap) {
             this.state.scrap = null;
+        } else if (this.hasDrafts() && (this.state.partner || this.state.choosingCustomer)) {
+            // The draft is saved: back to the list, to resume it or another one later
+            await this.flushSave();
+            this.resetOperation();
+            this.state.partner = null;
+            await this.loadDrafts();
         } else if (this.state.partner && !this.state.done && this.hasWork()) {
             this.notification.add(_t("Finish or clear the current operation first."), { type: "warning" });
         } else if (this.state.partner) {
@@ -201,9 +253,236 @@ export class TouchScreen extends Component {
     }
 
     onClearOperation() {
+        if (this.hasDrafts() && this.state.order) {
+            this.onCancelDraft();
+            return;
+        }
         const partner = this.state.partner;
         this.resetOperation();
         this.state.partner = partner;
+    }
+
+    clearTitle() {
+        if (!this.hasDrafts() || !this.state.order) {
+            return _t("Clear");
+        }
+        return this.state.mode === "sale" ? _t("Cancel the quotation") : _t("Cancel the purchase");
+    }
+
+    draftSearchPlaceholder() {
+        return this.state.mode === "sale"
+            ? _t("Search a quotation or a customer")
+            : _t("Search a purchase or a supplier");
+    }
+
+    /** The sale and the purchase are saved as drafts while they are made. */
+    hasDrafts() {
+        return this.state.mode === "sale" || this.state.mode === "purchase";
+    }
+
+    // ------------------------------------------------------------------
+    // Drafts: the sale or purchase being made is saved as a quotation or a request for
+    // quotation in draft
+    // ------------------------------------------------------------------
+
+    onDraftSearchInput(ev) {
+        this.state.draftSearch = ev.target.value;
+        browser.clearTimeout(this.searchTimeout);
+        this.searchTimeout = browser.setTimeout(() => this.loadDrafts(), SEARCH_DELAY);
+    }
+
+    async loadDrafts() {
+        const mode = this.state.mode;
+        const drafts = await this.orm.call(MODEL, "get_drafts", [
+            mode,
+            this.state.draftSearch,
+            this.state.draftFilter,
+        ]);
+        if (this.state.mode === mode && !this.state.partner) {
+            this.state.drafts = drafts;
+        }
+    }
+
+    get draftFilters() {
+        return [
+            { key: "draft", name: _t("In progress") },
+            { key: "to_invoice", name: _t("To invoice") },
+            { key: "all", name: _t("All") },
+        ];
+    }
+
+    async onDraftFilter(filter) {
+        this.state.draftFilter = filter;
+        await this.loadDrafts();
+    }
+
+    async onNewDraft() {
+        this.resetOperation();
+        this.state.choosingCustomer = true;
+        this.state.partnerSearch = "";
+        await this.searchPartners();
+    }
+
+    async onResumeDraft(draft) {
+        if (draft.state !== "draft") {
+            await this.openOrderSummary(draft);
+            return;
+        }
+        const [data, partner] = await Promise.all([
+            this.orm.call(MODEL, "get_draft", [this.state.mode, draft.id]),
+            this.orm.call(MODEL, "get_partner_info", [draft.partner_id]),
+        ]);
+        this.resetOperation();
+        this.state.partner = partner;
+        this.state.order = { id: data.id, name: data.name };
+        this.state.saveState = "saved";
+        this.state.lines = data.lines.map((line) => ({
+            key: `line-${line.line_id}`,
+            lineId: line.line_id,
+            product: line.product,
+            lot: line.lot || null,
+            qty: line.qty,
+            price: line.price,
+            boxQty: line.box_qty || 0,
+            boxProductId: line.box_product_id || false,
+            note: line.note || "",
+            origNote: line.note || "",
+            originCountryId: line.origin_country_id || false,
+            originStateId: line.origin_state_id || false,
+            firm: Boolean(line.firm),
+            lotName: line.lot_name || "",
+        }));
+    }
+
+    /** A confirmed sale or purchase, to look it up, print it or invoice it. */
+    async openOrderSummary(draft) {
+        const mode = this.state.mode;
+        const [summary, partner] = await Promise.all([
+            this.orm.call(MODEL, "get_order_summary", [mode, draft.id]),
+            this.orm.call(MODEL, "get_partner_info", [draft.partner_id]),
+        ]);
+        this.resetOperation();
+        this.state.partner = partner;
+        this.state.done = { ...summary, reviewing: true };
+    }
+
+    async refreshOrderSummary() {
+        const done = this.state.done;
+        if (!done) {
+            return;
+        }
+        const summary = await this.orm.call(MODEL, "get_order_summary", [done.kind, done.id]);
+        if (this.state.done === done) {
+            Object.assign(done, summary);
+        }
+        await this.reloadPartner();
+    }
+
+    onCancelDraft() {
+        const order = this.state.order;
+        const mode = this.state.mode;
+        this.dialog.add(ConfirmationDialog, {
+            title: this.clearTitle(),
+            body: _t("%s will be cancelled.", order.name),
+            confirmLabel: this.clearTitle(),
+            cancelLabel: _t("Keep it"),
+            confirm: async () => {
+                await this.flushSave();
+                await this.orm.call(MODEL, "cancel_draft", [mode, order.id]);
+                this.resetOperation();
+                this.state.partner = null;
+                await this.loadDrafts();
+            },
+            cancel: () => {},
+        });
+    }
+
+    /** The lines of the sale or the purchase, as the server saves them in the draft. */
+    linesPayload(lines) {
+        const isPurchase = this.state.mode === "purchase";
+        return lines.map((line) => ({
+            ...(line.lineId ? { line_id: line.lineId } : {}),
+            product_id: line.product.id,
+            qty: line.qty,
+            price_unit: line.price,
+            ...(!isPurchase && line.lot ? { lot_id: line.lot.id } : {}),
+            box_qty: line.boxQty || 0,
+            ...(line.boxProductId ? { box_product_id: line.boxProductId } : {}),
+            ...(isPurchase
+                ? {
+                      firm: line.firm,
+                      ...(line.lotName ? { lot_name: line.lotName } : {}),
+                      ...(line.originCountryId ? { origin_country_id: line.originCountryId } : {}),
+                      ...(line.originStateId ? { origin_state_id: line.originStateId } : {}),
+                  }
+                : {}),
+            // The text replaces the description under the product only when it changed
+            ...(line.note !== (line.lineId ? line.origNote : "") ? { note: line.note } : {}),
+        }));
+    }
+
+    /** Save the draft after a change of the lines, in the background. */
+    scheduleSave() {
+        if (!this.hasDrafts() || !this.state.partner || this.state.done) {
+            return;
+        }
+        this.saveDirty = true;
+        if (!this.savePromise) {
+            const token = this.saveToken;
+            this.savePromise = this.runSaves(token).finally(() => {
+                if (token === this.saveToken) {
+                    this.savePromise = null;
+                }
+            });
+        }
+    }
+
+    async runSaves(token) {
+        while (this.saveDirty && token === this.saveToken) {
+            this.saveDirty = false;
+            await this.saveDraft(token);
+        }
+    }
+
+    async saveDraft(token) {
+        const lines = [...this.state.lines];
+        const notes = lines.map((line) => line.note);
+        const vals = {
+            uuid: this.newUuid(),
+            partner_id: this.state.partner.id,
+            ...(this.state.order ? { order_id: this.state.order.id } : {}),
+            lines: this.linesPayload(lines),
+        };
+        this.state.saveState = "saving";
+        let result;
+        try {
+            result = await this.orm.silent.call(MODEL, "save_draft", [this.state.mode, vals]);
+        } catch (error) {
+            if (token === this.saveToken) {
+                this.state.saveState = "error";
+                this.notification.add(error.data?.message || _t("The changes couldn't be saved."), {
+                    title: _t("Not saved"),
+                    type: "danger",
+                });
+            }
+            return;
+        }
+        if (token !== this.saveToken) {
+            return;
+        }
+        this.state.order = { id: result.id, name: result.name };
+        lines.forEach((line, index) => {
+            line.lineId = result.line_ids[index];
+            line.origNote = notes[index];
+        });
+        this.state.saveState = this.saveDirty ? "saving" : "saved";
+    }
+
+    /** Wait for the saves in progress. */
+    async flushSave() {
+        while (this.savePromise) {
+            await this.savePromise;
+        }
     }
 
     onOdooHome() {
@@ -258,6 +537,7 @@ export class TouchScreen extends Component {
     async onSelectPartner(partnerId) {
         this.resetOperation();
         this.state.partner = await this.orm.call(MODEL, "get_partner_info", [partnerId]);
+        // In a sale or a purchase, the draft is created with its first line
         if (this.state.mode === "boxes") {
             this.state.boxDirection = this.state.partner.boxes.some((box) => box.supplier < 0) &&
                 !this.state.partner.boxes.some((box) => box.customer > 0) ? "deliver" : "return";
@@ -337,6 +617,12 @@ export class TouchScreen extends Component {
     }
 
     async onSelectProduct(product) {
+        if (this.state.priceEdit) {
+            if (!this.commitPrice()) {
+                return;
+            }
+            this.state.priceEdit = null;
+        }
         this.state.product = product;
         this.state.lots = [];
         if (this.state.mode === "sale" && product.tracking) {
@@ -393,6 +679,7 @@ export class TouchScreen extends Component {
             // Field written by the keypad
             field: "qty",
         };
+        this.loadOriginStates(this.state.entry.originCountryId);
     }
 
     onSelectLot(lot) {
@@ -423,9 +710,31 @@ export class TouchScreen extends Component {
         }
     }
 
-    numpadValue() {
+
+    /**
+     * A key of the keypad, applied to the field being edited: the price of a line of the
+     * ticket, the field of the line being added, the quantity to scrap or the amount to collect.
+     */
+    onNumpadKey(key) {
+        const priceEdit = this.state.priceEdit;
         const entry = this.state.entry;
-        return entry.field === "boxQty" ? String(entry.boxQty || "") : entry[entry.field];
+        if (priceEdit) {
+            // The first key replaces the price, as on a till
+            priceEdit.value = applyNumpadKey(priceEdit.fresh ? "" : priceEdit.value, key);
+            priceEdit.fresh = false;
+        } else if (entry) {
+            if (entry.field === "boxQty") {
+                if (key !== localization.decimalPoint) {
+                    this.onNumpadInput(applyNumpadKey(String(entry.boxQty || ""), key));
+                }
+            } else {
+                entry[entry.field] = applyNumpadKey(entry[entry.field], key);
+            }
+        } else if (this.state.scrap) {
+            this.state.scrap.qty = applyNumpadKey(this.state.scrap.qty, key);
+        } else if (this.state.mode === "payment") {
+            this.state.amount = applyNumpadKey(this.state.amount, key);
+        }
     }
 
     onBoxQtyStep(step) {
@@ -439,20 +748,36 @@ export class TouchScreen extends Component {
     onEntryCountry(ev) {
         this.state.entry.originCountryId = parseInt(ev.target.value, 10) || false;
         this.state.entry.originStateId = false;
+        this.loadOriginStates(this.state.entry.originCountryId);
     }
 
     onEntryState(ev) {
         const stateId = parseInt(ev.target.value, 10) || false;
         this.state.entry.originStateId = stateId;
-        const state = this.state.data.origin.states.find((s) => s.id === stateId);
+        const state = this.originStates().find((s) => s.id === stateId);
         if (state) {
             this.state.entry.originCountryId = state.country_id;
         }
     }
 
+    async loadOriginStates(countryId) {
+        const origin = this.state.data.origin;
+        if (this.state.mode !== "purchase" || !origin.state || origin.filter || !countryId ||
+            this.state.originStates[countryId]) {
+            return;
+        }
+        const states = await this.orm.call(MODEL, "get_origin_states", [countryId]);
+        this.state.originStates = { ...this.state.originStates, [countryId]: states };
+    }
+
+    /** States of origin to choose: of the country chosen, or all the states of origin. */
     originStates() {
         const countryId = this.state.entry?.originCountryId;
-        return this.state.data.origin.states.filter((state) => !countryId || state.country_id === countryId);
+        const origin = this.state.data.origin;
+        if (origin.filter) {
+            return origin.states.filter((state) => !countryId || state.country_id === countryId);
+        }
+        return (countryId && this.state.originStates[countryId]) || [];
     }
 
     onEntryFirm(ev) {
@@ -514,25 +839,118 @@ export class TouchScreen extends Component {
         } else {
             this.state.lines.push({ key: `${Date.now()}-${this.state.lines.length}`, ...values });
         }
+        this.scheduleSave();
         this.state.entry = null;
         this.state.product = null;
         this.state.lots = [];
     }
 
     onEditLine(line) {
-        if (this.state.sending) {
+        if (this.state.sending || !this.commitPrice()) {
             return;
         }
+        this.state.priceEdit = null;
         this.state.product = line.product;
         this.state.lots = line.lot ? [line.lot] : [];
         this.openEntry(line.product, line.lot, line);
     }
 
     onRemoveLine(line) {
+        if (this.state.priceEdit?.key === line.key) {
+            this.state.priceEdit = null;
+        }
         this.state.lines = this.state.lines.filter((l) => l !== line);
+        this.scheduleSave();
         if (this.state.entry?.line === line) {
             this.state.entry = null;
             this.state.product = null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Quick price change from the ticket, line after line
+    // ------------------------------------------------------------------
+
+    onEditPrice(line) {
+        if (this.state.sending || (this.state.priceEdit && !this.commitPrice())) {
+            return;
+        }
+        // The line being added is left aside: the price is changed on the ticket
+        this.state.entry = null;
+        this.state.product = null;
+        this.state.lots = [];
+        this.openPriceEdit(line);
+    }
+
+    openPriceEdit(line) {
+        this.state.priceEdit = { key: line.key, value: this.formatInput(line.price), fresh: true };
+        this.focusPrice = true;
+    }
+
+    priceEditLine() {
+        const key = this.state.priceEdit?.key;
+        return this.state.lines.find((line) => line.key === key);
+    }
+
+    priceEditIndex() {
+        return this.state.lines.indexOf(this.priceEditLine());
+    }
+
+    /** The price typed, with the quantity of the line, as the subtotal shown while typing. */
+    priceEditSubtotal() {
+        const price = this.parseNumber(this.state.priceEdit.value);
+        return price >= 0 ? this.priceEditLine().qty * price : 0;
+    }
+
+
+    onPriceInput(ev) {
+        this.state.priceEdit.value = ev.target.value;
+        this.state.priceEdit.fresh = false;
+    }
+
+    onPriceKeydown(ev) {
+        if (ev.key === "Enter" || ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+            ev.preventDefault();
+            this.onPriceStep(ev.key === "ArrowUp" || (ev.key === "Enter" && ev.shiftKey) ? -1 : 1);
+        }
+    }
+
+    /** Write the price typed on its line; false if it isn't a valid price. */
+    commitPrice() {
+        const edit = this.state.priceEdit;
+        const line = this.priceEditLine();
+        if (!edit || !line) {
+            return true;
+        }
+        const price = this.parseNumber(edit.value);
+        if (!(price >= 0)) {
+            this.notification.add(_t("Enter a valid price."), { type: "warning" });
+            this.focusPrice = true;
+            return false;
+        }
+        if (line.price !== price) {
+            line.price = price;
+            this.scheduleSave();
+        }
+        return true;
+    }
+
+    /** Write the price and go to the previous (-1) or next (1) line; past the last one, close. */
+    onPriceStep(step) {
+        if (!this.commitPrice()) {
+            return;
+        }
+        const next = this.state.lines[this.priceEditIndex() + step];
+        if (next) {
+            this.openPriceEdit(next);
+        } else if (step > 0) {
+            this.state.priceEdit = null;
+        }
+    }
+
+    onClosePriceEdit() {
+        if (this.commitPrice()) {
+            this.state.priceEdit = null;
         }
     }
 
@@ -577,22 +995,21 @@ export class TouchScreen extends Component {
     }
 
     async onSell() {
-        if (!this.state.lines.length) {
+        if (!this.state.lines.length || !this.commitPrice()) {
             return;
+        }
+        this.state.sending = true;
+        try {
+            await this.flushSave();
+        } finally {
+            this.state.sending = false;
         }
         const result = await this.run("sell", [
             {
                 uuid: this.newUuid(),
                 partner_id: this.state.partner.id,
-                lines: this.state.lines.map((line) => ({
-                    product_id: line.product.id,
-                    qty: line.qty,
-                    price_unit: line.price,
-                    ...(line.lot ? { lot_id: line.lot.id } : {}),
-                    box_qty: line.boxQty,
-                    ...(line.boxProductId ? { box_product_id: line.boxProductId } : {}),
-                    ...(line.note ? { note: line.note } : {}),
-                })),
+                ...(this.state.order ? { order_id: this.state.order.id } : {}),
+                lines: this.linesPayload(this.state.lines),
             },
         ]);
         if (!result) {
@@ -617,25 +1034,21 @@ export class TouchScreen extends Component {
     }
 
     async onPurchase() {
-        if (!this.state.lines.length) {
+        if (!this.state.lines.length || !this.commitPrice()) {
             return;
+        }
+        this.state.sending = true;
+        try {
+            await this.flushSave();
+        } finally {
+            this.state.sending = false;
         }
         const result = await this.run("purchase", [
             {
                 uuid: this.newUuid(),
                 partner_id: this.state.partner.id,
-                lines: this.state.lines.map((line) => ({
-                    product_id: line.product.id,
-                    qty: line.qty,
-                    price_unit: line.price,
-                    box_qty: line.boxQty,
-                    ...(line.boxProductId ? { box_product_id: line.boxProductId } : {}),
-                    ...(line.originCountryId ? { origin_country_id: line.originCountryId } : {}),
-                    ...(line.originStateId ? { origin_state_id: line.originStateId } : {}),
-                    firm: line.firm,
-                    ...(line.lotName ? { lot_name: line.lotName } : {}),
-                    ...(line.note ? { note: line.note } : {}),
-                })),
+                ...(this.state.order ? { order_id: this.state.order.id } : {}),
+                lines: this.linesPayload(this.state.lines),
             },
         ]);
         if (result) {
@@ -651,14 +1064,52 @@ export class TouchScreen extends Component {
         this.reloadPartner();
     }
 
+    /** Invoice the sale just made; the invoice can then be printed and collected. */
+    async onInvoiceSale() {
+        const done = this.state.done;
+        const invoice = await this.run("invoice_sale", [done.id]);
+        if (invoice && this.state.done === done) {
+            Object.assign(done, invoice.order);
+            done.invoice = invoice;
+            await this.reloadPartner();
+        }
+    }
+
+    /** The bill of a purchase, made from the order as in the backend, reviewed in a dialog. */
+    async onInvoicePurchase() {
+        const action = await this.run("invoice_purchase", [this.state.done.id]);
+        if (action) {
+            await this.action.doAction(action, { onClose: () => this.refreshOrderSummary() });
+        }
+    }
+
+    /** Collect the invoice of the sale just made, in the payments of the customer. */
+    async onCollectInvoice() {
+        const invoice = this.state.done.invoice;
+        const partnerId = this.state.partner.id;
+        await this.flushSave();
+        this.resetOperation();
+        this.state.mode = "payment";
+        this.state.partner = await this.orm.call(MODEL, "get_partner_info", [partnerId]);
+        if (this.state.partner.invoices.some((inv) => inv.id === invoice.id)) {
+            this.state.invoiceIds = [invoice.id];
+            this.state.amount = this.formatInput(invoice.residual);
+        }
+    }
+
     async onPrint(kind) {
         const done = this.state.done;
         const action = await this.orm.call(MODEL, "get_print_action", [done.model, done.id, kind]);
         await this.action.doAction(action);
     }
 
-    onNewOperation() {
+    async onNewOperation() {
         this.state.done = null;
+        if (this.hasDrafts()) {
+            // A new sale or purchase starts again from the drafts
+            this.state.partner = null;
+            await this.loadDrafts();
+        }
     }
 
     // ------------------------------------------------------------------
@@ -877,7 +1328,10 @@ export class TouchScreen extends Component {
             return;
         }
         if (!this.state.partner || this.state.done) {
-            this.notification.add(_t("Choose the customer or supplier first."), { type: "warning" });
+            this.notification.add(
+                _t("Choose an order in draft or start a new one first."),
+                { type: "warning" }
+            );
             return;
         }
         const found = await this.orm.call(MODEL, "find_by_barcode", [barcode]);
@@ -932,6 +1386,10 @@ export class TouchScreen extends Component {
     /** A number to edit: without thousands separators, so that it reads well in a field. */
     formatInput(value) {
         return formatFloat(value, { digits: [false, 3], trailingZeros: false, thousandsSep: "" });
+    }
+
+    formatDateTimeShort(value) {
+        return value ? formatDateTime(deserializeDateTime(value), { showSeconds: false }) : "";
     }
 
     formatDate(value) {

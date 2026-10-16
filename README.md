@@ -238,7 +238,7 @@ Solución para mercados mayoristas de fruta, traída del repositorio `dev19` (Od
 | Módulo | Origen | Qué aporta |
 |---|---|---|
 | `mercas_base` | dev19 | Venta y compra con lotes y cajas (*Vender y Entregar*, *Comprar y Recibir*), fianza y devolución de envases, etiquetas de caja, origen, liquidación de lotes al proveedor y compensación. Ver [su README](mercas_base/README.md) |
-| `mercas_touch` | **nuevo** | Aplicación *Mostrador* para pantalla táctil: venta con lotes (F1), compra con lotes nuevos (F2), cajas (F3), lotes, desechos y liquidación (F4) y cobros (F5). Ver [su README](mercas_touch/README.md) |
+| `mercas_touch` | **nuevo** | Aplicación *Mostrador* para pantalla táctil: venta con lotes (F1) y compra con lotes nuevos (F2), guardadas como borrador mientras se elaboran para retomarlas después; cajas (F3), lotes, desechos y liquidación (F4) y cobros (F5). Ver [su README](mercas_touch/README.md) |
 | `mercas_keys` | dev19 | Pantalla unificada del backend con F1-F4 y navegación con flechas en las listas |
 | `mercas_ai` | dev19 | Consultas en lenguaje natural sobre ventas, compras, lotes y facturación (asistente y chat en Discuss) |
 | `mercas_demo` | dev19 | Datos de ejemplo: productos de fruta y verdura, cajas, clientes y proveedores |
@@ -275,6 +275,7 @@ Se aplicaron los scripts oficiales de Odoo 20 (`odoo-bin upgrade_code`: `ir.acce
 - **Correcciones encontradas al probar:**
   - `mercas_base` creaba la ubicación propia del cliente o proveedor con los permisos del usuario, así que un usuario de almacén sin ser administrador no podía vender ni comprar. Ahora la crea como superusuario.
   - Los kg desechados de un lote no se recalculaban al desechar.
+  - *Vender y Entregar*, *Comprar y Recibir* y los flujos de cajas dejaban el albarán sin validar cuando Odoo mostraba un aviso al validarlo (con `stock_sms`, la confirmación del SMS de la primera entrega), aunque el pedido pareciera entregado. Ahora se valida sin esos avisos y, si aun así no queda validado, da un error.
   - El módulo `odoo_mcp_manager` de CybroAddons 20.0 importaba un módulo JS que no existe en Odoo 20 y usaba `static props`. Al instalarlo se rompía el backend; está corregido aquí.
   - Algunos iconos de `sale_route_offline` (`groups`, `call`, `edit_note`, `fact_check`) no existen en Odoo 20 y se han cambiado.
 - **Tests de OCA:**

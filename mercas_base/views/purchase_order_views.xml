@@ -80,6 +80,7 @@
                        optional="show"/>
                 <field name="origin_state_id"
                        column_invisible="not parent.mercas_origin_state"
+                       domain="[('mercas_origin', '=', True)] if parent.mercas_origin_filter else []"
                        optional="show"/>
             </xpath>
 

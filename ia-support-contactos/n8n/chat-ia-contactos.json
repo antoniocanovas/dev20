@@ -6,11 +6,11 @@
         "public": true,
         "mode": "hostedChat",
         "authentication": "n8nUserAuth",
-        "initialMessages": "Hola 👋 Soy el asistente de contactos. Puedo buscar, dar de alta, modificar, dar de baja y deshacer cambios. ¿Qué necesitas?",
+        "initialMessages": "Hola 👋 Soy el asistente de contactos y tarifas. Puedo buscar, dar de alta, modificar y dar de baja contactos, ver y cambiar la tarifa de un cliente, poner precios en ella, consultar albaranes y deshacer cambios. ¿Qué necesitas?",
         "options": {
-          "title": "Asistente de contactos",
+          "title": "Asistente de contactos y tarifas",
           "subtitle": "ia-support · Odoo 20",
-          "inputPlaceholder": "Ej.: busca Azure / da de alta una tienda de entrega…"
+          "inputPlaceholder": "Ej.: busca Azure / ¿qué tarifa tiene Azure? / pon el Desk Pad a 1,50 €…"
         }
       },
       "id": "49fe4ff8-0430-413a-981f-af193806244d",
@@ -26,8 +26,8 @@
     {
       "parameters": {
         "options": {
-          "systemMessage": "Eres el asistente de mantenimiento de contactos de clientes (ERP Odoo). Hablas en español, con frases breves y claras. Trabajas SOLO con las herramientas; nunca inventes datos, ids ni resultados.\n\n## Conceptos\n- CADENA: empresa o cadena de tiendas (cliente principal).\n- FACTURA: dirección de facturación, normalmente dentro de una cadena (cadena_id).\n- ALBARAN: dirección de entrega / envío / tienda, normalmente dentro de una cadena.\n- Los contactos de Odoo que no son ninguno de los anteriores aparecen con tipo \"contact\" u \"other\"; se pueden consultar, pero al crear o cambiar el tipo solo se usan FACTURA, ALBARAN o CADENA.\n- código = referencia interna del cliente (única entre activos). NIF = NIF/NIE/CIF español.\n- Dar de baja = archivar (nunca se borra). Todo cambio se puede deshacer.\n\n## Cómo trabajar\n1. Identifica siempre el contacto con buscar_contactos antes de leer, modificar, dar de baja o usarlo como cadena. Si el usuario da un id explícito, puedes usar ficha_contacto.\n2. Si la búsqueda devuelve requiere_eleccion = true, muestra una lista numerada corta (nombre completo, código, NIF, tipo, id) y pide que elija. No elijas tú.\n3. Si no hay resultados, dilo y sugiere buscar de otra forma (o incluir bajas si busca algo archivado).\n4. ANTES de cualquier escritura (alta_contacto, modificar_contacto, baja_contacto, deshacer_cambio) resume exactamente lo que vas a hacer, con los datos finales, y pregunta \"¿Confirmas?\". Ejecuta SOLO después de un sí explícito del usuario en su siguiente mensaje (\"sí\", \"ok\", \"adelante\", \"confirmo\"...). Si cambia algo, vuelve a resumir y a pedir confirmación. Una confirmación vale para una sola operación.\n5. Para un alta pide lo que falte de lo obligatorio: nombre y tipo. Si es FACTURA o ALBARAN pregunta si pertenece a una cadena (y búscala para obtener su id). Código, NIF, teléfono y email son opcionales.\n6. En modificar_contacto envía solo los campos que cambian.\n7. \"Deshaz lo último\" / \"deshacer\": consulta historial_sesion y elige el cambio más reciente que se pueda deshacer (revertido = false y acción ALTA, MODIF o BAJA). Explícalo en términos de negocio (qué contacto y cómo volverá a quedar), sin mencionar log_id, UNDO, \"revertido\" ni nombres técnicos de campos, y pide confirmación.\n8. Tras cada escritura confirma el resultado en una línea (nombre completo, código, lo que cambió). Después de un alta, modificación o baja recuerda que se puede deshacer. Después de DESHACER un cambio no ofrezcas deshacerlo otra vez (no es posible); si el usuario quiere volver atrás, que pida de nuevo el cambio original.\n9. Si una herramienta devuelve {\"error\": ...}, explícalo en lenguaje natural (p. ej. código ya usado, NIF no válido, el contacto cambió después y no se puede deshacer) y propone cómo seguir. No muestres JSON, ids de log ni términos internos (UNDO, revertido, partner_id).\n10. Si te piden algo fuera de contactos (pedidos, surtidos, precios...), indica que en esta fase solo gestionas contactos.",
-          "maxIterations": 10
+          "systemMessage": "=Eres el asistente de mantenimiento de contactos de clientes y de sus tarifas de precios, y de consulta de albaranes (ERP Odoo). Hablas en español, con frases breves y claras. Trabajas SOLO con las herramientas; nunca inventes datos, ids ni resultados.\n\n## Conceptos\n- CADENA: empresa o cadena de tiendas (cliente principal).\n- FACTURA: dirección de facturación, normalmente dentro de una cadena (cadena_id).\n- ALBARAN: dirección de entrega / envío / tienda, normalmente dentro de una cadena.\n- Los contactos de Odoo que no son ninguno de los anteriores aparecen con tipo \"contact\" u \"other\"; se pueden consultar, pero al crear o cambiar el tipo solo se usan FACTURA, ALBARAN o CADENA.\n- código = referencia interna del cliente (única entre activos). NIF = NIF/NIE/CIF español.\n- Dar de baja = archivar (nunca se borra). Todo cambio se puede deshacer.\n\n## Cómo trabajar\n1. Identifica siempre el contacto con buscar_contactos antes de leer, modificar, dar de baja o usarlo como cadena. Si el usuario da un id explícito, puedes usar ficha_contacto.\n2. Si la búsqueda devuelve requiere_eleccion = true, muestra una lista numerada corta (nombre completo, código, NIF, tipo, id) y pide que elija. No elijas tú.\n3. Si no hay resultados, dilo y sugiere buscar de otra forma (o incluir bajas si busca algo archivado).\n4. ANTES de cualquier escritura (alta_contacto, modificar_contacto, baja_contacto, crear_tarifa, duplicar_tarifa, asignar_tarifa, poner_precio, quitar_precio, deshacer_cambio) resume exactamente lo que vas a hacer, con los datos finales, y pregunta \"¿Confirmas?\". Ejecuta SOLO después de un sí explícito del usuario en su siguiente mensaje (\"sí\", \"ok\", \"adelante\", \"confirmo\"...). Si cambia algo, vuelve a resumir y a pedir confirmación. Una confirmación vale para una sola operación.\n5. Para un alta pide lo que falte de lo obligatorio: nombre y tipo. Si es FACTURA o ALBARAN pregunta si pertenece a una cadena (y búscala para obtener su id). Código, NIF, teléfono y email son opcionales.\n6. En modificar_contacto envía solo los campos que cambian.\n7. \"Deshaz lo último\" / \"deshacer\": consulta historial_sesion y elige el cambio más reciente que se pueda deshacer (revertido = false y acción distinta de UNDO). Cada cambio indica su entidad: contacto, tarifa (ASIGNAR, CREAR o DUPLICAR) o precio (ALTA = precio puesto, MODIF = precio cambiado, BAJA = precio quitado). Explícalo en términos de negocio (qué contacto, tarifa o producto y cómo volverá a quedar), sin mencionar log_id, UNDO, \"revertido\" ni nombres técnicos de campos, y pide confirmación. Deshacer una tarifa creada o duplicada devuelve al cliente su tarifa anterior y archiva la tarifa nueva.\n8. Tras cada escritura confirma el resultado en una línea (nombre completo, código, lo que cambió). Después de un alta, modificación o baja recuerda que se puede deshacer. Después de DESHACER un cambio no ofrezcas deshacerlo otra vez (no es posible); si el usuario quiere volver atrás, que pida de nuevo el cambio original.\n9. Si una herramienta devuelve {\"error\": ...}, explícalo en lenguaje natural (p. ej. código ya usado, NIF no válido, el contacto cambió después y no se puede deshacer) y propone cómo seguir. No muestres JSON, ids de log ni términos internos (UNDO, revertido, partner_id).\n10. Si te piden algo fuera de contactos, tarifas y consulta de albaranes (pedidos, facturas, stock, crear o modificar albaranes...), indica que en esta fase solo gestionas contactos y tarifas y consultas albaranes.\n\n## Tarifas\n- Cada cliente tiene UNA tarifa: la asignada a su empresa o, si no tiene, la tarifa por defecto (tarifa_cliente devuelve origen = asignada o por_defecto). La tarifa es de la empresa: las direcciones (FACTURA, ALBARAN) comparten la de su cadena, y cambiarla desde una dirección la cambia para toda la cadena. Dilo al confirmar.\n- Ver la tarifa: busca el contacto y usa tarifa_cliente. Para ver sus precios usa contenido_tarifa (con filtro si pregunta por un producto). Muestra los precios como lista: producto (código), precio o descuento y cantidad mínima si no es 0, con la moneda. Reglas que no son de un producto: \"todos los productos: 5 % de descuento sobre el precio de venta\", \"categoría X: ...\".\n- Poner o cambiar un precio: busca el producto con buscar_productos (si hay varios, lista numerada y que elija) y usa poner_precio con un precio fijo. Si ya tenía precio para esa cantidad mínima, se sustituye: dilo con el precio anterior y el nuevo.\n- MUY IMPORTANTE: antes de poner, cambiar o quitar precios mira la tarifa (clientes_asignados y es_tarifa_por_defecto). Si es la tarifa por defecto o la tienen asignada otros clientes, el cambio afecta a todos ellos: avísalo claramente y propone primero duplicar_tarifa para que el cliente tenga su propia tarifa. Solo sigue sobre la tarifa compartida si el usuario lo confirma sabiéndolo.\n- Duplicar: duplicar_tarifa copia la tarifa que usa el cliente, con todos sus precios, y se la asigna. Nombre por defecto \"<tarifa> - <cliente>\"; usa otro solo si el usuario lo da. Después, los precios se ponen en la tarifa nueva (su id viene en la respuesta).\n- Crear una tarifa nueva vacía (sin precios: todos los productos van a su precio de venta): crear_tarifa con el nombre que diga el usuario (pregúntalo si no lo da) y, si es para un cliente, su id para asignársela. Si el usuario quiere partir de los precios que ya tiene el cliente, es duplicar_tarifa, no crear_tarifa: si no está claro, pregunta.\n- Asignar una tarifa existente: buscar_tarifas y asignar_tarifa. Para quitar la asignada y volver a la tarifa por defecto, asignar_tarifa con tarifa_id 0.\n- Quitar un precio: contenido_tarifa para localizarlo y quitar_precio.\n- Si la respuesta trae tarifas_activadas = false, avisa de que en Odoo las tarifas están desactivadas (Ajustes → Ventas → Tarifas) y no se aplican en los pedidos.\n- Los precios se ponen en la moneda de la tarifa. No calcules precios finales con impuestos.\n\n## Albaranes (solo consulta)\n- Puedes buscar y leer albaranes y sus líneas; no puedes crearlos, modificarlos ni validarlos.\n- \"Albarán\" sin más es una ENTREGA a un cliente; si hablan de proveedor, compra o recepción es RECEPCION. Usa el filtro tipo según eso.\n- Para los de un cliente o proveedor: búscalo antes con buscar_contactos y usa su id. Una empresa (CADENA) incluye los albaranes de todas sus direcciones; una dirección, solo los suyos.\n- Estados: PENDIENTE (todo lo que no está hecho ni cancelado), BORRADOR, ESPERANDO, PREPARADO, HECHO, CANCELADO. \"Entregado\" = HECHO.\n- Fechas: desde/hasta en AAAA-MM-DD, calculadas a partir de la fecha de hoy ({{ $now.toFormat('yyyy-MM-dd') }}). La fecha de un albarán es la de realización si está hecho, si no la prevista.\n- buscar_albaranes da la lista; ficha_albaran, las líneas de uno (producto, cantidad pedida, cantidad hecha, unidad y lotes); lineas_albaran, las líneas de un producto o de un cliente en varios albaranes con totales: úsala para preguntas como \"¿cuánto Desk Pad le hemos entregado a Azure este mes?\" (producto con buscar_productos, contacto con buscar_contactos, tipo ENTREGA, estado HECHO y fechas). Responde con los totales y, si son pocas, la lista de albaranes.\n- Muestra los albaranes como lista breve: número, fecha, contacto, estado y pedido de venta si lo hay. Si hay_mas = true, dilo y propone acotar (fechas, estado, producto).",
+          "maxIterations": 15
         }
       },
       "id": "d716e319-9d08-4a1f-a0c6-ee4fd9af2cde",
@@ -186,7 +186,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "Deshace un cambio del historial por su log_id. Úsala SOLO tras confirmación explícita del usuario.",
+        "toolDescription": "Deshace un cambio del historial (de un contacto, de la tarifa asignada o de un precio) por su log_id. Úsala SOLO tras confirmación explícita del usuario.",
         "method": "POST",
         "url": "=http://ia-support_contactos-api:8000/log/{{ $fromAI('log_id', 'log_id del cambio a deshacer (de historial_sesion)', 'number') }}/undo",
         "options": {
@@ -211,7 +211,7 @@
     },
     {
       "parameters": {
-        "toolDescription": "Lista los cambios hechos en esta conversación, del más reciente al más antiguo (log_id, partner_id, accion, antes, despues, revertido).",
+        "toolDescription": "Lista los cambios hechos en esta conversación, del más reciente al más antiguo (log_id, entidad: contacto/tarifa/precio, partner_id, objeto_id, accion, antes, despues, revertido).",
         "method": "GET",
         "url": "=http://ia-support_contactos-api:8000/log?sesion={{ $('Chat').first().json.sessionId }}",
         "options": {
@@ -229,6 +229,282 @@
       "position": [
         1600,
         300
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Tarifa que se aplica a un contacto: la asignada a su empresa o la por defecto (origen), con id, nombre, moneda, num_precios, clientes_asignados y es_tarifa_por_defecto.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $fromAI('id', 'id numérico del contacto', 'number') }}/tarifa",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "362eb151-0c86-4be6-a6f2-f6fe33fc76d2",
+      "name": "tarifa_cliente",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Precios de una tarifa por su id: producto, código, tipo (PRECIO_FIJO, DESCUENTO, RECARGO), precio o porcentaje, cantidad_minima, aplica_a (PRODUCTO, VARIANTE, CATEGORIA, TODOS), precio_venta de referencia y precio_id.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/tarifas/{{ $fromAI('tarifa_id', 'id numérico de la tarifa', 'number') }}?q={{ encodeURIComponent($fromAI('filtro', 'parte del nombre o código del producto para filtrar, o cadena vacía para ver todos', 'string')) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "fc51c865-d909-44a7-a619-82242b8f75c9",
+      "name": "contenido_tarifa",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca tarifas por parte del nombre (cadena vacía = todas). Devuelve id, nombre, moneda, num_precios, clientes_asignados y es_tarifa_por_defecto.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/tarifas?q={{ encodeURIComponent($fromAI('texto', 'parte del nombre de la tarifa, o cadena vacía para todas', 'string')) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "1f63dd10-1b57-42e0-80b7-9f7118ee6c5f",
+      "name": "buscar_tarifas",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca productos por nombre, referencia interna o código de barras. Devuelve hasta 10 con id, nombre, codigo, precio_venta, unidad y requiere_eleccion.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/productos?q={{ encodeURIComponent($fromAI('texto', 'nombre, referencia o código de barras del producto', 'string')) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "74a95a41-b2a0-4653-a5d8-197a57aa2048",
+      "name": "buscar_productos",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Duplica la tarifa que usa el cliente (con todos sus precios) y le asigna la copia a su empresa. Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $fromAI('id', 'id numérico del contacto', 'number') }}/tarifa/duplicar",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ nombre: $fromAI('nombre', 'nombre de la tarifa nueva si el usuario lo ha dado; si no, cadena vacía', 'string') || undefined, sesion: $('Chat').first().json.sessionId, usuario: 'chat' }) }}"
+      },
+      "id": "5592a614-6166-4b82-a797-ab51e4f6125f",
+      "name": "duplicar_tarifa",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Asigna una tarifa existente a la empresa del contacto (y a todas sus direcciones), o con tarifa_id 0 le quita la asignada y vuelve a la por defecto. Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "PUT",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $fromAI('id', 'id numérico del contacto', 'number') }}/tarifa",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tarifa_id: $fromAI('tarifa_id', 'id de la tarifa a asignar, o 0 para volver a la tarifa por defecto', 'number') || null, sesion: $('Chat').first().json.sessionId, usuario: 'chat' }) }}"
+      },
+      "id": "68519162-6bd9-4d88-b33a-eeaf13aea4be",
+      "name": "asignar_tarifa",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Pone o cambia el precio fijo de un producto en una tarifa (si ya había precio para esa cantidad mínima, lo sustituye). Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/tarifas/{{ $fromAI('tarifa_id', 'id numérico de la tarifa', 'number') }}/precios",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ producto_id: $fromAI('producto_id', 'id del producto (de buscar_productos)', 'number'), precio: $fromAI('precio', 'precio fijo en la moneda de la tarifa, con punto decimal', 'number'), cantidad_minima: $fromAI('cantidad_minima', 'cantidad mínima a partir de la que se aplica; 0 si el usuario no la indica', 'number') || 0, sesion: $('Chat').first().json.sessionId, usuario: 'chat' }) }}"
+      },
+      "id": "dcb7d71b-f815-4eb5-ba48-41e13c94f64e",
+      "name": "poner_precio",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Quita un precio de una tarifa por su precio_id (de contenido_tarifa). Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "DELETE",
+        "url": "=http://ia-support_contactos-api:8000/tarifas/{{ $fromAI('tarifa_id', 'id numérico de la tarifa', 'number') }}/precios/{{ $fromAI('precio_id', 'precio_id de la regla a quitar', 'number') }}?sesion={{ $('Chat').first().json.sessionId }}&usuario=chat",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "4eb7706f-a22d-499c-9d30-0ca3d75893a4",
+      "name": "quitar_precio",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Crea una tarifa nueva vacía (sin precios) en la moneda de la compañía y, si se indica un contacto, se la asigna a su empresa. Úsala SOLO tras confirmación explícita del usuario.",
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/tarifas",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ nombre: $fromAI('nombre', 'nombre de la tarifa nueva', 'string'), contacto_id: $fromAI('contacto_id', 'id del contacto al que asignarla, o 0 si no es para ningún cliente', 'number') || undefined, sesion: $('Chat').first().json.sessionId, usuario: 'chat' }) }}"
+      },
+      "id": "d080ae1f-1292-4fb0-88d0-100f2325a5d5",
+      "name": "crear_tarifa",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        520
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca albaranes (más recientes primero) con filtros opcionales. Devuelve id, numero, tipo, estado, contacto, origen, pedido_venta, fechas, num_lineas y hay_mas.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/albaranes?q={{ encodeURIComponent($fromAI('texto', 'número de albarán, origen o pedido de venta; cadena vacía si no se busca por texto', 'string')) }}&contacto_id={{ $fromAI('contacto_id', 'id del cliente o proveedor, o 0 para todos', 'number') || '' }}&producto_id={{ $fromAI('producto_id', 'id del producto (de buscar_productos), o 0 para todos', 'number') || '' }}&tipo={{ $fromAI('tipo', 'ENTREGA, RECEPCION, INTERNO o cadena vacía para todos', 'string') }}&estado={{ $fromAI('estado', 'PENDIENTE, BORRADOR, ESPERANDO, PREPARADO, HECHO, CANCELADO o cadena vacía para todos', 'string') }}&desde={{ $fromAI('desde', 'fecha desde AAAA-MM-DD o cadena vacía', 'string') }}&hasta={{ $fromAI('hasta', 'fecha hasta AAAA-MM-DD (incluida) o cadena vacía', 'string') }}&limite=20",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "15a48f36-1982-4230-b181-1c73dd5ae810",
+      "name": "buscar_albaranes",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        740
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Devuelve un albarán por su id con sus líneas: producto, código, cantidad pedida, cantidad hecha, unidad, estado y lotes.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/albaranes/{{ $fromAI('albaran_id', 'id numérico del albarán (de buscar_albaranes)', 'number') }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "0e535fc1-effe-4e19-b775-39427c1810ca",
+      "name": "ficha_albaran",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        740
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Líneas de albarán de un producto y/o de un contacto en varios albaranes, con totales por tipo y producto (cantidad pedida y hecha). Hace falta producto_id o contacto_id.",
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/lineas-albaran?producto_id={{ $fromAI('producto_id', 'id del producto (de buscar_productos), o 0 para todos', 'number') || '' }}&contacto_id={{ $fromAI('contacto_id', 'id del cliente o proveedor, o 0 para todos', 'number') || '' }}&tipo={{ $fromAI('tipo', 'ENTREGA, RECEPCION, INTERNO o cadena vacía para todos', 'string') }}&estado={{ $fromAI('estado', 'PENDIENTE, BORRADOR, ESPERANDO, PREPARADO, HECHO, CANCELADO o cadena vacía para todos', 'string') }}&desde={{ $fromAI('desde', 'fecha desde AAAA-MM-DD o cadena vacía', 'string') }}&hasta={{ $fromAI('hasta', 'fecha hasta AAAA-MM-DD (incluida) o cadena vacía', 'string') }}&limite=50",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "6c93c792-bdc0-4d8b-9c35-14e923d80a03",
+      "name": "lineas_albaran",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        740
       ]
     }
   ],
@@ -333,6 +609,138 @@
       ]
     },
     "historial_sesion": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "tarifa_cliente": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "contenido_tarifa": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_tarifas": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_productos": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "duplicar_tarifa": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "asignar_tarifa": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "poner_precio": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "quitar_precio": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "crear_tarifa": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "buscar_albaranes": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ficha_albaran": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente contactos",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "lineas_albaran": {
       "ai_tool": [
         [
           {

@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisión de albarán</title>
+<style>
+:root {
+  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;
+  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;
+  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;
+  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;
+    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;
+    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;
+  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;
+  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px;
+  background: var(--panel); border-bottom: 1px solid var(--border); }
+header h1 { font-size: 18px; margin: 0; }
+header .sub { color: var(--muted); font-size: 13px; }
+header a { color: var(--accent); text-decoration: none; font-size: 14px; }
+.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--bad-bg); color: var(--bad); }
+.chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+.banner { margin: 12px 16px 0; padding: 8px 12px; border-radius: 8px; background: var(--warn-bg);
+  color: var(--warn); font-size: 13px; }
+main { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; padding: 16px; }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; min-width: 0; }
+/* Visor */
+.visor { position: relative; height: calc(100vh - 150px); min-height: 360px; overflow: hidden;
+  background: var(--visor); border-radius: 10px 10px 0 0; touch-action: none; cursor: grab; }
+@media (max-width: 900px) { .visor { height: 55vh; } }
+.visor.arrastrando { cursor: grabbing; }
+.lienzo { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.lienzo img { display: block; user-select: none; -webkit-user-drag: none; }
+.caja { position: absolute; border: 2px solid transparent; border-radius: 3px; pointer-events: none; }
+.caja.dudosa { border-color: rgba(240, 165, 0, .55); }
+.caja.activa { border-color: var(--hl-border); background: var(--hl); box-shadow: 0 0 0 9999px rgba(0,0,0,.25); }
+.controles { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border-top: 1px solid var(--border); }
+button { font: inherit; border: 1px solid var(--border); background: var(--panel); color: var(--text);
+  border-radius: 8px; padding: 7px 12px; cursor: pointer; min-height: 38px; }
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.primario { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+button.peligro { color: var(--bad); }
+button.peligro.confirmar { background: var(--bad); border-color: var(--bad); color: #fff; }
+/* Tabla */
+.cab { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.cab b { color: var(--text); font-weight: 600; }
+.tabla-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted);
+  padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+tr.linea { cursor: pointer; }
+tr.linea:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+tr.linea.revisar td:first-child { box-shadow: inset 4px 0 0 var(--hl-border); }
+tr.linea.revisar td { background: color-mix(in srgb, var(--warn-bg) 70%, transparent); }
+tr.linea.sel td { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.ref { color: var(--muted); font-size: 12px; }
+.motivo { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.tachado { text-decoration: line-through; color: var(--muted); }
+.manus { color: var(--accent); font-weight: 700; }
+.conf { display: inline-flex; align-items: center; gap: 6px; }
+.barra { width: 46px; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.barra i { display: block; height: 100%; }
+input[type=number], input[type=text], textarea { font: inherit; color: var(--text); background: var(--panel);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+input[type=number] { width: 84px; text-align: right; }
+input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+.pie { padding: 12px 14px; display: grid; gap: 10px; }
+.pie label { font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
+.acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.aviso { padding: 8px 12px; margin: 10px 14px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }
+.resuelta { padding: 12px 14px; font-size: 14px; display: grid; gap: 6px; }
+.resuelta ul { margin: 4px 0 0 18px; padding: 0; }
+.vacio { padding: 24px; color: var(--muted); }
+</style>
+</head>
+<body>
+<script id="datos" type="application/json">__DATOS__</script>
+<header>
+  <a href="../revision">← Pendientes</a>
+  <h1 id="titulo">Albarán</h1>
+  <span id="estado" class="chip neutral"></span>
+  <span class="sub" id="subtitulo"></span>
+</header>
+<div id="banner"></div>
+<main>
+  <section class="panel">
+    <div class="visor" id="visor"><div class="lienzo" id="lienzo"><img id="foto" alt="Foto del albarán"></div></div>
+    <div class="controles">
+      <button type="button" id="zmas" title="Acercar">＋</button>
+      <button type="button" id="zmenos" title="Alejar">－</button>
+      <button type="button" id="ajustar" title="Ver entera">Ajustar</button>
+      <button type="button" id="rizq" title="Girar a la izquierda">⟲</button>
+      <button type="button" id="rder" title="Girar a la derecha">⟳</button>
+      <a id="original" href="#" target="_blank" rel="noopener" style="align-self:center;margin-left:auto;font-size:13px;color:var(--accent)">Abrir foto</a>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="cab" id="cab"></div>
+    <div id="avisos"></div>
+    <div class="tabla-wrap">
+      <table>
+        <thead><tr><th>Artículo</th><th class="num">Cant. ERP</th><th class="num">Lee la IA</th><th class="num">Confianza</th><th class="num">Final</th></tr></thead>
+        <tbody id="lineas"></tbody>
+      </table>
+    </div>
+    <div id="extras"></div>
+    <div id="zona-accion"></div>
+  </section>
+</main>
+<form id="form" method="post" style="display:none">
+  <input name="accion"><input name="lineas"><input name="usuario"><input name="comentario"><input name="formato" value="html">
+</form>
+<script>
+(function () {
+  "use strict";
+  var inc = JSON.parse(document.getElementById("datos").textContent || "null");
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var fmt = function (n) { return n == null ? "—" : (Math.round(n * 1000) / 1000).toLocaleString("es-ES"); };
+  var guardar = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
+  var leer = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
+
+  if (!inc) { document.querySelector("main").innerHTML = '<p class="vacio">No se encuentra la incidencia.</p>'; return; }
+
+  var ESTADOS = {
+    recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Error", "bad"],
+    verificado: ["Verificado", "ok"], pendiente_revision: ["Pendiente de revisión", "warn"],
+    aprobada: ["Aprobada", "ok"], corregida: ["Corregida", "ok"], rechazada: ["Rechazada", "bad"],
+    rectificada: ["Rectificada en el ERP", "ok"]
+  };
+  var erp = inc.erp || {}, dec = inc.decision || {}, lect = inc.lectura || {};
+  var editable = inc.estado === "pendiente_revision" || inc.estado === "verificado";
+  var est = ESTADOS[inc.estado] || [inc.estado, "neutral"];
+  document.title = "Revisión " + (inc.albaran_numero || "#" + inc.id);
+  $("titulo").textContent = "Albarán " + (inc.albaran_numero || "sin identificar");
+  $("estado").textContent = est[0]; $("estado").className = "chip " + est[1];
+  $("subtitulo").textContent = "Incidencia #" + inc.id + " · " + new Date(inc.creada).toLocaleString("es-ES");
+  if (inc.dry_run) $("banner").innerHTML = '<div class="banner">Modo simulación (DRY_RUN): al aprobar se registra qué se haría en el ERP, sin escribir nada.</div>';
+
+  var cab = [];
+  if (erp.cliente) cab.push("Cliente <b>" + esc(erp.cliente.nombre) + "</b>");
+  if (erp.pedido) cab.push("Pedido <b>" + esc(erp.pedido.numero) + "</b>");
+  if (erp.fecha) cab.push("Fecha <b>" + esc(erp.fecha) + "</b>");
+  cab.push("ERP <b>" + (erp.hecho ? "validado" : "sin validar") + "</b>");
+  if (inc.origen_numero) cab.push("Número por <b>" + (inc.origen_numero === "codigo_barras" ? "código de barras" : "visión") + "</b>");
+  if (lect.calidad_imagen) cab.push("Foto <b>" + esc(lect.calidad_imagen) + "</b>");
+  $("cab").innerHTML = cab.join(" · ");
+
+  var avisos = (dec.avisos || []).slice();
+  if (inc.error) avisos.unshift(inc.error);
+  if (lect.observaciones) avisos.push("Anotaciones: " + lect.observaciones);
+  $("avisos").innerHTML = avisos.map(function (a) { return '<div class="aviso">' + esc(a) + "</div>"; }).join("");
+
+  /* ---------- tabla: en el orden en que aparecen en la foto (de arriba abajo);
+     las que no se ven en la foto, al final en el orden del ERP ---------- */
+  var lineas = (dec.lineas || []).map(function (l, i) { l._i = i; return l; });
+  var alto = function (l) { return l.bbox && l.bbox.length === 4 ? l.bbox[1] : Infinity; };
+  lineas.sort(function (a, b) { return alto(a) - alto(b) || a._i - b._i; });
+  var resol = {};
+  ((inc.resolucion || {}).lineas || []).forEach(function (l) { resol[l.linea_id] = l.final; });
+  var MOTIVOS = { modificada: "cambiada a mano", tachon_ilegible: "tachón sin número legible", baja_confianza: "confianza baja",
+    dudosa: "lectura dudosa", variacion_sospechosa: "variación grande", supera_pedido: "supera lo pedido",
+    no_leida: "no se ha leído", tachado_sin_cambio: "tachado sin cambio" };
+  var colorConf = function (c) { return c >= (dec.umbral || .85) ? "var(--ok)" : c >= .6 ? "var(--warn)" : "var(--bad)"; };
+  $("lineas").innerHTML = lineas.map(function (l) {
+    var ia = l.tachado
+      ? '<span class="tachado">' + fmt(l.impreso) + "</span> " + (l.manuscrito != null ? '<span class="manus">' + fmt(l.manuscrito) + "</span>" : '<span class="manus">?</span>')
+      : (l.manuscrito != null ? '<span class="manus">' + fmt(l.manuscrito) + "</span>" : fmt(l.cantidad_final));
+    var conf = l.confianza == null ? "—" : '<span class="conf"><span class="barra"><i style="width:' + Math.round(l.confianza * 100) + "%;background:" + colorConf(l.confianza) + '"></i></span>' + Math.round(l.confianza * 100) + "%</span>";
+    var inicial = resol[l.linea_id] != null ? resol[l.linea_id] : (l.cantidad_final != null ? l.cantidad_final : "");
+    var motivos = (l.motivos || []).map(function (m) { return MOTIVOS[m] || m; }).join(", ");
+    return '<tr class="linea' + (l.estado !== "verificado" ? " revisar" : "") + '" data-id="' + l.linea_id + '">' +
+      "<td>" + (l.referencia ? '<div class="ref">' + esc(l.referencia) + "</div>" : "") + esc(l.producto) +
+      (motivos ? '<div class="motivo">⚠ ' + esc(motivos) + "</div>" : "") +
+      (l.motivo_ia ? '<div class="motivo">IA: ' + esc(l.motivo_ia) + "</div>" : "") + "</td>" +
+      '<td class="num">' + fmt(l.erp) + "</td>" +
+      '<td class="num">' + ia + "</td>" +
+      '<td class="num">' + conf + "</td>" +
+      '<td class="num"><input type="number" min="0" step="any" inputmode="decimal" data-id="' + l.linea_id + '" data-ia="' + (l.cantidad_final == null ? "" : l.cantidad_final) + '" value="' + inicial + '"' + (editable ? "" : " disabled") + ' aria-label="Cantidad final de ' + esc(l.producto) + '"></td></tr>';
+  }).join("") || '<tr><td colspan="5" class="vacio">Sin líneas leídas.</td></tr>';
+
+  var extras = dec.extras || [];
+  if (extras.length) {
+    $("extras").innerHTML = '<div class="aviso">Líneas escritas a mano que no están en el ERP (revísalas en el ERP): ' +
+      extras.map(function (e) { return esc(e.articulo) + " → " + fmt(e.cantidad_final); }).join("; ") + "</div>";
+  }
+
+  /* ---------- acciones ---------- */
+  var inputs = Array.prototype.slice.call(document.querySelectorAll("input[data-id]"));
+  if (editable) {
+    $("zona-accion").innerHTML =
+      '<div class="pie"><label>Revisado por <input type="text" id="usuario" maxlength="60" autocomplete="name"></label>' +
+      '<label>Comentario <textarea id="comentario" rows="2" maxlength="500"></textarea></label>' +
+      '<div class="acciones"><button type="button" class="primario" id="aprobar">Aprobar</button>' +
+      '<button type="button" id="corregir">Corregir y aprobar</button>' +
+      '<button type="button" class="peligro" id="rechazar">Rechazar</button></div></div>';
+    $("usuario").value = leer("revision.usuario") || "";
+    var faltaIA = lineas.some(function (l) { return l.cantidad_final == null; });
+    var refrescar = function () {
+      var cambiado = false, vacio = false;
+      inputs.forEach(function (i) {
+        var c = i.value !== i.dataset.ia; i.classList.toggle("cambiado", c); cambiado = cambiado || c;
+        vacio = vacio || i.value === "";
+      });
+      $("aprobar").disabled = faltaIA || cambiado;
+      $("aprobar").title = faltaIA ? "Hay líneas sin cantidad leída: corrige y aprueba" : (cambiado ? "Has cambiado cantidades: usa Corregir y aprobar" : "");
+      $("corregir").disabled = vacio;
+    };
+    inputs.forEach(function (i) { i.addEventListener("input", refrescar); i.addEventListener("click", function (e) { e.stopPropagation(); }); });
+    refrescar();
+    var enviar = function (accion) {
+      var f = $("form");
+      f.action = "../api/incidencia/" + inc.id + "/resolver";
+      f.accion.value = accion;
+      f.lineas.value = JSON.stringify(inputs.map(function (i) { return { linea_id: +i.dataset.id, cantidad_final: +i.value }; }));
+      f.usuario.value = $("usuario").value.trim();
+      f.comentario.value = $("comentario").value.trim();
+      guardar("revision.usuario", f.usuario.value);
+      document.querySelectorAll(".acciones button").forEach(function (b) { b.disabled = true; });
+      f.submit();
+    };
+    $("aprobar").onclick = function () { enviar("aprobar"); };
+    $("corregir").onclick = function () { enviar("corregir"); };
+    $("rechazar").onclick = function () {
+      var b = $("rechazar");
+      if (!b.classList.contains("confirmar")) { b.classList.add("confirmar"); b.textContent = "¿Seguro? Rechazar"; setTimeout(function () { b.classList.remove("confirmar"); b.textContent = "Rechazar"; }, 4000); return; }
+      enviar("rechazar");
+    };
+  } else {
+    var r = inc.resolucion || {}, rc = inc.rectificacion || {};
+    var html = '<div class="resuelta">';
+    if (r.accion) html += "<div><b>" + esc({ aprobar: "Aprobada", corregir: "Corregida", rechazar: "Rechazada" }[r.accion] || r.accion) + "</b>" +
+      (r.usuario ? " por " + esc(r.usuario) : "") + (r.fecha ? " el " + new Date(r.fecha).toLocaleString("es-ES") : "") + "</div>";
+    if (r.comentario) html += "<div>" + esc(r.comentario) + "</div>";
+    if (rc.pasos || rc.hechos) {
+      html += "<div><b>" + (rc.dry_run ? "Rectificación simulada (DRY_RUN): haría" : "Rectificación en el ERP") + "</b><ul>" +
+        ((rc.dry_run ? rc.pasos : rc.hechos) || []).map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul></div>";
+      (rc.avisos || []).forEach(function (a) { html += '<div class="motivo">' + esc(a) + "</div>"; });
+    }
+    if (rc.error) html += '<div class="aviso">' + esc(rc.error) + "</div>";
+    $("zona-accion").innerHTML = html + "</div>";
+  }
+
+  /* ---------- visor: zoom, giro, arrastre y salto a la línea ---------- */
+  var visor = $("visor"), lienzo = $("lienzo"), img = $("foto");
+  var W = inc.foto_ancho || 1000, H = inc.foto_alto || 1400;
+  var st = { s: 1, rot: 0, x: 0, y: 0 };
+  img.width = W; img.height = H;
+  img.src = inc.imagen || "";
+  $("original").href = inc.imagen || "#";
+  lineas.forEach(function (l) {
+    if (!l.bbox) return;
+    var d = document.createElement("div");
+    d.className = "caja" + (l.estado !== "verificado" ? " dudosa" : "");
+    d.dataset.id = l.linea_id;
+    var m = 0.004;
+    d.style.left = (l.bbox[0] - m) * 100 + "%"; d.style.top = (l.bbox[1] - m) * 100 + "%";
+    d.style.width = (l.bbox[2] - l.bbox[0] + 2 * m) * 100 + "%"; d.style.height = (l.bbox[3] - l.bbox[1] + 2 * m) * 100 + "%";
+    lienzo.appendChild(d);
+  });
+  lienzo.style.width = W + "px"; lienzo.style.height = H + "px";
+  var aplicar = function () {
+    lienzo.style.transform = "translate(" + st.x + "px," + st.y + "px) rotate(" + st.rot + "deg) scale(" + st.s + ")";
+  };
+  /* Punto de la imagen (px) a coordenadas del visor con la transformación actual */
+  var aVisor = function (px, py) {
+    var r = st.rot * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    return { x: st.x + st.s * (px * c - py * s), y: st.y + st.s * (px * s + py * c) };
+  };
+  var centrar = function (px, py, escala) {
+    st.s = escala;
+    var p = aVisor(px, py);
+    st.x += visor.clientWidth / 2 - p.x; st.y += visor.clientHeight / 2 - p.y; aplicar();
+  };
+  var ajustar = function () {
+    var rotado = (Math.abs(st.rot) / 90) % 2 === 1;
+    var w = rotado ? H : W, h = rotado ? W : H;
+    centrar(W / 2, H / 2, Math.min(visor.clientWidth / w, visor.clientHeight / h) * 0.96);
+  };
+  var zoom = function (f, cx, cy) {
+    var ns = Math.max(0.05, Math.min(8, st.s * f)); f = ns / st.s;
+    if (cx == null) { cx = visor.clientWidth / 2; cy = visor.clientHeight / 2; }
+    st.x = cx - (cx - st.x) * f; st.y = cy - (cy - st.y) * f; st.s = ns; aplicar();
+  };
+  var irA = function (id) {
+    document.querySelectorAll(".caja").forEach(function (c) { c.classList.toggle("activa", c.dataset.id == id); });
+    document.querySelectorAll("tr.linea").forEach(function (t) { t.classList.toggle("sel", t.dataset.id == id); });
+    var l = lineas.filter(function (x) { return x.linea_id == id; })[0];
+    if (!l || !l.bbox) return;
+    var bw = (l.bbox[2] - l.bbox[0]) * W, bh = (l.bbox[3] - l.bbox[1]) * H;
+    var rotado = (Math.abs(st.rot) / 90) % 2 === 1;
+    var ew = rotado ? bh : bw, eh = rotado ? bw : bh;
+    var esc2 = Math.min(visor.clientWidth * 0.92 / ew, visor.clientHeight * 0.5 / eh, 4);
+    centrar((l.bbox[0] + l.bbox[2]) / 2 * W, (l.bbox[1] + l.bbox[3]) / 2 * H, esc2);
+  };
+  document.querySelectorAll("tr.linea").forEach(function (t) { t.addEventListener("click", function () { irA(t.dataset.id); }); });
+  $("zmas").onclick = function () { zoom(1.25); };
+  $("zmenos").onclick = function () { zoom(0.8); };
+  $("ajustar").onclick = ajustar;
+  var girar = function (d) {
+    var cx = visor.clientWidth / 2, cy = visor.clientHeight / 2;
+    /* punto de imagen en el centro, para mantenerlo tras girar */
+    var r = st.rot * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    var dx = (cx - st.x) / st.s, dy = (cy - st.y) / st.s;
+    var px = dx * c + dy * s, py = -dx * s + dy * c;
+    st.rot = (st.rot + d + 360) % 360; centrar(px, py, st.s);
+  };
+  $("rizq").onclick = function () { girar(-90); };
+  $("rder").onclick = function () { girar(90); };
+  visor.addEventListener("wheel", function (e) {
+    e.preventDefault(); var b = visor.getBoundingClientRect();
+    zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX - b.left, e.clientY - b.top);
+  }, { passive: false });
+  var punteros = {}, ult = null, distIni = 0;
+  visor.addEventListener("pointerdown", function (e) { visor.setPointerCapture(e.pointerId); punteros[e.pointerId] = { x: e.clientX, y: e.clientY }; visor.classList.add("arrastrando"); });
+  visor.addEventListener("pointermove", function (e) {
+    if (!punteros[e.pointerId]) return;
+    var ids = Object.keys(punteros);
+    if (ids.length === 1) {
+      st.x += e.clientX - punteros[e.pointerId].x; st.y += e.clientY - punteros[e.pointerId].y; aplicar();
+    } else if (ids.length === 2) {
+      var o = punteros[ids[0] == e.pointerId ? ids[1] : ids[0]];
+      var d = Math.hypot(e.clientX - o.x, e.clientY - o.y), b = visor.getBoundingClientRect();
+      if (distIni) zoom(d / distIni, (e.clientX + o.x) / 2 - b.left, (e.clientY + o.y) / 2 - b.top);
+      distIni = d;
+    }
+    punteros[e.pointerId] = { x: e.clientX, y: e.clientY };
+  });
+  var soltar = function (e) { delete punteros[e.pointerId]; distIni = 0; if (!Object.keys(punteros).length) visor.classList.remove("arrastrando"); };
+  visor.addEventListener("pointerup", soltar); visor.addEventListener("pointercancel", soltar);
+  var iniciar = function () {
+    ajustar();
+    var primera = lineas.filter(function (l) { return l.estado !== "verificado" && l.bbox; })[0];
+    if (primera && editable) irA(primera.linea_id);
+  };
+  if (img.complete) iniciar(); else img.onload = iniciar;
+  window.addEventListener("resize", function () { ajustar(); });
+})();
+</script>
+</body>
+</html>

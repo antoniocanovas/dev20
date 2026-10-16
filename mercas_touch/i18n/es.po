@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 20.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 15:01+0000\n"
-"PO-Revision-Date: 2026-10-14 15:01+0000\n"
+"POT-Creation-Date: 2026-10-15 06:15+0000\n"
+"PO-Revision-Date: 2026-10-15 06:15+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: es\n"
@@ -26,6 +26,24 @@ msgid "%s has no lot with stock."
 msgstr "%s no tiene ningún lote con stock."
 
 #. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "%s is not in draft anymore."
+msgstr "%s ya no está en borrador."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s will be cancelled."
+msgstr "Se cancelará %s."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "1 line"
+msgstr "1 línea"
+
+#. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Add"
@@ -39,6 +57,7 @@ msgstr "Añade entre 1 y %s líneas."
 
 #. module: mercas_touch
 #. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "All"
 msgstr "Todos"
@@ -60,6 +79,12 @@ msgstr "Importe"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Back (Esc)"
 msgstr "Volver (Esc)"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Back to the list"
+msgstr "Volver a la lista"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -105,6 +130,24 @@ msgid "Cancel"
 msgstr "Cancelar"
 
 #. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Cancel the purchase"
+msgstr "Cancelar la compra"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Cancel the quotation"
+msgstr "Cancelar el presupuesto"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Change the price"
+msgstr "Cambiar el precio"
+
+#. module: mercas_touch
 #. odoo-python
 #: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "Choose a bank or cash journal."
@@ -125,11 +168,12 @@ msgstr "Elige un producto"
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
-msgid "Choose the customer or supplier first."
-msgstr "Elige primero el cliente o el proveedor."
+msgid "Choose an order in draft or start a new one first."
+msgstr "Elige primero un borrador o empieza uno nuevo."
 
 #. module: mercas_touch
 #. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Clear"
 msgstr "Borrar"
@@ -161,6 +205,18 @@ msgstr "País de origen"
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Create bill"
+msgstr "Crear factura de proveedor"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Create invoice"
+msgstr "Facturar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Debt"
 msgstr "Deuda"
 
@@ -186,9 +242,16 @@ msgstr "Albarán"
 #: model:ir.model.fields,field_description:mercas_touch.field_account_payment__display_name
 #: model:ir.model.fields,field_description:mercas_touch.field_mercas_touch__display_name
 #: model:ir.model.fields,field_description:mercas_touch.field_purchase_order__display_name
+#: model:ir.model.fields,field_description:mercas_touch.field_purchase_order_line__display_name
 #: model:ir.model.fields,field_description:mercas_touch.field_sale_order__display_name
 msgid "Display Name"
 msgstr "Nombre mostrado"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Done"
+msgstr "Listo"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -201,6 +264,13 @@ msgstr "Vence"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
 msgid "Enter a valid price."
 msgstr "Introduce un precio válido."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Enter or ↓: next line · Shift+Enter or ↑: previous · Esc: done"
+msgstr ""
+"Intro o ↓: línea siguiente · Mayús+Intro o ↑: anterior · Esc: terminar"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -248,6 +318,7 @@ msgstr "Facturación firme"
 #: model:ir.model.fields,field_description:mercas_touch.field_account_payment__id
 #: model:ir.model.fields,field_description:mercas_touch.field_mercas_touch__id
 #: model:ir.model.fields,field_description:mercas_touch.field_purchase_order__id
+#: model:ir.model.fields,field_description:mercas_touch.field_purchase_order_line__id
 #: model:ir.model.fields,field_description:mercas_touch.field_sale_order__id
 msgid "ID"
 msgstr "ID"
@@ -262,6 +333,12 @@ msgid ""
 msgstr ""
 "Identificador que da la pantalla táctil que hizo este documento, para que "
 "enviarlo dos veces no lo duplique."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "In progress"
+msgstr "En curso"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -290,6 +367,18 @@ msgstr "Caja no válida."
 #. module: mercas_touch
 #. odoo-python
 #: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid country."
+msgstr "País no válido."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid filter."
+msgstr "Filtro no válido."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "Invalid identifier of the operation."
 msgstr "Identificador de la operación no válido."
 
@@ -298,6 +387,12 @@ msgstr "Identificador de la operación no válido."
 #: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "Invalid invoices."
 msgstr "Facturas no válidas."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid kind of order."
+msgstr "Tipo de pedido no válido."
 
 #. module: mercas_touch
 #. odoo-python
@@ -362,6 +457,12 @@ msgstr "Forma de facturar no válida."
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Invoice"
+msgstr "Factura"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Invoice advance"
 msgstr "Facturar adelanto"
 
@@ -370,6 +471,30 @@ msgstr "Facturar adelanto"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Invoices to collect"
 msgstr "Facturas por cobrar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "It is saved in draft with the first line"
+msgstr "Se guarda en borrador con la primera línea"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Keep it"
+msgstr "Mantener"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Last bill"
+msgstr "Última factura"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Line"
+msgstr "Línea"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -388,6 +513,11 @@ msgstr "Lote"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Lot (empty: a new one)"
 msgstr "Lote (vacío: uno nuevo)"
+
+#. module: mercas_touch
+#: model:ir.model.fields,field_description:mercas_touch.field_purchase_order_line__mercas_touch_lot_name
+msgid "Lot to Receive"
+msgstr "Lote a recibir"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -421,6 +551,15 @@ msgid "Mercas Touch Screen"
 msgstr "Pantalla táctil de Mercas"
 
 #. module: mercas_touch
+#: model:ir.model.fields,help:mercas_touch.field_purchase_order_line__mercas_touch_lot_name
+msgid ""
+"Name of the lot asked for on the touch screen, given to the lot when the "
+"purchase is received."
+msgstr ""
+"Nombre del lote pedido en la pantalla táctil, que se da al lote al recibir "
+"la compra."
+
+#. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "New"
@@ -429,8 +568,32 @@ msgstr "Nueva"
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "New purchase"
+msgstr "Nueva compra"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "New quotation"
+msgstr "Nuevo presupuesto"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Next"
+msgstr "Siguiente"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "No lot pending of invoicing."
 msgstr "No hay lotes pendientes de facturar."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No order found."
+msgstr "No se ha encontrado ningún pedido."
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -443,6 +606,18 @@ msgstr "No se ha encontrado ningún contacto."
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "No product found."
 msgstr "No se ha encontrado ningún producto."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Not saved"
+msgstr "Sin guardar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Not saved: it will be tried again with the next change"
+msgstr "Sin guardar: se reintentará con el próximo cambio"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -473,6 +648,18 @@ msgstr "Una caja menos"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "One box more"
 msgstr "Una caja más"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Only a confirmed purchase can be invoiced."
+msgstr "Solo se puede facturar una compra confirmada."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Only a confirmed sale can be invoiced."
+msgstr "Solo se puede facturar una venta confirmada."
 
 #. module: mercas_touch
 #. odoo-python
@@ -523,8 +710,26 @@ msgstr "Cobros"
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Previous"
+msgstr "Anterior"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Previous line"
+msgstr "Línea anterior"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Price per"
 msgstr "Precio por"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Print invoice"
+msgstr "Imprimir factura"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -537,6 +742,11 @@ msgstr "Compra"
 #: model:ir.model,name:mercas_touch.model_purchase_order
 msgid "Purchase Order"
 msgstr "Pedido de compra"
+
+#. module: mercas_touch
+#: model:ir.model,name:mercas_touch.model_purchase_order_line
+msgid "Purchase Order Line"
+msgstr "Línea de pedido de compra"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -595,6 +805,18 @@ msgstr "Pedido de venta"
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Saved in"
+msgstr "Guardado en"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Saving…"
+msgstr "Guardando…"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Scrap"
 msgstr "Desechar"
 
@@ -627,6 +849,18 @@ msgstr "Busca un lote, producto o proveedor, o escanea una etiqueta"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Search a product or scan a label"
 msgstr "Busca un producto o escanea una etiqueta"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Search a purchase or a supplier"
+msgstr "Busca una compra o un proveedor"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Search a quotation or a customer"
+msgstr "Busca un presupuesto o un cliente"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -711,6 +945,12 @@ msgstr "Stock de los lotes, desechos y liquidación"
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Subtotal"
+msgstr "Subtotal"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Text of the line"
 msgstr "Texto de la línea"
 
@@ -719,6 +959,12 @@ msgstr "Texto de la línea"
 #: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "The amount must be positive."
 msgstr "El importe debe ser positivo."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "The changes couldn't be saved."
+msgstr "No se han podido guardar los cambios."
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -811,6 +1057,12 @@ msgstr "El contacto ya no existe."
 #. module: mercas_touch
 #. odoo-python
 #: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "The partner of an order can't be changed."
+msgstr "No se puede cambiar el contacto de un pedido."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "The price can't be negative."
 msgstr "El precio no puede ser negativo."
 
@@ -845,6 +1097,12 @@ msgid "There is no delivery to print."
 msgstr "No hay ningún albarán que imprimir."
 
 #. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "There is no invoice to print."
+msgstr "No hay ninguna factura que imprimir."
+
+#. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "There is no lot with stock of this product."
@@ -855,6 +1113,30 @@ msgstr "No hay ningún lote con stock de este producto."
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "There is no product marked as a box."
 msgstr "No hay ningún producto marcado como caja."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no purchase in draft."
+msgstr "No hay compras en borrador."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no quotation in draft."
+msgstr "No hay presupuestos en borrador."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "There is nothing to invoice in %s."
+msgstr "No hay nada que facturar en %s."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is nothing to invoice."
+msgstr "No hay nada para facturar."
 
 #. module: mercas_touch
 #. odoo-python
@@ -875,9 +1157,10 @@ msgstr "Este documento ya se recibió desde la pantalla táctil."
 
 #. module: mercas_touch
 #. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "To invoice"
-msgstr "A facturar"
+msgstr "Para facturar"
 
 #. module: mercas_touch
 #. odoo-javascript
@@ -968,6 +1251,12 @@ msgstr "o escanea la etiqueta de una caja"
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "paid"
+msgstr "pagada"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "received"
 msgstr "recibida"
 
@@ -976,6 +1265,12 @@ msgstr "recibida"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "registered"
 msgstr "registrado"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "to collect"
+msgstr "por cobrar"
 
 #. module: mercas_touch
 #. odoo-javascript

@@ -1,0 +1,1054 @@
+{
+  "id": "AlbIaIngesta0001",
+  "name": "Albaranes IA - Ingesta",
+  "nodes": [
+    {
+      "id": "AlbIaIngesta0001-00",
+      "name": "Formulario de subida",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -300
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "albaranes/subir",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "albaranes-albaranes-subir-get",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AlbIaBasicAuth01",
+          "name": "Albaranes IA - Basic Auth"
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-01",
+      "name": "Página de subida",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        -300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "return [{ json: { cuerpo: \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Subir albar\\u00e1n</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\nform { display: grid; gap: 14px; padding: 16px; }\\ninput[type=file] { font: inherit; padding: 16px; border: 2px dashed var(--border); border-radius: 10px; background: var(--bg); color: var(--text); width: 100%; }\\nlabel { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); }\\n#vista { max-width: 100%; max-height: 50vh; border-radius: 8px; display: none; }\\n</style>\\n</head>\\n<body>\\n<header><h1>Subir foto de albar\\u00e1n</h1><a href=\\\"revision\\\">Ver pendientes</a></header>\\n<main>\\n  <div class=\\\"panel\\\">\\n    <form method=\\\"post\\\" action=\\\"ingesta?html=1\\\" enctype=\\\"multipart/form-data\\\" id=\\\"form\\\">\\n      <input type=\\\"file\\\" name=\\\"foto\\\" id=\\\"foto\\\" accept=\\\"image/*\\\" capture=\\\"environment\\\" required>\\n      <img id=\\\"vista\\\" alt=\\\"Vista previa\\\">\\n      <label><input type=\\\"checkbox\\\" name=\\\"reprocesar\\\" value=\\\"true\\\"> Volver a procesar si ya se subi\\u00f3 esta misma foto</label>\\n      <div><button type=\\\"submit\\\" id=\\\"enviar\\\">Subir y leer</button></div>\\n      <p class=\\\"muted\\\">La lectura tarda unos 20-40 segundos. Una foto por albar\\u00e1n, con buena luz y todo el documento a la vista.</p>\\n    </form>\\n  </div>\\n</main>\\n<script>\\n(function () {\\n  var f = document.getElementById(\\\"foto\\\"), v = document.getElementById(\\\"vista\\\");\\n  f.addEventListener(\\\"change\\\", function () { if (f.files[0]) { v.src = URL.createObjectURL(f.files[0]); v.style.display = \\\"block\\\"; } });\\n  document.getElementById(\\\"form\\\").addEventListener(\\\"submit\\\", function () { var b = document.getElementById(\\\"enviar\\\"); b.disabled = true; b.textContent = \\\"Leyendo el albar\\u00e1n\\u2026\\\"; });\\n})();\\n</script>\\n</body>\\n</html>\\n\", codigo: 200, tipo: 'text/html; charset=utf-8' } }];"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-02",
+      "name": "Responder formulario",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        -300
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.cuerpo }}",
+        "options": {
+          "responseCode": "={{ $json.codigo }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "={{ $json.tipo }}"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-03",
+      "name": "Subir foto",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "albaranes/ingesta",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "albaranes-albaranes-ingesta-post",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AlbIaBasicAuth01",
+          "name": "Albaranes IA - Basic Auth"
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-04",
+      "name": "Guardar incidencia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/incidencias",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto",
+              "inputDataFieldName": "={{ Object.keys($binary || {})[0] || 'foto' }}"
+            },
+            {
+              "name": "reprocesar",
+              "value": "={{ String(($json.query || {}).reprocesar || ($json.body || {}).reprocesar || 'false') }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-05",
+      "name": "¿Ya procesada?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "dup",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.duplicada === true && !['recibida', 'procesando'].includes($json.estado) }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-06",
+      "name": "Ficha existente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        -160
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_albaranes-api:8000/incidencias/{{ $json.id }}",
+        "options": {
+          "timeout": 60000
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-07",
+      "name": "Respuesta duplicada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -160
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Pendientes</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Error\\\", \\\"bad\\\"],\\n    verificado: [\\\"Verificado\\\", \\\"ok\\\"], pendiente_revision: [\\\"Pendiente de revisi\\u00f3n\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra la incidencia existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">ERP</th><th class=\\\"num\\\">IA</th><th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? \\\"?\\\" : fmt(r.ia)) + '</td><td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst i = $input.first().json;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst d = i.decision || {};\nconst datos = {\n  titulo: 'Foto ya procesada', duplicada: true, incidencia_id: i.id, estado: i.estado,\n  albaran: i.albaran_numero, cliente: ((i.erp || {}).cliente || {}).nombre, origen_numero: i.origen_numero,\n  tabla: (d.lineas || []).map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,\n    erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: (l.motivos || []).join(', ') })),\n  error: i.error, enlace: '/webhook/albaranes/revision/' + i.id, enlace_texto: 'Abrir revisión',\n  revision_url: d.revision_url,\n};\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' })) : json(datos);"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-08",
+      "name": "Foto normalizada",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        80
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_albaranes-api:8000/incidencias/{{ $('Guardar incidencia').first().json.id }}/imagen",
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "foto"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-09",
+      "name": "Leer código de barras",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_barcode-ocr:8000/decode",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "patron",
+              "value": "^[A-Z0-9]+/(OUT|IN|INT)/\\d+$"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto",
+              "inputDataFieldName": "foto"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-10",
+      "name": "¿Hay código de barras?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        80
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "cod",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.codigo || '' }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-11",
+      "name": "Número por código",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1320,
+        -20
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ numero: $json.codigo, origen: 'codigo_barras', lectura_codigo: $json }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-12",
+      "name": "Petición número",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        180
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/peticion",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'numero' }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-13",
+      "name": "IA: número de albarán",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        180
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify($json.cabeceras || {}) }}"
+      },
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "t9FUZIt3bCUbzN4K",
+          "name": "Openrouter Header Auth account"
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-14",
+      "name": "Interpretar número",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        180
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/interpretar",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tipo: 'numero', proveedor: $('Petición número').first().json.proveedor, respuesta: $json }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-15",
+      "name": "Número por visión",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1980,
+        180
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ numero: $json.lectura.numero_albaran || '', origen: 'vision', lectura_codigo: $('Leer código de barras').first().json, lectura_numero: $json.lectura }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-16",
+      "name": "Albarán en el ERP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        80
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_albaranes-api:8000/erp/albaran",
+        "options": {
+          "timeout": 60000
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "numero",
+              "value": "={{ $json.numero }}"
+            }
+          ]
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-17",
+      "name": "Petición lectura",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/peticion",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'lectura', albaran: $json }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-18",
+      "name": "IA: leer albarán",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 180000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify($json.cabeceras || {}) }}"
+      },
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "t9FUZIt3bCUbzN4K",
+          "name": "Openrouter Header Auth account"
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-19",
+      "name": "Interpretar lectura",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/interpretar",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tipo: 'lectura', proveedor: $('Petición lectura').first().json.proveedor, respuesta: $json }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-20",
+      "name": "Decidir",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        80
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Reglas: cada línea del ERP se compara con la lectura de la IA.\nconst ins = $input.first().json;\nconst lect = ins.lectura, reglas = ins.reglas;\nconst erp = $('Albarán en el ERP').first().json;\nconst inc = $('Guardar incidencia').first().json;\nconst num = ($('Número por código').isExecuted ? $('Número por código') : $('Número por visión')).first().json;\nconst umbral = reglas.umbral, varMax = reglas.variacion_sospechosa;\nconst leidas = lect.lineas || [];\nconst ids = new Set(erp.lineas.map(l => l.id));\nconst lineas = erp.lineas.map(l => {\n  const r = leidas.find(x => x.move_id === l.id);\n  const motivos = [];\n  let final = r ? r.cantidad_final : null;\n  if (!r) motivos.push('no_leida');\n  else {\n    if (final == null) motivos.push(r.tachado ? 'tachon_ilegible' : 'no_leida');\n    if (r.confianza < umbral) motivos.push('baja_confianza');\n    if (r.dudoso) motivos.push('dudosa');\n    if (final != null && final !== l.cantidad) {\n      motivos.push('modificada');\n      if (l.cantidad > 0 && Math.abs(final - l.cantidad) / l.cantidad > varMax) motivos.push('variacion_sospechosa');\n      if (final > l.cantidad_pedida) motivos.push('supera_pedido');\n    }\n    if (r.tachado && final != null && final === l.cantidad) motivos.push('tachado_sin_cambio');\n  }\n  return {\n    linea_id: l.id, referencia: l.referencia, producto: l.producto, unidad: l.unidad,\n    pedida: l.cantidad_pedida, erp: l.cantidad,\n    impreso: r ? r.impreso : null, tachado: r ? r.tachado : false, manuscrito: r ? r.manuscrito : null,\n    cantidad_final: final, confianza: r ? r.confianza : null, dudoso: r ? r.dudoso : true,\n    motivo_ia: r ? r.motivo : null, bbox: r ? r.bbox : null,\n    estado: motivos.length ? 'pendiente_revision' : 'verificado', motivos,\n  };\n});\nconst extras = leidas.filter(x => !ids.has(x.move_id));\nconst avisos = [];\nif (extras.length) avisos.push(extras.length + ' línea(s) leídas que no están en el ERP');\nif (lect.numero_albaran && lect.numero_albaran.replace(/\\s/g, '') !== erp.numero) avisos.push('El número leído en la foto (' + lect.numero_albaran + ') no coincide con ' + erp.numero);\nif (lect.calidad_imagen === 'mala') avisos.push('Calidad de imagen mala: conviene repetir la foto');\nconst estado = lineas.every(l => l.estado === 'verificado') && !extras.length && lect.calidad_imagen !== 'mala' && avisos.length === 0\n  ? 'verificado' : 'pendiente_revision';\nconst revision_url = (ins.url_revision || '') + '/' + inc.id;\nconst decision = { estado, umbral, variacion_sospechosa: varMax, lineas, extras, avisos, revision_url };\n\n// Nota para el historial del albarán\nconst e = s => String(s ?? '').replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[c]));\nconst f = n => n == null ? '?' : String(n).replace('.', ',');\nconst MOT = { modificada: 'cambiada a mano', tachon_ilegible: 'tachón sin número legible', baja_confianza: 'confianza baja',\n  dudosa: 'lectura dudosa', variacion_sospechosa: 'variación grande', supera_pedido: 'supera lo pedido', no_leida: 'no leída',\n  tachado_sin_cambio: 'tachado sin cambio' };\nconst revisar = lineas.filter(l => l.estado !== 'verificado');\nlet nota = '<p><b>Foto del albarán leída por IA</b> (incidencia #' + inc.id + '): <b>' +\n  (estado === 'verificado' ? 'verificado, coincide con el ERP' : 'pendiente de revisión') + '</b>.</p>';\nif (revisar.length) nota += '<ul>' + revisar.map(l => '<li>' + e((l.referencia ? '[' + l.referencia + '] ' : '') + l.producto) + ': ERP ' +\n  f(l.erp) + ' → foto ' + f(l.cantidad_final) + ' (' + e(l.motivos.map(m => MOT[m] || m).join(', ')) +\n  (l.confianza != null ? ', confianza ' + Math.round(l.confianza * 100) + '%' : '') + ')</li>').join('') + '</ul>';\nfor (const a of avisos) nota += '<p>' + e(a) + '</p>';\nif (estado !== 'verificado') nota += '<p>Revisar en: ' + e(revision_url) + '</p>';\n\nreturn [{ json: {\n  incidencia_id: inc.id, albaran_id: erp.id, nota,\n  patch: { estado, albaran_numero: erp.numero, albaran_id: erp.id, origen_numero: num.origen,\n           lectura_codigo: num.lectura_codigo || null, erp, lectura: lect, decision, evento: 'lectura' },\n} }];"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-21",
+      "name": "Guardar resultado",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3300,
+        80
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://ia-support_albaranes-api:8000/incidencias/{{ $json.incidencia_id }}",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.patch) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-22",
+      "name": "Nota en el albarán",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3520,
+        80
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_albaranes-api:8000/erp/albaranes/{{ $('Decidir').first().json.albaran_id }}/nota",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ html: $('Decidir').first().json.nota }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-23",
+      "name": "Respuesta lectura",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3740,
+        80
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Pendientes</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Error\\\", \\\"bad\\\"],\\n    verificado: [\\\"Verificado\\\", \\\"ok\\\"], pendiente_revision: [\\\"Pendiente de revisi\\u00f3n\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra la incidencia existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">ERP</th><th class=\\\"num\\\">IA</th><th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? \\\"?\\\" : fmt(r.ia)) + '</td><td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst d = $('Decidir').first().json;\nconst p = d.patch, dec = p.decision;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst notaOk = !$input.first().json.error;\nconst tabla = dec.lineas.map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,\n  erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: l.motivos.join(', ') }));\nconst datos = {\n  titulo: 'Lectura del albarán', incidencia_id: d.incidencia_id, estado: p.estado, albaran: p.albaran_numero,\n  cliente: (p.erp.cliente || {}).nombre, origen_numero: p.origen_numero, tabla,\n  avisos: dec.avisos.concat(notaOk ? [] : ['No se pudo añadir la nota en el albarán del ERP']),\n  extras: dec.extras, revision_url: dec.revision_url, modelo: (p.lectura.meta || {}).modelo,\n  tokens: (p.lectura.meta || {}).tokens,\n  enlace: '/webhook/albaranes/revision/' + d.incidencia_id, enlace_texto: p.estado === 'verificado' ? 'Ver detalle' : 'Revisar ahora',\n};\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' })) : json(datos);"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-24",
+      "name": "Datos del error",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2420,
+        420
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": true,
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "inc",
+              "name": "incidencia_id",
+              "type": "number",
+              "value": "={{ $('Guardar incidencia').isExecuted ? ($('Guardar incidencia').first(0)?.json?.id ?? null) : null }}"
+            },
+            {
+              "id": "paso",
+              "name": "paso",
+              "type": "string",
+              "value": "={{ $prevNode.name }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-25",
+      "name": "Preparar error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        420
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\n\nconst it = $input.first().json;\nlet msg = it.error ? (it.error.description || it.error.message || JSON.stringify(it.error)) : detalle(it);\nconst m = /^\\d{3} - (.*)$/s.exec(String(msg));\nif (m) { try { let b = JSON.parse(m[1]); if (typeof b === 'string') b = JSON.parse(b); msg = typeof b.detail === 'string' ? b.detail : JSON.stringify(b); } catch (e) { msg = m[1]; } }\nreturn [{ json: { incidencia_id: it.incidencia_id, error: it.paso + ': ' + String(msg).slice(0, 500) } }];"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-26",
+      "name": "Marcar error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        420
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://ia-support_albaranes-api:8000/incidencias/{{ $json.incidencia_id }}",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ estado: 'error', error: $json.error, evento: 'error' }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-27",
+      "name": "Respuesta error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3080,
+        420
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Pendientes</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Error\\\", \\\"bad\\\"],\\n    verificado: [\\\"Verificado\\\", \\\"ok\\\"], pendiente_revision: [\\\"Pendiente de revisi\\u00f3n\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra la incidencia existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">ERP</th><th class=\\\"num\\\">IA</th><th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? \\\"?\\\" : fmt(r.ia)) + '</td><td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst e = $('Preparar error').first().json;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst datos = { titulo: 'No se ha podido leer el albarán', estado: 'error', incidencia_id: e.incidencia_id, error: e.error,\n  mensaje: 'La foto queda guardada. Puedes repetirla o volver a procesarla marcando «Volver a procesar».' };\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' }), 422) : json(datos, 422);"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-28",
+      "name": "Responder",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3960,
+        80
+      ],
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.cuerpo }}",
+        "options": {
+          "responseCode": "={{ $json.codigo }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "={{ $json.tipo }}"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Formulario de subida": {
+      "main": [
+        [
+          {
+            "node": "Página de subida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Página de subida": {
+      "main": [
+        [
+          {
+            "node": "Responder formulario",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Subir foto": {
+      "main": [
+        [
+          {
+            "node": "Guardar incidencia",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar incidencia": {
+      "main": [
+        [
+          {
+            "node": "¿Ya procesada?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Ya procesada?": {
+      "main": [
+        [
+          {
+            "node": "Ficha existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Foto normalizada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ficha existente": {
+      "main": [
+        [
+          {
+            "node": "Respuesta duplicada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Foto normalizada": {
+      "main": [
+        [
+          {
+            "node": "Leer código de barras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer código de barras": {
+      "main": [
+        [
+          {
+            "node": "¿Hay código de barras?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay código de barras?": {
+      "main": [
+        [
+          {
+            "node": "Número por código",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Petición número",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Petición número": {
+      "main": [
+        [
+          {
+            "node": "IA: número de albarán",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA: número de albarán": {
+      "main": [
+        [
+          {
+            "node": "Interpretar número",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar número": {
+      "main": [
+        [
+          {
+            "node": "Número por visión",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Número por código": {
+      "main": [
+        [
+          {
+            "node": "Albarán en el ERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Número por visión": {
+      "main": [
+        [
+          {
+            "node": "Albarán en el ERP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Albarán en el ERP": {
+      "main": [
+        [
+          {
+            "node": "Petición lectura",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Petición lectura": {
+      "main": [
+        [
+          {
+            "node": "IA: leer albarán",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA: leer albarán": {
+      "main": [
+        [
+          {
+            "node": "Interpretar lectura",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar lectura": {
+      "main": [
+        [
+          {
+            "node": "Decidir",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Decidir": {
+      "main": [
+        [
+          {
+            "node": "Guardar resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar resultado": {
+      "main": [
+        [
+          {
+            "node": "Nota en el albarán",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nota en el albarán": {
+      "main": [
+        [
+          {
+            "node": "Respuesta lectura",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Datos del error": {
+      "main": [
+        [
+          {
+            "node": "Preparar error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar error": {
+      "main": [
+        [
+          {
+            "node": "Marcar error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar error": {
+      "main": [
+        [
+          {
+            "node": "Respuesta error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta lectura": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta duplicada": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta error": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "all"
+  },
+  "pinData": {}
+}

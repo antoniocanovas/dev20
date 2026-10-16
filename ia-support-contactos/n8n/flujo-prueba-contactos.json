@@ -138,6 +138,183 @@
     },
     {
       "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $('Alta').item.json.id }}/tarifa",
+        "options": {}
+      },
+      "id": "84b96113-6e13-485e-b082-682e54d7a564",
+      "name": "Ver tarifa cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/contactos/{{ $('Alta').item.json.id }}/tarifa/duplicar",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "9f1f8029-9d53-4a15-8d54-93c11a327f6e",
+      "name": "Duplicar tarifa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "Copia la tarifa que usa el contacto (la por defecto) y se la asigna.",
+      "position": [
+        1980,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/productos?q=Desk%20Pad",
+        "options": {}
+      },
+      "id": "5b3455e4-deb4-42a5-9046-71a799b2cd2f",
+      "name": "Buscar producto",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "Producto de los datos demo de Ventas.",
+      "position": [
+        2200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/tarifas/{{ $('Duplicar tarifa').item.json.tarifa.id }}/precios",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"producto_id\":{{ $json.resultados[0].id }},\"precio\":1.5,\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "a56ab2ce-fe59-427d-a734-274bb8c27624",
+      "name": "Poner precio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/tarifas/{{ $('Duplicar tarifa').item.json.tarifa.id }}/precios",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"producto_id\":{{ $('Buscar producto').item.json.resultados[0].id }},\"precio\":1.75,\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "c6e1c35c-1836-495a-84bc-7896364d7469",
+      "name": "Cambiar precio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/log/{{ $json.log_id }}/undo",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "b310d622-c58c-4fdb-aa1f-27a4b8bde307",
+      "name": "Deshacer precio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "El precio vuelve a 1,50.",
+      "position": [
+        2860,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/tarifas/{{ $('Duplicar tarifa').item.json.tarifa.id }}",
+        "options": {}
+      },
+      "id": "fc8bb318-7273-4a81-b64a-4d167d8a98f0",
+      "name": "Ver contenido tarifa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3080,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/log/{{ $('Duplicar tarifa').item.json.log_id }}/undo",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "f0326482-6fd5-48e1-8500-278e6e277828",
+      "name": "Deshacer duplicar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "El contacto vuelve a la tarifa por defecto y la copia queda archivada.",
+      "position": [
+        3300,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/tarifas",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"nombre\":\"Tarifa {{ $('Set').item.json.sesion }}\",\"contacto_id\":{{ $('Alta').item.json.id }},\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "a2782c6a-8190-48a5-b7f5-c01255655198",
+      "name": "Crear tarifa vacía",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "Tarifa nueva sin precios, asignada al contacto.",
+      "position": [
+        3520,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_contactos-api:8000/log/{{ $json.log_id }}/undo",
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\"sesion\":\"{{ $('Set').item.json.sesion }}\",\"usuario\":\"n8n\"}"
+      },
+      "id": "85d30e76-df48-418f-aca1-4877081c026d",
+      "name": "Deshacer crear tarifa",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "El contacto vuelve a la tarifa por defecto y la tarifa creada queda archivada.",
+      "position": [
+        3740,
+        300
+      ]
+    },
+    {
+      "parameters": {
         "method": "DELETE",
         "url": "=http://ia-support_contactos-api:8000/contactos/{{ $('Alta').item.json.id }}?sesion={{ $('Set').item.json.sesion }}&usuario=n8n",
         "options": {}
@@ -147,7 +324,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1760,
+        3960,
         300
       ]
     },
@@ -162,7 +339,39 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1980,
+        4180,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/albaranes?tipo=ENTREGA&limite=3",
+        "options": {}
+      },
+      "id": "36e2ebe3-3389-4e30-ad20-383ee67fe48f",
+      "name": "Buscar albaranes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "Últimas 3 entregas (solo consulta).",
+      "position": [
+        4400,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://ia-support_contactos-api:8000/albaranes/{{ $json.resultados[0].id }}",
+        "options": {}
+      },
+      "id": "37fd3ff9-ba89-4942-8965-bc627450f382",
+      "name": "Ver albarán",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "notes": "Líneas del albarán más reciente.",
+      "position": [
+        4620,
         300
       ]
     }
@@ -249,7 +458,7 @@
       "main": [
         [
           {
-            "node": "Baja",
+            "node": "Ver tarifa cliente",
             "type": "main",
             "index": 0
           }
@@ -261,6 +470,138 @@
         [
           {
             "node": "Ver log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ver tarifa cliente": {
+      "main": [
+        [
+          {
+            "node": "Duplicar tarifa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Duplicar tarifa": {
+      "main": [
+        [
+          {
+            "node": "Buscar producto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar producto": {
+      "main": [
+        [
+          {
+            "node": "Poner precio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poner precio": {
+      "main": [
+        [
+          {
+            "node": "Cambiar precio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cambiar precio": {
+      "main": [
+        [
+          {
+            "node": "Deshacer precio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deshacer precio": {
+      "main": [
+        [
+          {
+            "node": "Ver contenido tarifa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ver contenido tarifa": {
+      "main": [
+        [
+          {
+            "node": "Deshacer duplicar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deshacer duplicar": {
+      "main": [
+        [
+          {
+            "node": "Crear tarifa vacía",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear tarifa vacía": {
+      "main": [
+        [
+          {
+            "node": "Deshacer crear tarifa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deshacer crear tarifa": {
+      "main": [
+        [
+          {
+            "node": "Baja",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ver log": {
+      "main": [
+        [
+          {
+            "node": "Buscar albaranes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar albaranes": {
+      "main": [
+        [
+          {
+            "node": "Ver albarán",
             "type": "main",
             "index": 0
           }
