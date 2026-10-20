@@ -49,7 +49,11 @@ class SaleOrder(models.Model):
         return self._mercas_box_delivery_confirm_flow()
 
     def _mercas_box_delivery_confirm_flow(self):
-        """Deliver boxes to the supplier's location, create and post the customer invoice."""
+        """Deliver boxes to the supplier's location, create and post the customer invoice.
+
+        With account_financial_risk, an invoice over the customer's risk isn't
+        posted: the risk dialog is returned instead of the invoice, and the
+        invoice stays in draft until a risk manager goes on there."""
         self.ensure_one()
 
         # Ensure the partner has a sub-location under the mercas supplier parent
@@ -77,7 +81,9 @@ class SaleOrder(models.Model):
         if not invoice:
             return True
         invoice.invoice_date = fields.Date.context_today(self)
-        invoice.action_post()
+        risk_action = invoice.action_post()
+        if self._mercas_is_risk_action(risk_action):
+            return risk_action
 
         return {
             "type": "ir.actions.act_window",
@@ -223,12 +229,24 @@ class SaleOrder(models.Model):
         """Confirm and auto-deliver. Called directly or via the risk wizard continue.
         For box-delivery orders this also runs the automated deliver+invoice flow
         (same as the "Receive & Invoice" button) since this shortcut is itself
-        an explicit "do it all now" action."""
+        an explicit "do it all now" action.
+
+        The invoice of a box delivery is checked against the risk too, so its
+        risk dialog is returned. Not when a risk manager has just accepted the
+        risk of this sale: the dialog calls this method with `bypass_risk`,
+        which the invoice gets as well, so it isn't asked twice."""
         self.with_context(bypass_risk=True).action_confirm()
         if self.mercas_is_box_delivery:
-            self._mercas_box_delivery_confirm_flow()
+            result = self._mercas_box_delivery_confirm_flow()
+            if self._mercas_is_risk_action(result):
+                return result
         else:
             self._mercas_auto_deliver()
+
+    @api.model
+    def _mercas_is_risk_action(self, action):
+        """Whether *action* is the risk dialog of account_financial_risk."""
+        return isinstance(action, dict) and action.get("res_model") == "partner.risk.exceeded.wiz"
 
     def action_open_box_return(self):
         """Open a new purchase order pre-filled for box return from this sale's customer."""

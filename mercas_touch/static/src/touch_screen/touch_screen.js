@@ -1068,6 +1068,14 @@ export class TouchScreen extends Component {
     async onInvoiceSale() {
         const done = this.state.done;
         const invoice = await this.run("invoice_sale", [done.id]);
+        if (invoice?.action) {
+            // Risk exceeded: the invoice stays in draft until a risk manager goes on
+            Object.assign(done, invoice.order);
+            await this.action.doAction(invoice.action, {
+                onClose: () => this.refreshOrderSummary(),
+            });
+            return;
+        }
         if (invoice && this.state.done === done) {
             Object.assign(done, invoice.order);
             done.invoice = invoice;

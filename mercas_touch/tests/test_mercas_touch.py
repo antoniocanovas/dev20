@@ -437,6 +437,50 @@ class TestMercasTouch(MercasTouchCommon):
         with self.assertRaises(UserError):
             self.Touch.invoice_sale(quotation['id'])
 
+    def test_invoice_sale_over_risk(self):
+        """ With account_financial_risk, an invoice over the customer's risk stays in draft and
+        the screen opens the standard dialog, where a risk manager posts it. """
+        if 'risk_invoice_open_limit' not in self.env['res.partner']._fields:
+            self.skipTest("account_financial_risk isn't installed")
+        self.company.allow_overrisk_invoice_validation = False
+        self.customer.risk_invoice_open_limit = 1.0
+        order = self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id,
+                                 'lines': [{'product_id': self.lettuce.id, 'qty': 4.0, 'price_unit': 2.5}]})['order']
+        sale = self.env['sale.order'].browse(order['id'])
+        result = self.Touch.invoice_sale(order['id'])
+        self.assertEqual(result['action']['res_model'], 'partner.risk.exceeded.wiz')
+        self.assertTrue(result['order']['invoice_draft'])
+        self.assertEqual(sale.invoice_ids.state, 'draft')
+        to_invoice = self.Touch.get_drafts('sale', state_filter='to_invoice')
+        self.assertIn(order['id'], [draft['id'] for draft in to_invoice], "Still to invoice")
+        # Sent again: the same draft invoice asks again, no second invoice
+        result = self.Touch.invoice_sale(order['id'])
+        self.assertEqual(result['action']['res_model'], 'partner.risk.exceeded.wiz')
+        self.assertEqual(len(sale.invoice_ids), 1)
+        self.env['partner.risk.exceeded.wiz'].browse(result['action']['res_id']).button_continue()
+        self.assertEqual(sale.invoice_ids.state, 'posted')
+        invoice = self.Touch.invoice_sale(order['id'])
+        self.assertEqual(invoice['id'], sale.invoice_ids.id)
+        self.assertFalse(invoice['order']['invoice_draft'])
+
+    def test_boxes_deliver_over_risk(self):
+        """ The boxes given back to a supplier are delivered, and their invoice over the risk
+        stays in draft with the standard dialog. """
+        if 'risk_invoice_open_limit' not in self.env['res.partner']._fields:
+            self.skipTest("account_financial_risk isn't installed")
+        self.company.allow_overrisk_invoice_validation = False
+        self.supplier.risk_invoice_open_limit = 1.0
+        self._buy(10.0, box_qty=4, box_product_id=self.box.id)
+        result = self.Touch.move_boxes({
+            'uuid': str(uuid.uuid4()), 'partner_id': self.supplier.id, 'direction': 'deliver',
+            'lines': [{'product_id': self.box.id, 'qty': 4}],
+        })
+        self.assertEqual(result['action']['res_model'], 'partner.risk.exceeded.wiz')
+        order = self.env['sale.order'].browse(result['order']['id'])
+        self.assertEqual(order.state, 'sale')
+        self.assertTrue(all(picking.state == 'done' for picking in order.picking_ids))
+        self.assertEqual(order.invoice_ids.state, 'draft')
+
     def test_origin_countries_and_states(self):
         """ Without the origin filter of the company, every country, and the states of the
         country chosen; with it, only the countries and states marked as origin. """

@@ -356,13 +356,19 @@ class MercasTouch(models.AbstractModel):
         one in draft, or a new one. The confirmed ones can be looked up and invoiced.
 
         :param str state_filter: 'draft' (in progress), 'to_invoice' (confirmed and not fully
-            invoiced) or 'all' (every one but the cancelled ones)
+            invoiced, or a sale with its invoice still in draft) or 'all' (every one but the
+            cancelled ones)
         """
         Order = self.env[self._get_draft_model(kind)]
         confirmed = 'sale' if kind == 'sale' else 'purchase'
+        to_invoice = [('invoice_status', '=', 'to invoice')]
+        if kind == 'sale':
+            # An invoice over the risk of the customer stays in draft
+            to_invoice = ['|', *to_invoice, ('order_line.invoice_lines.move_id', 'any', [
+                ('state', '=', 'draft'), ('move_type', '=', 'out_invoice')])]
         state_domains = {
             'draft': [('state', '=', 'draft')],
-            'to_invoice': [('state', '=', confirmed), ('invoice_status', '=', 'to invoice')],
+            'to_invoice': [('state', '=', confirmed), *to_invoice],
             'all': [('state', '!=', 'cancel')],
         }
         if state_filter not in state_domains:
@@ -385,7 +391,8 @@ class MercasTouch(models.AbstractModel):
         } for order in orders]
 
     def _get_order_states(self, order):
-        """ State and invoice status of an order, with their labels as in the backend. """
+        """ State and invoice status of an order, with their labels as in the backend, and
+        whether a sale has a customer invoice still in draft (over the risk, for instance). """
         fields_info = order.fields_get(['state', 'invoice_status'], ['selection'])
         labels = {name: dict(info['selection']) for name, info in fields_info.items()}
         return {
@@ -393,7 +400,11 @@ class MercasTouch(models.AbstractModel):
             'state_label': labels['state'].get(order.state, ''),
             'invoice_status': order.invoice_status or False,
             'invoice_status_label': labels['invoice_status'].get(order.invoice_status, ''),
+            'invoice_draft': order._name == 'sale.order' and bool(self._get_draft_invoices(order)),
         }
+
+    def _get_draft_invoices(self, order):
+        return order.invoice_ids.filtered(lambda move: move.state == 'draft' and move.move_type == 'out_invoice')
 
     @api.model
     def get_order_summary(self, kind, order_id):
@@ -693,15 +704,23 @@ class MercasTouch(models.AbstractModel):
     @api.model
     def invoice_sale(self, order_id):
         """ Invoice a sale made on the screen, and post the invoice so that it can be collected
-        right away. Sent again, it returns the invoice already made. """
+        right away. Sent again, it returns the invoice already made.
+
+        With account_financial_risk, an invoice over the customer's risk isn't posted: it returns
+        {'action': the standard risk dialog, 'order': ...} and the invoice stays in draft until a
+        risk manager goes on there. Sent again, it posts that draft invoice. """
         if not is_record_id(order_id):
             raise ValidationError(self.env._("Invalid order."))
         order = self.env['sale.order'].browse(order_id).exists()
         if not order or order.state != 'sale':
             raise UserError(self.env._("Only a confirmed sale can be invoiced."))
         if order.invoice_status == 'to invoice':
-            invoices = order._create_invoices()
-            invoices.filtered(lambda move: move.state == 'draft').action_post()
+            order._create_invoices()
+        drafts = self._get_draft_invoices(order)
+        if drafts:
+            action = drafts.action_post()
+            if order._mercas_is_risk_action(action):
+                return {'action': self._get_client_action(action), 'order': self._get_order_states(order)}
         invoice = order.invoice_ids.filtered(
             lambda move: move.state == 'posted' and move.move_type == 'out_invoice').sorted('id')[-1:]
         if not invoice:

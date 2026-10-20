@@ -143,6 +143,52 @@ class TestMercasBoxOrders(TransactionCase):
         posted_invoices = so.invoice_ids.filtered(lambda i: i.state == "posted")
         self.assertTrue(posted_invoices)
 
+    # --- Financial risk of the invoice (account_financial_risk) ---
+
+    def _set_invoice_risk_limit(self):
+        if "risk_invoice_open_limit" not in self.env["res.partner"]._fields:
+            self.skipTest("account_financial_risk isn't installed")
+        self.company.allow_overrisk_invoice_validation = False
+        self.customer.risk_invoice_open_limit = 1.0
+
+    def test_sale_action_deliver_and_invoice_over_risk(self):
+        """The invoice over the customer's risk stays in draft and the risk
+        dialog is returned; a risk manager posts it from there."""
+        self._set_invoice_risk_limit()
+        so = self._box_sale()
+        so.action_confirm()
+        action = so.action_mercas_box_deliver_and_invoice()
+        self.assertEqual(action["res_model"], "partner.risk.exceeded.wiz")
+        self.assertEqual(so.invoice_ids.state, "draft")
+        self.env["partner.risk.exceeded.wiz"].browse(action["res_id"]).button_continue()
+        self.assertEqual(so.invoice_ids.state, "posted")
+
+    def test_sale_button_sold_and_sent_box_order_over_risk(self):
+        self._set_invoice_risk_limit()
+        so = self._box_sale()
+        action = so.button_sold_and_sent()
+        self.assertEqual(action["res_model"], "partner.risk.exceeded.wiz")
+        self.assertEqual(so.state, "sale")
+        pending = so.picking_ids.filtered(lambda p: p.state not in ("done", "cancel"))
+        self.assertFalse(pending, "The boxes are delivered")
+        self.assertEqual(so.invoice_ids.state, "draft")
+
+    def test_sale_button_sold_and_sent_box_order_risk_accepted(self):
+        """Once a risk manager accepts the risk of the sale, its invoice is
+        posted without asking again."""
+        self._set_invoice_risk_limit()
+        if "risk_sale_order_limit" not in self.env["res.partner"]._fields:
+            self.skipTest("sale_financial_risk isn't installed")
+        self.company.allow_overrisk_sale_confirmation = False
+        self.customer.risk_sale_order_limit = 1.0
+        so = self._box_sale()
+        action = so.button_sold_and_sent()
+        self.assertEqual(action["res_model"], "partner.risk.exceeded.wiz")
+        self.assertEqual(so.state, "draft")
+        self.env["partner.risk.exceeded.wiz"].browse(action["res_id"]).button_continue()
+        self.assertEqual(so.state, "sale")
+        self.assertEqual(so.invoice_ids.state, "posted")
+
     # --- The "Deliver Boxes"/"Return Boxes" buttons require at least one
     #     product marked as a box ---
 

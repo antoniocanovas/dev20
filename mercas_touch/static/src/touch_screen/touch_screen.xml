@@ -516,7 +516,7 @@
                         t-att-disabled="this.state.sending" t-on-click="this.onInvoicePurchase">
                     <i class="oi" data-icon="receipt_long"/> Create bill
                 </button>
-                <button t-if="done.kind === 'sale' and done.state === 'sale' and done.invoice_status === 'to invoice'" class="btn btn-primary btn-lg o_mercas_touch_invoice_sale"
+                <button t-if="done.kind === 'sale' and done.state === 'sale' and (done.invoice_status === 'to invoice' or done.invoice_draft)" class="btn btn-primary btn-lg o_mercas_touch_invoice_sale"
                         t-att-disabled="this.state.sending" t-on-click="this.onInvoiceSale">
                     <i class="oi" data-icon="receipt_long"/> Create invoice
                 </button>
