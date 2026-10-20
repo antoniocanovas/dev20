@@ -17,6 +17,39 @@ En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y 
 9. **Código de barras:** el informe estándar *Operaciones de albarán* (`stock.action_report_picking`) sí lleva el `name` en Code128 (`report_stockpicking_operations.xml`). El sistema acepta los dos informes: si no hay código, el modelo lee el número impreso.
 10. **Secretos:** están en `/root/albaranes-ia/.env` (permisos 600) y en las credenciales de n8n. Ninguno está en el código.
 
+## Estado y cómo retomarlo (20/10/2026)
+
+**Hecho:** las fases A–E están desplegadas y probadas en el entorno de pruebas (ver Pruebas). Primera prueba real del usuario, el 16/10:
+- **Foto:** `IMG_5412.HEIC`, incidencia **#17**, WH/OUT/00040 identificado por visión.
+- **Lectura:** acertó los dos cambios a mano: Caja 24 → 20 (92 %) y Cubo 8 → 7 (85 %, dudosa). Las otras 3 líneas, verificadas.
+- **Resolución:** **aprobada** (sin nombre de usuario).
+- **Plan `DRY_RUN`:** devolución de 4 Cajas y 1 Cubo, validarla y crear un abono en borrador desde S00026. La factura INV/2026/00010 ya está publicada.
+
+**Pendiente de decisión del usuario:**
+- **Rectificar de verdad la #17:** `DRY_RUN=false` en Easypanel y relanzar `/erp/rectificar` con su plan. **No hacerlo sin confirmación.**
+- **Commit:** `albaranes-ia/` sigue sin trackear en git. Si se borra, solo queda lo desplegado en el servidor.
+
+**Cambios posteriores a las pruebas:**
+- La tabla de revisión se ordena por la posición en la foto (`bbox[1]`) y ya no pone las dudosas primero.
+
+**Incidencias conocidas:**
+- **DNS con Cloudflare WARP:** en el Mac del usuario, WARP (DNS `127.0.2.2`) devuelve `SERVFAIL` para `*.kw2y1s.easypanel.host`, y los DNS públicos sí lo resuelven. Para comprobar el servidor sin depender de WARP:
+  ```sh
+  curl --resolve ia-support-n8n.kw2y1s.easypanel.host:443:217.154.182.5 …
+  ```
+- **`API_TOKEN` sin definir:** la API no está expuesta a Internet. En producción hay que ponerlo.
+- **Un solo usuario Basic Auth (`revision`):** el campo "usuario" de la revisión es texto libre. En producción, un proxy con SSO (Cloudflare Access, Authelia…).
+
+**Producción:** necesita n8n, albaranes-api, Postgres para las incidencias, la clave del modelo y HTTPS. `barcode-ocr` es opcional. En lugar de Odoo, un adaptador AS400 en `erp/`, cuya parte delicada es rectificar con los programas del ERP. Además:
+- retención de fotos (RGPD);
+- recortar las ejecuciones de n8n;
+- alertas de error;
+- usuarios nominales.
+
+**Ampliaciones estudiadas:**
+- [`albaranes_nagarmur.md`](albaranes_nagarmur.md): prompt para retomar el albarán del cliente con sus códigos, la tabla de equivalencias y el aprendizaje.
+- [`IDEAS.md`](IDEAS.md): otros documentos a los que aplicar la metodología, e IA local (Docling + Ollama) frente a Claude.
+
 ## Arquitectura
 
 ```
