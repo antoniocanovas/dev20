@@ -422,8 +422,14 @@
                 <span>Total</span><span class="o_mercas_touch_total" t-out="this.formatAmount(this.linesTotal())"/>
             </div>
             <div class="small text-muted mb-2">Without taxes. The order computes the final amounts.</div>
-            <div t-if="this.state.mode === 'sale' and this.isOverLimit()" class="alert alert-danger py-2 small o_mercas_touch_risk_warning">
-                The customer exceeds their credit.
+            <div t-if="this.state.mode === 'sale' and this.isOverLimit()"
+                 class="alert alert-danger d-flex align-items-center gap-2 py-2 small o_mercas_touch_risk_warning">
+                <i class="oi" data-icon="warning"/>
+                <span class="flex-grow-1">The customer exceeds their credit.</span>
+                <t t-set="credit" t-value="this.creditUsage()"/>
+                <span t-if="credit" class="text-nowrap o_mercas_touch_risk_amounts" title="Credit used / credit granted">
+                    (<strong t-out="this.formatAmount(credit.used)"/><span class="opacity-75"> / <t t-out="this.formatAmount(credit.limit)"/></span>)
+                </span>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-secondary btn-lg o_mercas_touch_clear"

@@ -31,7 +31,7 @@
 
     <record id="product_template_manzana" model="product.template">
         <field name="name">Manzana</field>
-        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="categ_id" ref="product_category_frutas"/>
         <field name="type">consu</field>
         <field name="is_storable">True</field>
         <field name="tracking">lot</field>
@@ -60,7 +60,7 @@
 
     <record id="product_template_pera" model="product.template">
         <field name="name">Pera</field>
-        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="categ_id" ref="product_category_frutas"/>
         <field name="type">consu</field>
         <field name="is_storable">True</field>
         <field name="tracking">lot</field>
@@ -71,7 +71,7 @@
 
     <record id="product_template_platano" model="product.template">
         <field name="name">Plátano</field>
-        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="categ_id" ref="product_category_frutas"/>
         <field name="type">consu</field>
         <field name="is_storable">True</field>
         <field name="tracking">lot</field>
@@ -83,7 +83,7 @@
 
     <record id="product_template_tomate" model="product.template">
         <field name="name">Tomate</field>
-        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="categ_id" ref="product_category_verduras"/>
         <field name="type">consu</field>
         <field name="is_storable">True</field>
         <field name="tracking">lot</field>
@@ -103,7 +103,7 @@
 
     <record id="product_template_lechuga" model="product.template">
         <field name="name">Lechuga</field>
-        <field name="categ_id" ref="product_category_frutas_verduras"/>
+        <field name="categ_id" ref="product_category_verduras"/>
         <field name="type">consu</field>
         <field name="is_storable">True</field>
         <field name="tracking">lot</field>

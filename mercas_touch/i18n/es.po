@@ -969,6 +969,12 @@ msgstr "No se han podido guardar los cambios."
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Credit used / credit granted"
+msgstr "Crédito usado / crédito concedido"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "The customer exceeds their credit."
 msgstr "El cliente supera su crédito."
 

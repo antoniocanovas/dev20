@@ -566,6 +566,18 @@ export class TouchScreen extends Component {
         return partner.credit_limit > 0 && this.debtTotal() > partner.credit_limit;
     }
 
+    /**
+     * Credit used and granted to show in the risk warning, or null without a credit limit
+     * (the risk can be exceeded by other limits, like the one of open invoices).
+     */
+    creditUsage() {
+        const partner = this.state.partner;
+        const [used, limit] = partner?.risk
+            ? [partner.risk.total, partner.risk.limit]
+            : [this.debtTotal(), partner?.credit_limit];
+        return limit > 0 ? { used, limit } : null;
+    }
+
     // ------------------------------------------------------------------
     // Catalog and lines of the sale and the purchase
     // ------------------------------------------------------------------
