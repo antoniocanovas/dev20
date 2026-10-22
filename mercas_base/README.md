@@ -1,6 +1,6 @@
 # Mercas Base
 
-Módulo base para la gestión de mercados mayoristas de frutas y hortalizas en Odoo 19 Community.
+Módulo base para la gestión de mercados mayoristas de frutas y hortalizas en Odoo 20 Community.
 
 ## Funcionalidades
 
@@ -44,6 +44,23 @@ Cada línea de pedido tiene los campos **Cajas** (`box_qty`) y **Caja** (`box_pr
 
 Al confirmar un pedido de venta se verifica si el cliente tiene una sub-ubicación propia bajo el **Almacén clientes** configurado en la empresa. Si no existe, se crea automáticamente con el nombre del partner y se asigna como `property_stock_customer` del cliente (campo dependiente de empresa).
 
+### Ventas — Calidad y calibre
+
+La calidad y el calibre de lo vendido se guardan para el análisis de ventas, el lote y la liquidación. Se marcan con el campo **Función en Mercas** (`mercas_role`: *Calidad* o *Calibre*) de los atributos de producto (*Ventas > Configuración > Atributos*). Hay dos casos:
+
+- **Mercancía comprada a granel** (por ejemplo, *Manzana granel*): un solo producto, con un único stock y sus lotes. Sus atributos de calidad y calibre tienen *Crear variantes* = «Nunca», así que se eligen **en cada línea de venta**, con el configurador estándar de Odoo al añadir el producto. La misma partida se puede vender un día como *Extra* y días después como *Segunda*, sin fabricar ni reclasificar stock.
+- **Mercancía comprada ya clasificada:** otro producto, cuyas variantes son la calidad y el calibre (*Crear variantes* = «Al instante»), con su stock y sus lotes por variante.
+
+Odoo no deja cambiar el modo de creación de variantes de un atributo una vez usado, así que cada caso necesita sus propios atributos (por ejemplo, *Calibre* y *Calibre granel*). Los valores con el mismo nombre se suman juntos en los informes.
+
+No se añaden columnas a la línea del pedido: los valores elegidos aparecen en su descripción («Manzana granel (Extra, 03)»), que pasa al albarán y a la factura. La línea calcula **Calidad** y **Calibre** (`mercas_quality`, `mercas_size`, no almacenados) a partir de la variante y de los valores elegidos.
+
+Dónde se usan:
+
+- **Análisis de ventas:** columnas **Calidad** y **Calibre**, con agrupación por cada una en la búsqueda (`sale.report`, calculadas en la consulta del informe).
+- **Lote:** en la pestaña **Ventas**, la tabla *Ventas por calidad y calibre* (cantidad, importe y precio medio de lo entregado) y las columnas Calidad y Calibre en la lista de ventas. Ver *Pestañas de trazabilidad*.
+- **Liquidación al proveedor:** solo con el ajuste **Detalle de ventas en factura**, cada venta del desglose termina con su calidad y calibre. Ver *Anticipos en liquidación por venta*.
+
 ### Compras — Comprar y Recibir
 
 El botón **Comprar y Recibir** en el pedido de compra:
@@ -54,6 +71,14 @@ El botón **Comprar y Recibir** en el pedido de compra:
 4. Abre directamente la factura generada.
 
 La factura no se genera automáticamente para pedidos de devolución de envases (ver más abajo), donde ya se crea y valida dentro del propio flujo de confirmación.
+
+### Compras — Albarán del proveedor y autocompletar de la factura
+
+Las recepciones tienen el campo **Albarán del proveedor** (`supplier_ref`), debajo de *Documento de origen*, para anotar el código del albarán que trae el proveedor. Se puede escribir aunque la recepción ya esté validada, y también está en la lista (columna opcional) y en la búsqueda de albaranes.
+
+En la factura de proveedor, **Autocompletar** muestra las recepciones no canceladas de cada pedido de compra junto a su fecha, por ejemplo `WH/IN/00001 (ALB-778)`. El pedido se encuentra escribiendo su nombre, la referencia del proveedor, el nombre de nuestra recepción o el albarán del proveedor. *Buscar más…* tiene la columna **Recepciones**, y su búsqueda también filtra por ella.
+
+Implementación: `purchase.bill.union` añade la columna `mercas_receipts`, calculada en la consulta de la vista, a su búsqueda por nombre (`_rec_names_search`) y a su nombre visible.
 
 ### Compras — Cajas por línea de pedido
 
@@ -194,7 +219,7 @@ Al generar la factura (parcial o la liquidación final), la línea principal (m�
 
 Editar **cualquiera** de los dos campos (Margen o Precio/kg) recalcula los otros dos (margen, precio/kg e importe proveedor) al momento, en pantalla, sin esperar a guardar — en el lote, vía el `compute`/`onchange` del propio campo; en el asistente de liquidación, la línea (`stock.lot.invoice.wizard.line`) recalcula explícitamente los tres valores en sí misma en vez de depender del `related` a `stock.lot` y de vuelta, para que el importe también se actualice en el acto.
 
-**Detalle de ventas en factura** (ajuste de empresa, desactivado por defecto): si está activo, la línea principal de venta de la factura incluye además, en su descripción, un desglose **acumulado** (todas las ventas del lote hasta la fecha, no solo las nuevas desde la última factura) con una línea de texto por cada movimiento de venta validado: `DD/MM/YYYY => Pedido => Cantidad UdM => Precio unitario símbolo_moneda` (p. ej. `05/08/2026 => S00012 => 100.00 kg => 3.50 €`; precio de venta al cliente de ese pedido, neto de descuento — no el precio/proveedor liquidado; UdM y moneda son las propias de la línea de venta, no las de la empresa). Es solo texto informativo: no crea líneas contables nuevas ni afecta al importe o cantidad facturados, así que no hace falta ningún control de "esta venta ya apareció en una factura anterior". No aplica a lotes en facturación firme (ahí no hay margen sobre ventas que desglosar).
+**Detalle de ventas en factura** (ajuste de empresa, desactivado por defecto): si está activo, la línea principal de venta de la factura incluye además, en su descripción, un desglose **acumulado** (todas las ventas del lote hasta la fecha, no solo las nuevas desde la última factura) con una línea de texto por cada movimiento de venta validado: `DD/MM/YYYY => Pedido => Cantidad UdM => Precio unitario símbolo_moneda` (p. ej. `05/08/2026 => S00012 => 100.00 kg => 3.50 €`; si la venta tiene calidad o calibre, se añaden al final: `… => 3.50 € => Extra · 03`, ver *Ventas — Calidad y calibre*; precio de venta al cliente de ese pedido, neto de descuento — no el precio/proveedor liquidado; UdM y moneda son las propias de la línea de venta, no las de la empresa). Es solo texto informativo: no crea líneas contables nuevas ni afecta al importe o cantidad facturados, así que no hace falta ningún control de "esta venta ya apareció en una factura anterior". No aplica a lotes en facturación firme (ahí no hay margen sobre ventas que desglosar).
 
 Con el mismo ajuste activo, la línea de desecho del modo "Precio medio + desecho aparte" (ver arriba) también incluye su propio desglose acumulado, uno por cada regularización de desecho del lote (mismo criterio que `Kg desechados`: desechos formales y ajustes de inventario negativos en positivo, ajustes positivos en negativo): `DD/MM/YYYY => Cantidad UdM` (p. ej. `06/08/2026 => 10.00 kg`).
 
@@ -245,6 +270,8 @@ El campo booleano **Facturable** (`invoiceable`, almacenado) unifica el criterio
 #### Pestañas de trazabilidad
 
 El formulario incluye pestañas con las líneas de compra, venta, facturas de proveedor, facturas de cliente y desechos asociados al lote, cada una con cantidad y subtotal totalizados al pie de la lista.
+
+La pestaña **Ventas** muestra además, si alguna venta tiene calidad o calibre, la tabla **Ventas por calidad y calibre**: cantidad, importe y precio medio de lo entregado de cada combinación, con los mismos movimientos e importes que *Kg vendidos* e *Importe vendido*. Su lista tiene las columnas opcionales **Calidad** y **Calibre**.
 
 #### Facturación de lotes a proveedor
 
@@ -326,7 +353,7 @@ Ambos exigen que exista al menos un producto marcado como caja/envase (mismo gua
 | **Margen Mercas (%)** | Margen general aplicado a los lotes cuando el partner no tiene margen propio. |
 | **Confirmar factura proveedor automáticamente** | Si está activo, las facturas de liquidación de lotes se confirman al generarse. |
 | **Modo de liquidación** | "Precio medio (una línea)" o "Precio medio + desecho aparte". Solo afecta a lotes en liquidación por venta (no a facturación firme) — ver *Anticipos en liquidación por venta*. |
-| **Detalle de ventas en factura** | Si está activo, añade a la descripción de la línea de venta un desglose acumulado (fecha, pedido, cantidad, precio) de cada venta del lote, y a la línea de desecho (modo "desecho aparte") un desglose acumulado (fecha, cantidad) de cada regularización. Solo texto informativo — ver *Anticipos en liquidación por venta*. |
+| **Detalle de ventas en factura** | Si está activo, añade a la descripción de la línea de venta un desglose acumulado (fecha, pedido, cantidad, precio y, si los tiene, calidad y calibre) de cada venta del lote, y a la línea de desecho (modo "desecho aparte") un desglose acumulado (fecha, cantidad) de cada regularización. Solo texto informativo — ver *Anticipos en liquidación por venta*. |
 
 ## Menú Mercas
 
@@ -352,6 +379,7 @@ El `post_init_hook` activa automáticamente, como si un usuario marcase las casi
 - `stock`
 - `account`
 - `sale_stock`
+- `purchase_stock` — recepciones de los pedidos de compra en el autocompletar de la factura de proveedor
 - `contacts`
 - `bus` — aviso en tiempo real de edición concurrente en pedidos de venta
 - `product` — asistente de impresión de etiquetas (reutiliza `product.label.layout`)
@@ -370,4 +398,4 @@ El `post_init_hook` activa automáticamente, como si un usuario marcase las casi
 
 ## Compatibilidad
 
-Odoo **19.0 Community**
+Odoo **20.0 Community**

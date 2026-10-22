@@ -91,15 +91,34 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
 .resuelta { padding: 12px 14px; font-size: 14px; display: grid; gap: 6px; }
 .resuelta ul { margin: 4px 0 0 18px; padding: 0; }
 .vacio { padding: 24px; color: var(--muted); }
+#imprimir { margin-left: auto; }
+.foto-impresion { display: none; }
+@media print {
+  :root:not(#_) { --bg: #fff; --panel: #fff; --text: #000; --muted: #444; --border: #bbb; --warn-bg: #fff; } /* gana al tema oscuro */
+  header > a, #imprimir, .visor, .controles, .pie, #banner { display: none !important; }
+  header { padding: 0 0 8px; border: none; }
+  main { display: flex; flex-direction: column; padding: 0; gap: 10px; }
+  main > .panel:first-child { order: 2; break-before: page; border: none; }
+  .panel { border: none; border-radius: 0; } .tabla-wrap { overflow: visible; }
+  .foto-impresion { display: block; max-width: 100%; max-height: 95vh; margin: 0 auto; }
+  table { font-size: 11px; } th, td { padding: 4px 6px; }
+  tr { break-inside: avoid; } thead { display: table-header-group; }
+  tr.linea.revisar td { background: none; } tr.linea.revisar td:first-child { box-shadow: inset 3px 0 0 #000; }
+  input[type=number] { border: none; padding: 0; width: auto; font-weight: 700; }
+  .chip { border: 1px solid #999; background: none !important; color: #000 !important; }
+  .aviso { border: 1px solid #999; color: #000; margin: 6px 0 0; }
+}
 </style>
 </head>
 <body>
 <script id="datos" type="application/json">__DATOS__</script>
 <header>
-  <a href="../revision">← Pendientes</a>
+  <a href="../revision">← Por revisar</a>
   <h1 id="titulo">Albarán</h1>
   <span id="estado" class="chip neutral"></span>
+  <span id="marca" class="chip neutral" style="display:none"></span>
   <span class="sub" id="subtitulo"></span>
+  <button type="button" id="imprimir" onclick="window.print()">Imprimir</button>
 </header>
 <div id="banner"></div>
 <main>
@@ -113,6 +132,7 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
       <button type="button" id="rder" title="Girar a la derecha">⟳</button>
       <a id="original" href="#" target="_blank" rel="noopener" style="align-self:center;margin-left:auto;font-size:13px;color:var(--accent)">Abrir foto</a>
     </div>
+    <img class="foto-impresion" id="foto-impresion" alt="Foto del albarán">
   </section>
   <section class="panel">
     <div class="cab" id="cab"></div>
@@ -141,11 +161,11 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
   var guardar = function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} };
   var leer = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
 
-  if (!inc) { document.querySelector("main").innerHTML = '<p class="vacio">No se encuentra la incidencia.</p>'; return; }
+  if (!inc) { document.querySelector("main").innerHTML = '<p class="vacio">No se encuentra el reconocimiento.</p>'; return; }
 
   var ESTADOS = {
-    recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Error", "bad"],
-    verificado: ["Verificado", "ok"], pendiente_revision: ["Pendiente de revisión", "warn"],
+    recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Por revisar", "warn"],
+    verificado: ["Por revisar", "warn"], pendiente_revision: ["Por revisar", "warn"],
     aprobada: ["Aprobada", "ok"], corregida: ["Corregida", "ok"], rechazada: ["Rechazada", "bad"],
     rectificada: ["Rectificada en el ERP", "ok"]
   };
@@ -155,7 +175,10 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
   document.title = "Revisión " + (inc.albaran_numero || "#" + inc.id);
   $("titulo").textContent = "Albarán " + (inc.albaran_numero || "sin identificar");
   $("estado").textContent = est[0]; $("estado").className = "chip " + est[1];
-  $("subtitulo").textContent = "Incidencia #" + inc.id + " · " + new Date(inc.creada).toLocaleString("es-ES");
+  var MARCAS = { original: ["Original", "neutral"], modificado: ["Modificado", "warn"], error: ["Error", "bad"] };
+  if (MARCAS[inc.marca]) { $("marca").style.display = ""; $("marca").textContent = MARCAS[inc.marca][0];
+    $("marca").className = "chip " + MARCAS[inc.marca][1]; }
+  $("subtitulo").textContent = "Reconocimiento #" + inc.id + " · " + new Date(inc.creada).toLocaleString("es-ES");
   if (inc.dry_run) $("banner").innerHTML = '<div class="banner">Modo simulación (DRY_RUN): al aprobar se registra qué se haría en el ERP, sin escribir nada.</div>';
 
   var cab = [];
@@ -213,19 +236,19 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
       '<div class="pie"><label>Revisado por <input type="text" id="usuario" maxlength="60" autocomplete="name"></label>' +
       '<label>Comentario <textarea id="comentario" rows="2" maxlength="500"></textarea></label>' +
       '<div class="acciones"><button type="button" class="primario" id="aprobar">Aprobar</button>' +
-      '<button type="button" id="corregir">Corregir y aprobar</button>' +
       '<button type="button" class="peligro" id="rechazar">Rechazar</button></div></div>';
     $("usuario").value = leer("revision.usuario") || "";
-    var faltaIA = lineas.some(function (l) { return l.cantidad_final == null; });
+    /* Se aplica siempre la columna Final; si alguna difiere de la IA se guarda como corregida. */
+    var cambiado = false;
     var refrescar = function () {
-      var cambiado = false, vacio = false;
+      var vacio = false;
+      cambiado = false;
       inputs.forEach(function (i) {
         var c = i.value !== i.dataset.ia; i.classList.toggle("cambiado", c); cambiado = cambiado || c;
         vacio = vacio || i.value === "";
       });
-      $("aprobar").disabled = faltaIA || cambiado;
-      $("aprobar").title = faltaIA ? "Hay líneas sin cantidad leída: corrige y aprueba" : (cambiado ? "Has cambiado cantidades: usa Corregir y aprobar" : "");
-      $("corregir").disabled = vacio;
+      $("aprobar").disabled = vacio;
+      $("aprobar").title = vacio ? "Falta la cantidad final de alguna línea" : "Se aplican las cantidades de la columna Final";
     };
     inputs.forEach(function (i) { i.addEventListener("input", refrescar); i.addEventListener("click", function (e) { e.stopPropagation(); }); });
     refrescar();
@@ -240,12 +263,27 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
       document.querySelectorAll(".acciones button").forEach(function (b) { b.disabled = true; });
       f.submit();
     };
-    $("aprobar").onclick = function () { enviar("aprobar"); };
-    $("corregir").onclick = function () { enviar("corregir"); };
+    $("aprobar").onclick = function () { enviar(cambiado ? "corregir" : "aprobar"); };
     $("rechazar").onclick = function () {
       var b = $("rechazar");
       if (!b.classList.contains("confirmar")) { b.classList.add("confirmar"); b.textContent = "¿Seguro? Rechazar"; setTimeout(function () { b.classList.remove("confirmar"); b.textContent = "Rechazar"; }, 4000); return; }
       enviar("rechazar");
+    };
+  } else if (inc.estado === "error") {
+    /* Formularios normales: la página va en sandbox y fetch no lleva la Basic Auth.
+       Reintentar vuelve a pasar la foto original por la ingesta (n8n); Eliminar la borra. */
+    $("zona-accion").innerHTML = '<div class="pie"><div class="acciones">' +
+      '<button type="button" class="primario" id="reintentar">Reintentar</button>' +
+      '<button type="button" class="peligro" id="eliminar">Eliminar</button></div></div>';
+    var publicar = function (ruta) {
+      document.querySelectorAll(".acciones button").forEach(function (b) { b.disabled = true; });
+      var f = $("form"); f.action = "../" + ruta + "/" + inc.id; f.submit();
+    };
+    $("reintentar").onclick = function () { $("reintentar").textContent = "Reintentando… (puede tardar un minuto)"; publicar("reintentar"); };
+    $("eliminar").onclick = function () {
+      var b = $("eliminar");
+      if (!b.classList.contains("confirmar")) { b.classList.add("confirmar"); b.textContent = "¿Seguro? Eliminar"; setTimeout(function () { b.classList.remove("confirmar"); b.textContent = "Eliminar"; }, 4000); return; }
+      publicar("eliminar");
     };
   } else {
     var r = inc.resolucion || {}, rc = inc.rectificacion || {};
@@ -268,6 +306,7 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
   var st = { s: 1, rot: 0, x: 0, y: 0 };
   img.width = W; img.height = H;
   img.src = inc.imagen || "";
+  $("foto-impresion").src = inc.imagen || "";
   $("original").href = inc.imagen || "#";
   lineas.forEach(function (l) {
     if (!l.bbox) return;

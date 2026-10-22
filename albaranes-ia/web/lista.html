@@ -46,8 +46,28 @@ button, .boton { font: inherit; border: 1px solid var(--accent); background: var
 .filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .filtros a { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; font-size: 13px; background: var(--panel); }
 .filtros a.activo { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
+.barra { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin-bottom: 12px; }
+.barra label { display: grid; gap: 2px; font-size: 12px; color: var(--muted); }
+.barra input { font: inherit; font-size: 14px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); color: var(--text); }
+.barra .secundario { background: var(--panel); color: var(--accent); }
+.barra .fin { margin-left: auto; }
+button:disabled { opacity: .45; cursor: not-allowed; }
 tr.fila { cursor: pointer; } tr.fila:hover td { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 @media (max-width: 640px) { .ocultar-movil { display: none; } }
+.solo-impresion { display: none; }
+@media print {
+  :root:not(#_) { --bg: #fff; --panel: #fff; --text: #000; --muted: #444; --border: #bbb; } /* gana al tema oscuro */
+  header, .filtros, .barra, #error-lista, main > p.muted { display: none !important; }
+  .solo-impresion { display: block; margin: 0 0 8px; }
+  .solo-impresion h1 { font-size: 16px; margin: 0; } .solo-impresion div { font-size: 12px; color: #444; }
+  main { max-width: none; padding: 0; }
+  .panel { border: none; border-radius: 0; } .tabla-wrap { overflow: visible; }
+  .ocultar-movil { display: table-cell !important; }
+  table { font-size: 11px; } th, td { padding: 4px 6px; }
+  tr { break-inside: avoid; } thead { display: table-header-group; }
+  td a { color: #000; text-decoration: none; }
+  .chip { border: 1px solid #999; background: none !important; color: #000 !important; }
+}
 </style>
 </head>
 <body>
@@ -55,8 +75,19 @@ tr.fila { cursor: pointer; } tr.fila:hover td { background: color-mix(in srgb, v
 <header><h1>Albaranes modificados a mano</h1><a href="subir">Subir foto</a></header>
 <main>
   <nav class="filtros" id="filtros"></nav>
+  <form class="barra" id="fechas" method="get">
+    <input type="hidden" name="estado" id="f-estado">
+    <label>Recibidos desde <input type="date" name="desde" id="f-desde"></label>
+    <label>hasta <input type="date" name="hasta" id="f-hasta"></label>
+    <button type="submit">Filtrar</button>
+    <a class="boton secundario" id="f-quitar" href="#">Quitar fechas</a>
+    <button type="button" class="fin" id="exportar">Exportar a hoja de cálculo</button>
+    <button type="button" class="secundario" id="imprimir">Imprimir</button>
+  </form>
+  <div id="error-lista"></div>
+  <div class="solo-impresion"><h1>Albaranes modificados a mano</h1><div id="impresion-filtro"></div></div>
   <div class="panel tabla-wrap">
-    <table><thead><tr><th>#</th><th>Albarán</th><th class="ocultar-movil">Cliente</th><th>Estado</th><th class="num">A revisar</th><th class="ocultar-movil">Recibida</th></tr></thead>
+    <table><thead><tr><th>#</th><th>Albarán</th><th class="ocultar-movil">Cliente</th><th>Estado</th><th>Tipo</th><th class="num">A revisar</th><th class="ocultar-movil">Recibida</th></tr></thead>
     <tbody id="filas"></tbody></table>
   </div>
   <p class="muted">Con la cámara del móvil: abre <a href="subir">Subir foto</a> y haz la foto al albarán.</p>
@@ -67,21 +98,55 @@ tr.fila { cursor: pointer; } tr.fila:hover td { background: color-mix(in srgb, v
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var fmt = function (n) { return n == null ? "—" : (Math.round(n * 1000) / 1000).toLocaleString("es-ES"); };
-  var ESTADOS = { recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Error", "bad"],
-    verificado: ["Verificado", "ok"], pendiente_revision: ["Pendiente de revisión", "warn"], aprobada: ["Aprobada", "ok"],
+  var ESTADOS = { recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Por revisar", "warn"],
+    verificado: ["Por revisar", "warn"], pendiente_revision: ["Por revisar", "warn"], aprobada: ["Aprobada", "ok"],
     corregida: ["Corregida", "ok"], rechazada: ["Rechazada", "bad"], rectificada: ["Rectificada en el ERP", "ok"] };
   var chip = function (e) { var x = ESTADOS[e] || [e, "neutral"]; return '<span class="chip ' + x[1] + '">' + esc(x[0]) + "</span>"; };
+  var MARCAS = { original: ["Original", "neutral"], modificado: ["Modificado", "warn"], error: ["Error", "bad"] };
+  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class="chip ' + x[1] + '">' + x[0] + "</span>" : ""; };
   var d = JSON.parse($("datos").textContent || "{}");
-  var filtros = [["pendiente_revision,verificado", "Por revisar"], ["pendiente_revision", "Pendientes"], ["verificado", "Verificados"],
-    ["aprobada,corregida,rectificada", "Resueltos"], ["rechazada", "Rechazados"], ["error", "Con error"], ["", "Todos"]];
+  var filtros = [["pendiente_revision,verificado,error", "Por revisar"],
+    ["aprobada,corregida,rectificada", "Resueltos"], ["rechazada", "Rechazados"], ["", "Todos"]];
+  /* Los filtros de estado conservan las fechas y el de fechas conserva el estado */
+  var fechasQs = (d.desde ? "&desde=" + encodeURIComponent(d.desde) : "") + (d.hasta ? "&hasta=" + encodeURIComponent(d.hasta) : "");
+  $("f-estado").value = d.estado || ""; $("f-desde").value = d.desde || ""; $("f-hasta").value = d.hasta || "";
+  $("f-quitar").href = "?estado=" + encodeURIComponent(d.estado || "");
+  $("f-quitar").style.display = d.desde || d.hasta ? "" : "none";
+  if (d.error) $("error-lista").innerHTML = '<div class="error">' + esc(d.error) + "</div>";
   $("filtros").innerHTML = filtros.map(function (f) {
-    return '<a href="?estado=' + encodeURIComponent(f[0]) + '"' + (f[0] === (d.estado || "") ? ' class="activo"' : "") + ">" + f[1] + "</a>"; }).join("");
+    return '<a href="?estado=' + encodeURIComponent(f[0]) + fechasQs + '"' + (f[0] === (d.estado || "") ? ' class="activo"' : "") + ">" + f[1] + "</a>"; }).join("");
   var filas = d.resultados || [];
   $("filas").innerHTML = filas.map(function (r) {
     return '<tr class="fila" data-id="' + r.id + '"><td>' + r.id + "</td><td><a href=\"revision/" + r.id + '">' + esc(r.albaran_numero || "sin identificar") + "</a>" +
-      (r.error ? '<div class="muted">' + esc(r.error) + "</div>" : "") + '</td><td class="ocultar-movil">' + esc(r.cliente || "") + "</td><td>" + chip(r.estado) +
+      (r.error ? '<div class="muted">' + esc(r.error) + "</div>" : "") + '</td><td class="ocultar-movil">' + esc(r.cliente || "") + "</td><td>" + chip(r.estado) + "</td><td>" + marca(r.marca) +
       '</td><td class="num">' + (r.lineas ? r.revisar + " / " + r.lineas : "—") + '</td><td class="ocultar-movil muted">' + new Date(r.creada).toLocaleString("es-ES") + "</td></tr>";
-  }).join("") || '<tr><td colspan="6" class="muted">No hay albaranes en este estado.</td></tr>';
+  }).join("") || '<tr><td colspan="7" class="muted">No hay albaranes con estos filtros.</td></tr>';
+  /* Exportar: CSV de la vista en curso para Excel en español (separador ";", coma decimal, BOM UTF-8) */
+  var nombreFiltro = (filtros.filter(function (f) { return f[0] === (d.estado || ""); })[0] || [, "vista"])[1];
+  var fecha = function (s) { return s ? new Date(s).toLocaleString("es-ES", { timeZone: "Europe/Madrid" }) : ""; };
+  var celda = function (v) { v = v == null ? "" : String(v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  $("exportar").disabled = !filas.length;
+  $("exportar").onclick = function () {
+    var cab = ["Reconocimiento", "Albarán", "Cliente", "Estado", "Tipo", "Líneas", "Líneas a revisar", "Cambios aprobados",
+      "Recibido", "Revisado por", "Fecha de revisión", "Comentario", "Error"];
+    var lineas = filas.map(function (r) {
+      return [r.id, r.albaran_numero, r.cliente, (ESTADOS[r.estado] || [r.estado])[0], (MARCAS[r.marca] || [""])[0],
+        r.lineas, r.lineas ? r.revisar : "", r.cambios, fecha(r.creada), r.revisado_por, fecha(r.revisado), r.comentario, r.error].map(celda).join(";");
+    });
+    var csv = "\ufeff" + [cab.join(";")].concat(lineas).join("\r\n");
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.download = ["albaranes", nombreFiltro.toLowerCase().replace(/\s+/g, "-"), d.desde, d.hasta].filter(Boolean).join("_") + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  };
+  /* Imprimir: la vista en curso, con el filtro y las fechas en el título */
+  var dia = function (s) { return s ? s.split("-").reverse().join("/") : ""; };
+  $("impresion-filtro").textContent = nombreFiltro +
+    (d.desde || d.hasta ? " · recibidos " + (d.desde ? "desde el " + dia(d.desde) : "") + (d.desde && d.hasta ? " " : "") + (d.hasta ? "hasta el " + dia(d.hasta) : "") : "") +
+    " · " + filas.length + " albarán" + (filas.length === 1 ? "" : "es") + " · impreso el " + new Date().toLocaleString("es-ES", { timeZone: "Europe/Madrid" });
+  $("imprimir").disabled = !filas.length;
+  $("imprimir").onclick = function () { window.print(); };
   document.querySelectorAll("tr.fila").forEach(function (t) { t.addEventListener("click", function (e) { if (e.target.tagName !== "A") location.href = "revision/" + t.dataset.id; }); });
 })();
 </script>

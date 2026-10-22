@@ -41,6 +41,48 @@ class SaleOrderLine(models.Model):
              "quantity) or, if later, when the quantity was last modified.",
     )
 
+    mercas_quality = fields.Char(
+        string="Quality",
+        compute="_compute_mercas_classification",
+        help="Values of the attributes with the Quality role: of the product "
+             "variant, or chosen on the line for goods bought in bulk.",
+    )
+    mercas_size = fields.Char(
+        string="Size",
+        compute="_compute_mercas_classification",
+        help="Values of the attributes with the Size role: of the product "
+             "variant, or chosen on the line for goods bought in bulk.",
+    )
+
+    @api.depends(
+        "product_id.product_template_attribute_value_ids",
+        "product_no_variant_attribute_value_ids",
+    )
+    def _compute_mercas_classification(self):
+        for line in self:
+            values = line._mercas_classification_values()
+            line.mercas_quality = ", ".join(values["quality"].mapped("name"))
+            line.mercas_size = ", ".join(values["size"].mapped("name"))
+
+    def _mercas_classification_values(self):
+        """Attribute values of the line by Merca role: {'quality': ptavs,
+        'size': ptavs}, from the variant and from the values chosen on the
+        line (attributes that never create variants)."""
+        self.ensure_one()
+        ptavs = (
+            self.product_id.product_template_attribute_value_ids
+            | self.product_no_variant_attribute_value_ids._origin
+        ).sorted(lambda ptav: (ptav.attribute_id.sequence, ptav.product_attribute_value_id.sequence))
+        return {
+            role: ptavs.filtered(lambda ptav, role=role: ptav.attribute_id.mercas_role == role)
+            for role in ("quality", "size")
+        }
+
+    def _mercas_classification_text(self):
+        """'Quality · Size' of the line, empty without them."""
+        self.ensure_one()
+        return " · ".join(part for part in (self.mercas_quality, self.mercas_size) if part)
+
     @api.depends("move_ids.move_line_ids.state", "move_ids.move_line_ids.lot_id")
     def _compute_mercas_has_assigned_lot(self):
         for line in self:

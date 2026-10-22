@@ -86,12 +86,30 @@ class Store:
         with self.pool.connection() as c:
             return c.execute(f"SELECT {col}, nombre_fichero FROM incidencia WHERE id=%s", (id_,)).fetchone()
 
-    def listar(self, estado=None, limite=50):
-        sql = f"SELECT {SIN_FOTOS} FROM incidencia"
+    def eliminar(self, id_, estado_esperado):
+        with self.pool.connection() as c:
+            return c.execute("DELETE FROM incidencia WHERE id=%s AND estado = ANY(%s) RETURNING id",
+                             (id_, list(estado_esperado))).fetchone()
+
+    def listar(self, estado=None, limite=50, albaran=None, excluir=None, desde=None, hasta=None):
+        sql = f"SELECT {SIN_FOTOS} FROM incidencia WHERE true"
         args = []
         if estado:
-            sql += " WHERE estado = ANY(%s)"
+            sql += " AND estado = ANY(%s)"
             args.append(estado.split(","))
+        if albaran:
+            sql += " AND albaran_numero = %s"
+            args.append(albaran)
+        if excluir:
+            sql += " AND id <> %s"
+            args.append(excluir)
+        # Fechas de recepción en hora de Madrid; `hasta` incluye el día entero.
+        if desde:
+            sql += " AND creada >= (%s::date)::timestamp AT TIME ZONE 'Europe/Madrid'"
+            args.append(desde)
+        if hasta:
+            sql += " AND creada < (%s::date + 1)::timestamp AT TIME ZONE 'Europe/Madrid'"
+            args.append(hasta)
         sql += " ORDER BY creada DESC LIMIT %s"
         args.append(limite)
         with self.pool.connection() as c:

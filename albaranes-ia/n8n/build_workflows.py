@@ -12,6 +12,7 @@ import os
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API = "http://ia-support_albaranes-api:8000"
 OCR = "http://ia-support_barcode-ocr:8000"
+N8N_INTERNO = "http://127.0.0.1:5678"  # el propio n8n, para reutilizar el flujo de ingesta
 CRED_BASIC = {"httpBasicAuth": {"id": "AlbIaBasicAuth01", "name": "Albaranes IA - Basic Auth"}}
 CRED_IA = {"httpHeaderAuth": {"id": "t9FUZIt3bCUbzN4K", "name": "Openrouter Header Auth account"}}
 PATRON_ALBARAN = r"^[A-Z0-9]+/(OUT|IN|INT)/\d+$"
@@ -134,7 +135,7 @@ const i = $input.first().json;
 const quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';
 const d = i.decision || {};
 const datos = {
-  titulo: 'Foto ya procesada', duplicada: true, incidencia_id: i.id, estado: i.estado,
+  titulo: 'Foto ya procesada', duplicada: true, incidencia_id: i.id, estado: i.estado, marca: i.marca,
   albaran: i.albaran_numero, cliente: ((i.erp || {}).cliente || {}).nombre, origen_numero: i.origen_numero,
   tabla: (d.lineas || []).map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,
     erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: (l.motivos || []).join(', ') })),
@@ -190,10 +191,17 @@ return quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/'
                params={"sendQuery": True, "queryParameters": {"parameters": [{"name": "numero", "value": "={{ $json.numero }}"}]}})
     f.unir(set_cod, erp); f.unir(set_vis, erp)
 
+    # Otros reconocimientos del mismo albarán (otra foto): solo es un aviso, no para el flujo.
+    prev = http(f, "Reconocimientos previos", "GET", f"={API}/incidencias", (2310, -100), error="continueRegularOutput",
+                params={"sendQuery": True, "queryParameters": {"parameters": [
+                    {"name": "albaran", "value": "={{ $json.numero }}"},
+                    {"name": "excluir", "value": "={{ $('Guardar incidencia').first().json.id }}"}]}})
+    f.unir(erp, prev)
+
     pl = http(f, "Petición lectura", "POST", f"{API}/vision/peticion", (2420, 80),
-              body="{ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'lectura', albaran: $json }",
+              body="{ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'lectura', albaran: $('Albarán en el ERP').first().json }",
               error="continueErrorOutput")
-    f.unir(erp, pl)
+    f.unir(prev, pl)
     ial = http(f, "IA: leer albarán", "POST", "={{ $json.url }}", (2640, 80), body="$json.body", timeout=180000,
                error="continueErrorOutput", params={"authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
                                                    "sendHeaders": True, "specifyHeaders": "json",
@@ -246,8 +254,18 @@ if (lect.numero_albaran && lect.numero_albaran.replace(/\s/g, '') !== erp.numero
 if (lect.calidad_imagen === 'mala') avisos.push('Calidad de imagen mala: conviene repetir la foto');
 const estado = lineas.every(l => l.estado === 'verificado') && !extras.length && lect.calidad_imagen !== 'mala' && avisos.length === 0
   ? 'verificado' : 'pendiente_revision';
+// Aviso de reconocimientos previos del mismo albarán: se informa, pero no cambia el estado.
+const previos = ($('Reconocimientos previos').first().json.resultados || [])
+  .map(r => ({ id: r.id, estado: r.estado, creada: r.creada }));
+const ESTADO_TXT = { recibida: 'recibido', procesando: 'procesando', verificado: 'por revisar', pendiente_revision: 'por revisar',
+  error: 'con error', aprobada: 'aprobado', corregida: 'corregido', rechazada: 'rechazado', rectificada: 'rectificado en el ERP' };
+const dia = c => String(c || '').slice(0, 10).split('-').reverse().join('/');
+if (previos.length) avisos.push('Este albarán ya se había reconocido antes: ' +
+  previos.map(r => '#' + r.id + ' del ' + dia(r.creada) + ' (' + (ESTADO_TXT[r.estado] || r.estado) + ')').join(', '));
 const revision_url = (ins.url_revision || '') + '/' + inc.id;
-const decision = { estado, umbral, variacion_sospechosa: varMax, lineas, extras, avisos, revision_url };
+// Original / Modificado según lo que detecta la IA (tras aprobar, la API lo recalcula con lo aprobado).
+const marca = lineas.some(l => l.cantidad_final != null && l.cantidad_final !== l.erp) || extras.length ? 'modificado' : 'original';
+const decision = { estado, marca, umbral, variacion_sospechosa: varMax, lineas, extras, avisos, previos, revision_url };
 
 // Nota para el historial del albarán
 const e = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -256,8 +274,9 @@ const MOT = { modificada: 'cambiada a mano', tachon_ilegible: 'tachón sin núme
   dudosa: 'lectura dudosa', variacion_sospechosa: 'variación grande', supera_pedido: 'supera lo pedido', no_leida: 'no leída',
   tachado_sin_cambio: 'tachado sin cambio' };
 const revisar = lineas.filter(l => l.estado !== 'verificado');
-let nota = '<p><b>Foto del albarán leída por IA</b> (incidencia #' + inc.id + '): <b>' +
-  (estado === 'verificado' ? 'verificado, coincide con el ERP' : 'pendiente de revisión') + '</b>.</p>';
+let nota = '<p><b>Foto del albarán leída por IA</b> (reconocimiento #' + inc.id + '): <b>' +
+  (marca === 'modificado' ? 'Modificado' : 'Original') + '</b>, ' +
+  (estado === 'verificado' ? 'coincide con el ERP' : 'por revisar') + '.</p>';
 if (revisar.length) nota += '<ul>' + revisar.map(l => '<li>' + e((l.referencia ? '[' + l.referencia + '] ' : '') + l.producto) + ': ERP ' +
   f(l.erp) + ' → foto ' + f(l.cantidad_final) + ' (' + e(l.motivos.map(m => MOT[m] || m).join(', ')) +
   (l.confianza != null ? ', confianza ' + Math.round(l.confianza * 100) + '%' : '') + ')</li>').join('') + '</ul>';
@@ -285,7 +304,7 @@ const notaOk = !$input.first().json.error;
 const tabla = dec.lineas.map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,
   erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: l.motivos.join(', ') }));
 const datos = {
-  titulo: 'Lectura del albarán', incidencia_id: d.incidencia_id, estado: p.estado, albaran: p.albaran_numero,
+  titulo: 'Lectura del albarán', incidencia_id: d.incidencia_id, estado: p.estado, marca: dec.marca, albaran: p.albaran_numero,
   cliente: (p.erp.cliente || {}).nombre, origen_numero: p.origen_numero, tabla,
   avisos: dec.avisos.concat(notaOk ? [] : ['No se pudo añadir la nota en el albarán del ERP']),
   extras: dec.extras, revision_url: dec.revision_url, modelo: (p.lectura.meta || {}).modelo,
@@ -319,8 +338,9 @@ return [{ json: { incidencia_id: it.incidencia_id, error: it.paso + ': ' + Strin
     re_ = code(f, "Respuesta error", JS_COMUN + "const P = " + plantilla_resultado + r""";
 const e = $('Preparar error').first().json;
 const quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';
-const datos = { titulo: 'No se ha podido leer el albarán', estado: 'error', incidencia_id: e.incidencia_id, error: e.error,
-  mensaje: 'La foto queda guardada. Puedes repetirla o volver a procesarla marcando «Volver a procesar».' };
+const datos = { titulo: 'No se ha podido leer el albarán', estado: 'error', marca: 'error', incidencia_id: e.incidencia_id, error: e.error,
+  mensaje: 'La foto queda guardada. Puedes reintentarla, eliminarla o subir otra mejor.',
+  enlace: e.incidencia_id ? '/webhook/albaranes/revision/' + e.incidencia_id : null, enlace_texto: 'Reintentar o eliminar' };
 return quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' }), 422) : json(datos, 422);""", (3080, 420))
     f.unir(me, re_)
 
@@ -337,13 +357,18 @@ def revision():
 
     # Lista
     w1 = webhook(f, "GET revision", "GET", "albaranes/revision", (0, 0))
-    l1 = http(f, "Listar incidencias", "GET", f"{API}/incidencias", (220, 0), params={
+    l1 = http(f, "Listar incidencias", "GET", f"{API}/incidencias", (220, 0), completa=True, params={
         "sendQuery": True, "queryParameters": {"parameters": [
-            {"name": "estado", "value": "={{ $json.query.estado ?? 'pendiente_revision,verificado' }}"},
-            {"name": "limite", "value": "200"}]}})
+            {"name": "estado", "value": "={{ $json.query.estado ?? 'pendiente_revision,verificado,error' }}"},
+            {"name": "desde", "value": "={{ $json.query.desde || '' }}"},
+            {"name": "hasta", "value": "={{ $json.query.hasta || '' }}"},
+            {"name": "limite", "value": "500"}]}})
     c1 = code(f, "Página lista", JS_COMUN + "const P = " + json.dumps(web("lista.html")) + r""";
-const d = $input.first().json;
-d.estado = $('GET revision').first().json.query.estado ?? 'pendiente_revision,verificado';
+const r = $input.first().json;
+const q = $('GET revision').first().json.query;
+const d = r.statusCode === 200 ? r.body : { resultados: [], error: detalle(r) };
+d.estado = q.estado ?? 'pendiente_revision,verificado,error';
+d.desde = q.desde || ''; d.hasta = q.hasta || '';
 return html(incrustar(P, d));""", (440, 0))
     f.unir(w1, l1); f.unir(l1, c1); f.unir(c1, resp)
 
@@ -362,6 +387,41 @@ return html(incrustar(P, r.statusCode === 200 ? r.body : null), r.statusCode ===
 const r = $input.first().json;
 return json(r.body, r.statusCode);""", (440, 400))
     f.unir(w3, l3); f.unir(l3, c3); f.unir(c3, resp)
+
+    # Reconocimientos con error. La página va en sandbox sin allow-same-origin (fetch no lleva
+    # la Basic Auth), así que usa formularios POST a estas rutas de 2 segmentos (no chocan con
+    # POST api/incidencia/:id/resolver).
+    # Reintentar: la foto original (misma huella) vuelve a pasar por el flujo de ingesta.
+    w5 = webhook(f, "POST reintentar/:id", "POST", "reintentar/:id", (0, 880))
+    l5 = http(f, "Foto original", "GET", f"={API}/incidencias/{{{{ $json.params.id }}}}/imagen?original=true", (220, 880),
+              params={"options": {"timeout": 60000, "response": {"response": {"responseFormat": "file", "outputPropertyName": "foto"}}}})
+    l6 = f.nodo("Ingesta con reprocesar", "n8n-nodes-base.httpRequest", 4.2, {
+        "method": "POST", "url": f"{N8N_INTERNO}/webhook/albaranes/ingesta?html=1",
+        "authentication": "genericCredentialType", "genericAuthType": "httpBasicAuth",
+        "sendBody": True, "contentType": "multipart-form-data",
+        "bodyParameters": {"parameters": [
+            {"parameterType": "formBinaryData", "name": "foto", "inputDataFieldName": "foto"},
+            {"name": "reprocesar", "value": "true"}]},
+        "options": {"timeout": 300000, "response": {"response": {"fullResponse": True, "neverError": True, "responseFormat": "text"}}}},
+        (440, 880), credentials=CRED_BASIC)
+    c6 = code(f, "Respuesta reintentar", JS_COMUN + r"""
+const r = $input.first().json;
+return html(String(r.body ?? r.data ?? ''), r.statusCode || 502);""", (660, 880))
+    f.unir(w5, l5); f.unir(l5, l6); f.unir(l6, c6); f.unir(c6, resp)
+
+    # Eliminar (la API solo borra los que están en error)
+    w6 = webhook(f, "POST eliminar/:id", "POST", "eliminar/:id", (0, 1080))
+    l7 = http(f, "Eliminar", "DELETE", f"={API}/incidencias/{{{{ $json.params.id }}}}", (220, 1080), completa=True)
+    c7 = code(f, "Respuesta eliminar", JS_COMUN + "const P = " + json.dumps(web("resultado.html")) + r""";
+const r = $input.first().json;
+const id = $('POST eliminar/:id').first().json.params.id;
+const datos = r.statusCode === 200
+  ? { titulo: 'Reconocimiento eliminado', mensaje: 'Se ha eliminado el reconocimiento #' + id + ' y su foto.',
+      enlace: '/webhook/albaranes/revision', enlace_texto: 'Volver a la lista' }
+  : { titulo: 'No se ha podido eliminar', error: detalle(r),
+      enlace: '/webhook/albaranes/revision/' + id, enlace_texto: 'Volver al reconocimiento' };
+return html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' }), r.statusCode === 200 ? 200 : r.statusCode);""", (440, 1080))
+    f.unir(w6, l7); f.unir(l7, c7); f.unir(c7, resp)
 
     # Resolver (JSON o formulario de la pantalla)
     w4 = webhook(f, "POST api/incidencia/:id/resolver", "POST", "api/incidencia/:id/resolver", (0, 640))
@@ -390,6 +450,7 @@ const rect = $('Rectificar en el ERP').isExecuted ? $('Rectificar en el ERP').fi
 const ok = res.statusCode === 200 && (!rect || rect.statusCode === 200);
 const out = {
   incidencia_id: ent.id, ok, estado: res.statusCode === 200 ? res.body.estado : null,
+  marca: res.statusCode === 200 ? res.body.marca : null,
   resolucion: res.statusCode === 200 ? res.body.resolucion : null,
   rectificacion: rect && rect.statusCode === 200 ? rect.body : null,
   error: res.statusCode !== 200 ? detalle(res) : (rect && rect.statusCode !== 200 ? 'Rectificación: ' + detalle(rect) : null),
@@ -397,11 +458,11 @@ const out = {
 if (!ent.html) return json(out, ok ? 200 : (res.statusCode !== 200 ? res.statusCode : 502));
 const rc = out.rectificacion || {};
 const datos = {
-  titulo: ok ? 'Revisión guardada' : 'No se ha podido completar', estado: out.estado, error: out.error,
+  titulo: ok ? 'Revisión guardada' : 'No se ha podido completar', estado: out.estado, marca: out.marca, error: out.error,
   albaran: res.statusCode === 200 ? res.body.albaran_numero : null,
   pasos: rc.dry_run ? rc.pasos : rc.hechos, dry_run: rc.dry_run, avisos: rc.avisos || [],
   mensaje: out.estado === 'rechazada' ? 'Rechazada: no se cambia nada en el ERP.' : null,
-  enlace: '/webhook/albaranes/revision/' + ent.id, enlace_texto: 'Volver a la incidencia',
+  enlace: '/webhook/albaranes/revision/' + ent.id, enlace_texto: 'Volver al reconocimiento',
 };
 return html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' }), ok ? 200 : 409);""", (1100, 640))
     f.unir(w4, c4); f.unir(c4, l4); f.unir(l4, i4)

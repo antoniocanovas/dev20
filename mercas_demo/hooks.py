@@ -1,5 +1,6 @@
 PRODUCE_TEMPLATE_XMLIDS = [
     "mercas_demo.product_template_manzana",
+    "mercas_demo.product_template_manzana_granel",
     "mercas_demo.product_template_pera",
     "mercas_demo.product_template_platano",
     "mercas_demo.product_template_tomate",
@@ -13,6 +14,7 @@ BOX_PRODUCT_XMLIDS = [
 # xmlid: (cost, sale price)
 PRODUCE_PRICES = {
     "mercas_demo.product_template_manzana": (0.80, 1.30),
+    "mercas_demo.product_template_manzana_granel": (0.80, 1.30),
     "mercas_demo.product_template_pera": (0.90, 1.45),
     "mercas_demo.product_template_platano": (0.70, 1.15),
     "mercas_demo.product_template_tomate": (0.60, 1.05),

@@ -11,7 +11,7 @@ import hashlib
 import html
 import io
 import os
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 
 def _cargar_env_file(ruta=os.getenv("ENV_FILE", "/run/config/albaranes-ia.env")):
@@ -71,7 +71,7 @@ async def vision_error(_, e):
 def _inc(id_, con_foto=False):
     inc = store.obtener(id_, con_foto)
     if not inc:
-        raise HTTPException(404, f"No existe la incidencia {id_}")
+        raise HTTPException(404, f"No existe el reconocimiento {id_}")
     return inc
 
 
@@ -116,35 +116,76 @@ async def crear_incidencia(foto: UploadFile = File(...), reprocesar: bool = Form
     return {**fila, "duplicada": not nueva}
 
 
+def _marca(inc):
+    """'modificado' u 'original': lo aprobado si ya está resuelto; si no, lo que detectó la IA.
+    'error' si no se pudo leer."""
+    if inc["estado"] == "error":
+        return "error"
+    res, dec = inc.get("resolucion") or {}, inc.get("decision") or {}
+    if inc["estado"] in ("aprobada", "corregida", "rectificada") and res.get("lineas"):
+        return "modificado" if any(l["final"] != l["erp"] for l in res["lineas"]) else "original"
+    if not dec:
+        return None
+    if dec.get("marca"):
+        return dec["marca"]
+    cambiada = any(l.get("cantidad_final") is not None and l["cantidad_final"] != l.get("erp")
+                   for l in dec.get("lineas") or [])
+    return "modificado" if cambiada or dec.get("extras") else "original"
+
+
+def _con_marca(fila):
+    return fila and {**fila, "marca": _marca(fila)}
+
+
 @app.get("/incidencias", dependencies=[Depends(auth)])
-def listar(estado: str | None = None, limite: int = Query(50, le=500)):
-    """Resumen. `estado` admite varios separados por comas."""
+def listar(estado: str | None = None, limite: int = Query(50, le=500), albaran: str | None = None,
+           excluir: int | None = None, desde: str | None = None, hasta: str | None = None):
+    """Resumen. `estado` admite varios separados por comas; `albaran` filtra por número
+    (`excluir` quita un id, para buscar reconocimientos previos del mismo albarán);
+    `desde`/`hasta` (AAAA-MM-DD, vacío = sin límite) por fecha de recepción."""
+    try:
+        desde, hasta = (date.fromisoformat(x) if x else None for x in (desde, hasta))
+    except ValueError:
+        raise HTTPException(422, "Fecha no válida: usa AAAA-MM-DD")
     res = []
-    for i in store.listar(estado, limite):
+    for i in store.listar(estado, limite, albaran, excluir, desde, hasta):
+        r = i["resolucion"] or {}
         lineas = (i["decision"] or {}).get("lineas") or []
         res.append({k: i[k] for k in ("id", "creada", "actualizada", "estado", "albaran_numero",
                                        "albaran_id", "error")}
-                   | {"cliente": ((i["erp"] or {}).get("cliente") or {}).get("nombre"),
+                   | {"marca": _marca(i), "cliente": ((i["erp"] or {}).get("cliente") or {}).get("nombre"),
                       "lineas": len(lineas),
-                      "revisar": sum(1 for l in lineas if l.get("estado") != "verificado")})
+                      "revisar": sum(1 for l in lineas if l.get("estado") != "verificado"),
+                      "cambios": r.get("cambios"), "revisado_por": r.get("usuario"),
+                      "revisado": r.get("fecha"), "comentario": r.get("comentario")})
     return {"total": len(res), "resultados": res}
 
 
 @app.get("/incidencias/{id_}", dependencies=[Depends(auth)])
 def ficha(id_: int, imagen: bool = False):
-    """Incidencia completa; con `imagen=true` incluye la foto como data URL."""
+    """Reconocimiento completo; con `imagen=true` incluye la foto como data URL."""
     inc = _inc(id_, con_foto=imagen)
     if imagen:
         inc["imagen"] = "data:image/jpeg;base64," + base64.b64encode(inc.pop("foto")).decode()
     inc["dry_run"] = DRY_RUN
+    inc["marca"] = _marca(inc)
     return inc
+
+
+@app.delete("/incidencias/{id_}", dependencies=[Depends(auth)])
+def eliminar(id_: int):
+    """Borra un reconocimiento. Solo los que están en error: el resto se rechaza en la revisión."""
+    inc = _inc(id_)
+    if not store.eliminar(id_, ("error",)):
+        raise HTTPException(409, f"El reconocimiento está en estado '{inc['estado']}': solo se eliminan los que tienen error")
+    return {"id": id_, "eliminado": True}
 
 
 @app.get("/incidencias/{id_}/imagen", dependencies=[Depends(auth)])
 def imagen(id_: int, original: bool = False):
     f = store.foto(id_, original)
     if not f:
-        raise HTTPException(404, f"No existe la incidencia {id_}")
+        raise HTTPException(404, f"No existe el reconocimiento {id_}")
     return Response(bytes(f["datos"]), media_type=f["mime"])
 
 
@@ -168,7 +209,7 @@ def actualizar(id_: int, c: Cambios):
     evento = datos.pop("evento", None)
     if "estado" in datos and datos["estado"] not in ESTADOS:
         raise HTTPException(422, f"Estado no válido: {datos['estado']}")
-    return store.actualizar(id_, datos, evento)
+    return _con_marca(store.actualizar(id_, datos, evento))
 
 
 class LineaFinal(BaseModel):
@@ -189,12 +230,12 @@ def resolver(id_: int, r: Resolucion):
     las de la IA); rechazar = no se toca el ERP."""
     inc = _inc(id_)
     if inc["estado"] not in ("pendiente_revision", "verificado"):
-        raise HTTPException(409, f"La incidencia está en estado '{inc['estado']}' y no se puede resolver")
+        raise HTTPException(409, f"El reconocimiento está en estado '{inc['estado']}' y no se puede resolver")
     ahora = datetime.now(timezone.utc).isoformat()
     base = {"accion": r.accion, "usuario": r.usuario, "comentario": r.comentario, "fecha": ahora}
     if r.accion == "rechazar":
-        return store.actualizar(id_, {"estado": "rechazada", "resolucion": base}, "resolver",
-                                ("pendiente_revision", "verificado"))
+        return _con_marca(store.actualizar(id_, {"estado": "rechazada", "resolucion": base}, "resolver",
+                                ("pendiente_revision", "verificado")))
     dec = {l["linea_id"]: l for l in (inc["decision"] or {}).get("lineas", []) if l.get("linea_id")}
     enviadas = {l.linea_id: l.cantidad_final for l in r.lineas} if r.accion == "corregir" else {}
     lineas = []
@@ -213,8 +254,8 @@ def resolver(id_: int, r: Resolucion):
     fila = store.actualizar(id_, {"estado": estado, "resolucion": base}, "resolver",
                             ("pendiente_revision", "verificado"))
     if not fila:
-        raise HTTPException(409, "La incidencia ha cambiado de estado; recarga la página")
-    return fila
+        raise HTTPException(409, "El reconocimiento ha cambiado de estado; recarga la página")
+    return _con_marca(fila)
 
 
 # ---------------------------------------------------------------- visión
@@ -229,7 +270,7 @@ def _foto_para_vision(p: PeticionVision):
         raise HTTPException(422, "Falta el albarán del ERP")
     f = store.foto(p.incidencia_id)
     if not f:
-        raise HTTPException(404, "No existe la incidencia")
+        raise HTTPException(404, "No existe el reconocimiento")
     return bytes(f["datos"])
 
 
@@ -287,7 +328,7 @@ def erp_nota(albaran_id: int, n: Nota):
         f = store.foto(n.adjuntar_foto_de, original=True)
         if f:
             ext = "jpg" if "jpeg" in f["mime"] else (f["mime"].split("/")[-1] or "jpg")
-            adjuntos.append((f"albaran-foto-incidencia-{n.adjuntar_foto_de}.{ext}", bytes(f["datos"]), f["mime"]))
+            adjuntos.append((f"albaran-foto-reconocimiento-{n.adjuntar_foto_de}.{ext}", bytes(f["datos"]), f["mime"]))
     return erp.anadir_nota(albaran_id, n.html, adjuntos)
 
 
@@ -301,8 +342,8 @@ def erp_rectificar(p: PeticionRectificar):
     Con DRY_RUN=true (por defecto) solo registra el plan."""
     inc = _inc(p.incidencia_id)
     if inc["estado"] not in ("aprobada", "corregida"):
-        raise HTTPException(409, f"La incidencia está en estado '{inc['estado']}': solo se rectifican "
-                                 "las aprobadas o corregidas")
+        raise HTTPException(409, f"El reconocimiento está en estado '{inc['estado']}': solo se rectifican "
+                                 "los aprobados o corregidos")
     res = inc["resolucion"] or {}
     actual = erp.obtener_albaran_por_id(inc["albaran_id"])
     leido = {l["id"]: l["cantidad"] for l in (inc["erp"] or {}).get("lineas", [])}
@@ -330,13 +371,13 @@ def erp_rectificar(p: PeticionRectificar):
         raise
     rect = {"dry_run": False, "fecha": ahora, "cambios": cambios, **hecho}
     lis = "".join(f"<li>{html.escape(x)}</li>" for x in hecho.get("hechos", []))
-    nota = (f"<p><b>Albarán rectificado</b> desde la incidencia #{inc['id']} "
+    nota = (f"<p><b>Albarán rectificado</b> desde el reconocimiento #{inc['id']} "
             f"({html.escape(res.get('accion', ''))} por {html.escape(res.get('usuario') or 'revisión')}).</p>"
             f"<ul>{lis}</ul>" + (f"<p>{html.escape(res['comentario'])}</p>" if res.get("comentario") else "")
             + "<p>Se adjunta la foto del albarán firmado.</p>")
     try:
         rect["nota"] = erp.anadir_nota(actual["id"], nota, [(
-            f"albaran-foto-incidencia-{inc['id']}.jpg", bytes(store.foto(inc["id"])["datos"]), "image/jpeg")])
+            f"albaran-foto-reconocimiento-{inc['id']}.jpg", bytes(store.foto(inc["id"])["datos"]), "image/jpeg")])
     except ErpError as e:
         rect["avisos"] = rect.get("avisos", []) + [f"No se pudo añadir la nota: {e.mensaje}"]
     store.actualizar(inc["id"], {"estado": "rectificada", "rectificacion": rect}, "rectificar")

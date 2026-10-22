@@ -1,6 +1,8 @@
+from markupsafe import Markup
+
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools import format_date
+from odoo.tools import format_amount, format_date, formatLang
 
 
 class StockLot(models.Model):
@@ -74,6 +76,13 @@ class StockLot(models.Model):
         string="Scrapped",
         compute="_compute_scrap_kg",
         digits=(16, 3),
+    )
+    mercas_sale_classification = fields.Html(
+        string="Sales by Quality and Size",
+        compute="_compute_mercas_sale_classification",
+        sanitize=False,
+        help="Delivered sales of the lot by quality and size: quantity, "
+             "amount and average price. Empty when no sale has them.",
     )
     completed = fields.Boolean(
         string="Completed",
@@ -454,6 +463,61 @@ class StockLot(models.Model):
     @api.depends(
         "stock_move_line_ids.quantity",
         "stock_move_line_ids.state",
+        "stock_move_line_ids.move_id.sale_line_id",
+    )
+    def _compute_mercas_sale_classification(self):
+        for lot in self:
+            lot.mercas_sale_classification = lot._mercas_sale_classification_html()
+
+    def _mercas_sale_classification_groups(self):
+        """Delivered sales of the lot by (quality, size), in the order they
+        were first sold: [{'quality', 'size', 'qty', 'amount'}]. The same
+        moves and amounts as Sold Kg / Sold Amount."""
+        self.ensure_one()
+        sale_mls = self.stock_move_line_ids.filtered(
+            lambda ml: ml.state == "done" and ml.move_id.sale_line_id
+        ).sorted(lambda ml: (ml.move_id.date or ml.create_date, ml.id))
+        groups = {}
+        for ml in sale_mls:
+            sale_line = ml.move_id.sale_line_id
+            key = (sale_line.mercas_quality or "", sale_line.mercas_size or "")
+            group = groups.setdefault(
+                key, {"quality": key[0], "size": key[1], "qty": 0.0, "amount": 0.0}
+            )
+            group["qty"] += ml.quantity
+            group["amount"] += ml.quantity * sale_line.price_unit * (1.0 - sale_line.discount / 100.0)
+        return list(groups.values())
+
+    def _mercas_sale_classification_html(self):
+        groups = self._mercas_sale_classification_groups()
+        if not any(group["quality"] or group["size"] for group in groups):
+            return False
+        currency = self._mercas_company().currency_id
+        uom = self.product_id.uom_id.name or ""
+        rows = Markup().join(
+            Markup(
+                "<tr><td>%s</td><td>%s</td><td class='text-end'>%s %s</td>"
+                "<td class='text-end'>%s</td><td class='text-end'>%s</td></tr>"
+            ) % (
+                group["quality"] or "—",
+                group["size"] or "—",
+                formatLang(self.env, group["qty"], digits=3),
+                uom,
+                format_amount(self.env, group["amount"], currency),
+                format_amount(self.env, group["amount"] / group["qty"], currency) if group["qty"] else "",
+            )
+            for group in groups
+        )
+        return Markup(
+            "<table class='table table-sm o_mercas_sale_classification'><thead><tr>"
+            "<th>%s</th><th>%s</th><th class='text-end'>%s</th>"
+            "<th class='text-end'>%s</th><th class='text-end'>%s</th>"
+            "</tr></thead><tbody>%s</tbody></table>"
+        ) % (_("Quality"), _("Size"), _("Quantity"), _("Amount"), _("Average Price"), rows)
+
+    @api.depends(
+        "stock_move_line_ids.quantity",
+        "stock_move_line_ids.state",
         "stock_move_line_ids.location_id.usage",
         "stock_move_line_ids.location_dest_id.usage",
     )
@@ -574,13 +638,14 @@ class StockLot(models.Model):
             date_str = format_date(self.env, ml.move_id.date) if ml.move_id.date else ""
             uom = ml.uom_id.name or ""
             currency_symbol = sale_line.currency_id.symbol or ""
-            lines.append(
-                "%s => %s => %.2f %s => %.2f %s"
-                % (
-                    date_str, sale_line.order_id.name, ml.quantity, uom,
-                    price, currency_symbol,
-                )
+            line = "%s => %s => %.2f %s => %.2f %s" % (
+                date_str, sale_line.order_id.name, ml.quantity, uom,
+                price, currency_symbol,
             )
+            classification = sale_line._mercas_classification_text()
+            if classification:
+                line = "%s => %s" % (line, classification)
+            lines.append(line)
         return "\n".join(lines)
 
     def _mercas_scrap_breakdown_text(self):

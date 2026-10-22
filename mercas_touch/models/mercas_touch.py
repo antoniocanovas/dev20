@@ -124,9 +124,20 @@ class MercasTouch(models.AbstractModel):
             'purchase_ok': product.purchase_ok,
             'box_product_id': product.product_tmpl_id.box_product_id.id,
             'price': product.lst_price,
+            'attributes': self._get_product_attributes(product),
             # Changes with the image, so that the browser cache is refreshed
             'image_unique': fields.Datetime.to_string(product.write_date) if product.image_128 else False,
         }
+
+    def _get_product_attributes(self, product):
+        """ Attributes chosen on each sale of the product, as the quality and the size of goods
+        bought in bulk: the ones that never create variants, with more than one value. """
+        return [{
+            'id': ptal.id,
+            'name': ptal.attribute_id.name,
+            'values': [{'id': ptav.id, 'name': ptav.name} for ptav in ptal.product_template_value_ids],
+        } for ptal in product.product_tmpl_id.valid_product_template_attribute_line_ids
+            if ptal.attribute_id.create_variant == 'no_variant' and len(ptal.product_template_value_ids) > 1]
 
     @api.model
     def search_partners(self, query='', kind='customer'):
@@ -426,6 +437,8 @@ class MercasTouch(models.AbstractModel):
             lines=[{
                 'product': line.product_id.display_name,
                 'lot': line.lot_id.name or '',
+                'attributes': ' · '.join(line.product_no_variant_attribute_value_ids.mapped('name'))
+                if kind == 'sale' else '',
                 'qty': line.product_uom_qty if kind == 'sale' else line.product_qty,
                 'uom': (line.product_uom_id if kind == 'sale' else line.uom_id).name,
                 'price': line.price_unit,
@@ -473,7 +486,8 @@ class MercasTouch(models.AbstractModel):
             'lines': [{'line_id': int (optional), 'product_id': int, 'qty': float,
                        'price_unit': float (optional), 'box_qty': int (optional),
                        'box_product_id': int (optional), 'note': str (only when it changed),
-                       sale: 'lot_id': int (optional),
+                       sale: 'lot_id': int, 'attribute_value_ids': [int] (values of the
+                       attributes chosen on the line, see `_get_product_attributes`) (optional),
                        purchase: 'lot_name': str, 'firm': bool, 'origin_country_id': int,
                        'origin_state_id': int (all optional)}],
         }
@@ -576,10 +590,14 @@ class MercasTouch(models.AbstractModel):
                 raise ValidationError(self.env._("The partner of an order can't be changed."))
             lines = self._prepare_lines(vals.get('lines'), kind, order)
             before = order.order_line
+            # The description shows the attributes chosen: it is written again when they change
+            previous = {line.id: (self._get_line_note(line), set(line.product_no_variant_attribute_value_ids.ids))
+                        for line in before if kind == 'sale' and not line.display_type}
             order.write({'order_line': self._get_draft_line_commands(kind, order, lines)})
         else:
             lines = self._prepare_lines(vals.get('lines'), kind, Order)
             before = order.order_line.browse()
+            previous = {}
             order = Order.create({
                 'partner_id': partner.id,
                 'mercas_touch_uuid': operation_uuid,
@@ -592,8 +610,12 @@ class MercasTouch(models.AbstractModel):
             record = order.order_line.browse(line['line_id']) if line.get('line_id') in order.order_line.ids else None
             record = record or next(created)
             line_ids.append(record.id)
+            note, attribute_value_ids = previous.get(record.id, ('', set()))
             if 'note' in line:
-                record.name = '\n'.join(part for part in (self._get_default_description(record), line['note']) if part)
+                note = line['note']
+            elif 'attribute_value_ids' not in line or set(line['attribute_value_ids']) == attribute_value_ids:
+                continue
+            record.name = '\n'.join(part for part in (self._get_default_description(record), note) if part)
         return order, line_ids
 
     def _get_draft_line_commands(self, kind, order, lines):
@@ -622,6 +644,8 @@ class MercasTouch(models.AbstractModel):
             vals['price_unit'] = line['price_unit']
         if kind == 'sale':
             vals.update(product_uom_qty=line['qty'], lot_id=line.get('lot_id', False))
+            if 'attribute_value_ids' in line:
+                vals['product_no_variant_attribute_value_ids'] = [Command.set(line['attribute_value_ids'])]
             return vals
         vals.update(
             product_qty=line['qty'],
@@ -682,6 +706,7 @@ class MercasTouch(models.AbstractModel):
                 quantity, reserved = quants.get(line.lot_id, (0.0, 0.0))
                 vals.update(
                     qty=line.product_uom_qty,
+                    attribute_value_ids=line.product_no_variant_attribute_value_ids.ids,
                     lot=line.lot_id and self._get_lot_data(
                         line.lot_id, line.product_id.uom_id.round(quantity - reserved)),
                 )
@@ -1038,11 +1063,26 @@ class MercasTouch(models.AbstractModel):
         for line in prepared:
             if 'lot_id' in line and lots.browse(line['lot_id']).product_id.id != line['product_id']:
                 raise ValidationError(self.env._("The lot doesn't belong to the product."))
+        for line in prepared:
+            if line.get('attribute_value_ids'):
+                self._check_attribute_values(products.browse(line['product_id']), line['attribute_value_ids'])
         boxes = Product.browse({line['box_product_id'] for line in prepared if line.get('box_product_id')}).exists()
         if not all(boxes.mapped('is_box')) or len(boxes) != len({
                 line['box_product_id'] for line in prepared if line.get('box_product_id')}):
             raise ValidationError(self.env._("Invalid box."))
         return prepared
+
+    def _check_attribute_values(self, product, value_ids):
+        """ The values chosen on a line: of the attributes of the product chosen on each sale,
+        one for each attribute. """
+        allowed = {
+            value['id']: attribute['id']
+            for attribute in self._get_product_attributes(product)
+            for value in attribute['values']
+        }
+        attributes = [allowed.get(value_id) for value_id in value_ids]
+        if None in attributes or len(set(attributes)) != len(attributes):
+            raise ValidationError(self.env._("Invalid values for %s.", product.display_name))
 
     def _prepare_line_options(self, line, kind):
         vals = {}
@@ -1070,6 +1110,11 @@ class MercasTouch(models.AbstractModel):
             if not isinstance(box_qty, int) or isinstance(box_qty, bool) or box_qty < 0:
                 raise ValidationError(self.env._("The number of boxes must be a positive whole number."))
             vals['box_qty'] = box_qty
+        if kind == 'sale' and line.get('attribute_value_ids') is not None:
+            value_ids = line['attribute_value_ids']
+            if not isinstance(value_ids, list) or not all(is_record_id(value_id) for value_id in value_ids):
+                raise ValidationError(self.env._("Invalid line."))
+            vals['attribute_value_ids'] = list(dict.fromkeys(value_ids))
         if kind == 'purchase':
             if 'firm' in line:
                 if not isinstance(line['firm'], bool):

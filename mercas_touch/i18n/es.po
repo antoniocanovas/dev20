@@ -1289,3 +1289,9 @@ msgstr "pendiente de aprobar el riesgo"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "· 1 line"
 msgstr "· 1 línea"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid values for %s."
+msgstr "Valores no válidos para %s."

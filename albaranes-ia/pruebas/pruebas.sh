@@ -31,6 +31,7 @@ R=$(sh $D/subir.sh $(unica $D/foto_entregado_WH-OUT-00040.jpg) | cuerpo)
 comprueba "albarán sin código: número por visión" "d['albaran']=='WH/OUT/00040' and d['origen_numero']=='vision'" "$R"
 comprueba "detecta Gabinete 12 -> 10" "any(r['articulo'].endswith('Gabinete grande') and r['ia']==10 for r in d['tabla'])" "$R"
 comprueba "queda pendiente de revisión" "d['estado']=='pendiente_revision'" "$R"
+comprueba "tipo Modificado" "d['marca']=='modificado'" "$R"
 F=$(unica $D/foto_operaciones_WH-OUT-00041.jpg)
 R=$(sh $D/subir.sh $F | cuerpo)
 comprueba "informe de operaciones: número por código de barras" "d['albaran']=='WH/OUT/00041' and d['origen_numero']=='codigo_barras'" "$R"
@@ -39,7 +40,8 @@ ID=$(printf '%s' "$R" | python3 -c "import json,sys;print(json.load(sys.stdin)['
 R=$(sh $D/subir.sh $F | cuerpo)
 comprueba "misma foto otra vez: misma incidencia, sin duplicar" "d.get('duplicada') is True and d['incidencia_id']==$ID" "$R"
 R=$(sh $D/subir.sh $(unica $D/foto_no_albaran.jpg) | cuerpo)
-comprueba "foto que no es un albarán: error explicado" "d['estado']=='error' and d['incidencia_id']" "$R"
+comprueba "foto que no es un albarán: error explicado" "d['estado']=='error' and d['marca']=='error' and d['incidencia_id']" "$R"
+EID=$(printf '%s' "$R" | python3 -c "import json,sys;print(json.load(sys.stdin)['incidencia_id'])")
 
 echo "== Revisión"
 c=$(sh $D/pedir.sh albaranes/revision -o /dev/null -w "%{http_code}"); [ "$c" = 200 ] && echo "OK   GET /albaranes/revision 200" || { ko=$((ko+1)); echo "FALLO lista $c"; }
@@ -49,6 +51,18 @@ R=$(sh $D/pedir.sh albaranes/api/incidencia/$ID/resolver -X POST -H 'Content-Typ
 comprueba "aprobar -> rectificación simulada (DRY_RUN)" "d['ok'] and d['estado']=='aprobada' and d['rectificacion']['dry_run'] and d['rectificacion']['caso']=='albaran_sin_validar'" "$R"
 R=$(sh $D/pedir.sh albaranes/api/incidencia/$ID/resolver -X POST -H 'Content-Type: application/json' -d '{"accion":"aprobar"}')
 comprueba "resolver dos veces -> rechazado" "not d['ok'] and 'no se puede resolver' in d['error']" "$R"
+sh $D/pedir.sh "albaranes/revision?estado=&desde=2026-13-01" | grep -q "Fecha no válida" \
+  && { ok=$((ok+1)); echo "OK   lista: fecha no válida explicada"; } || { ko=$((ko+1)); echo "FALLO lista con fecha no válida"; }
+c=$(sh $D/pedir.sh albaranes/eliminar/$ID -X POST -d accion= -o /dev/null -w "%{http_code}")
+[ "$c" = 409 ] && { ok=$((ok+1)); echo "OK   eliminar uno aprobado -> 409"; } || { ko=$((ko+1)); echo "FALLO eliminar aprobado: $c"; }
+
+echo "== Reconocimientos con error"
+c=$(sh $D/pedir.sh albaranes/reintentar/$EID -m 300 -X POST -d accion= -o /dev/null -w "%{http_code}")
+comprueba "reintentar: mismo reconocimiento, vuelve a procesarse ($c)" \
+  "d['id']==$EID and d['estado']=='error' and any(e['evento']=='reprocesar' for e in d['eventos'])" "$(sh $D/pedir.sh albaranes/api/incidencia/$EID)"
+c=$(sh $D/pedir.sh albaranes/eliminar/$EID -X POST -d accion= -o /dev/null -w "%{http_code}")
+c2=$(sh $D/pedir.sh albaranes/api/incidencia/$EID -o /dev/null -w "%{http_code}")
+[ "$c" = 200 ] && [ "$c2" = 404 ] && { ok=$((ok+1)); echo "OK   eliminar el de error -> ya no existe"; } || { ko=$((ko+1)); echo "FALLO eliminar error: $c / $c2"; }
 
 rm -f /tmp/prueba-*
 echo "== Resultado: $ok correctas, $ko fallos"

@@ -1,9 +1,17 @@
-from odoo import _, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 
 class StockPicking(models.Model):
     _inherit = "stock.picking"
+
+    supplier_ref = fields.Char(
+        string="Supplier Delivery Note",
+        copy=False,
+        index="trigram",
+        help="Code of the supplier's delivery note for this receipt. The "
+             "Auto-Complete of the vendor bill also finds the purchase by it.",
+    )
 
     def _mercas_validate(self):
         """Validate the transfers of the automatic flows ("Sold & Sent",

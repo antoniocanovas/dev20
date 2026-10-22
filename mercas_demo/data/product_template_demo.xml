@@ -58,6 +58,36 @@
         ])]"/>
     </record>
 
+    <!-- Granel: un solo producto; la calidad y el calibre se eligen al vender -->
+    <record id="product_template_manzana_granel" model="product.template">
+        <field name="name">Manzana granel</field>
+        <field name="categ_id" ref="product_category_frutas"/>
+        <field name="type">consu</field>
+        <field name="is_storable">True</field>
+        <field name="tracking">lot</field>
+        <field name="uom_id" ref="uom.product_uom_kgm"/>
+        <field name="box_product_id" ref="product_caja1"/>
+        <field name="image_1920" type="bytes" file="mercas_demo/static/img/manzana.png"/>
+    </record>
+    <record id="product_template_manzana_granel_attr_calidad" model="product.template.attribute.line">
+        <field name="product_tmpl_id" ref="product_template_manzana_granel"/>
+        <field name="attribute_id" ref="product_attribute_calidad_granel"/>
+        <field name="value_ids" eval="[(6, 0, [
+            ref('product_attribute_calidad_granel_value_extra'),
+            ref('product_attribute_calidad_granel_value_primera'),
+            ref('product_attribute_calidad_granel_value_segunda'),
+        ])]"/>
+    </record>
+    <record id="product_template_manzana_granel_attr_calibre" model="product.template.attribute.line">
+        <field name="product_tmpl_id" ref="product_template_manzana_granel"/>
+        <field name="attribute_id" ref="product_attribute_calibre_granel"/>
+        <field name="value_ids" eval="[(6, 0, [
+            ref('product_attribute_calibre_granel_value_03'),
+            ref('product_attribute_calibre_granel_value_04'),
+            ref('product_attribute_calibre_granel_value_05'),
+        ])]"/>
+    </record>
+
     <record id="product_template_pera" model="product.template">
         <field name="name">Pera</field>
         <field name="categ_id" ref="product_category_frutas"/>

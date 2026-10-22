@@ -247,6 +247,16 @@
                         Lot <strong t-out="entry.lot.name"/> · <t t-out="this.formatQty(this.lotAvailable(entry.lot, entry.line))"/> <t t-out="entry.product.uom"/> available
                     </div>
                 </div>
+                <div t-foreach="this.entryAttributes()" t-as="attribute" t-key="attribute.id"
+                     class="o_mercas_touch_attribute">
+                    <label class="form-label mb-1" t-out="attribute.name"/>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button t-foreach="attribute.values" t-as="value" t-key="value.id"
+                                t-att-class="'btn btn-lg o_mercas_touch_attribute_value ' + (entry.attributeValueIds.includes(value.id) ? 'btn-primary' : 'btn-outline-secondary')"
+                                t-on-click="() => this.onEntryAttributeValue(attribute, value)"
+                                t-out="value.name"/>
+                    </div>
+                </div>
                 <label class="form-label mb-0">Quantity (<t t-out="entry.product.uom"/>)</label>
                 <input type="text" inputmode="decimal" autocomplete="off"
                        t-att-class="'form-control form-control-lg o_mercas_touch_qty ' + (entry.field === 'qty' ? 'border-primary border-2' : '')"
@@ -342,6 +352,8 @@
                     <div class="fs-4 fw-bold" t-out="line.product.name"/>
                     <div class="text-muted">
                         <t t-if="line.lot">Lot <t t-out="line.lot.name"/> · </t>
+                        <t t-set="attributes" t-value="this.lineAttributes(line)"/>
+                        <t t-if="attributes"><t t-out="attributes"/> · </t>
                         <t t-out="this.formatQty(line.qty)"/> <t t-out="line.product.uom"/>
                     </div>
                 </div>
@@ -396,6 +408,8 @@
                     <div class="small text-muted">
                         <t t-if="line.lot">Lot <t t-out="line.lot.name"/> · </t>
                         <t t-if="line.lotName">Lot <t t-out="line.lotName"/> · </t>
+                        <t t-set="attributes" t-value="this.lineAttributes(line)"/>
+                        <t t-if="attributes"><span class="fw-semibold text-body o_mercas_touch_line_attributes" t-out="attributes"/> · </t>
                         <t t-out="this.formatQty(line.qty)"/> <t t-out="line.product.uom"/>
                         <t t-if="line.boxQty"> · <t t-out="line.boxQty"/> <t t-out="this.boxName(line.boxProductId)"/></t>
                     </div>
@@ -472,6 +486,7 @@
                             <td>
                                 <div class="fw-bold" t-out="line.product"/>
                                 <div t-if="line.lot" class="small text-muted">Lot <t t-out="line.lot"/></div>
+                                <div t-if="line.attributes" class="small fw-semibold" t-out="line.attributes"/>
                             </td>
                             <td class="text-end text-nowrap"><t t-out="this.formatQty(line.qty)"/> <t t-out="line.uom"/></td>
                             <td class="text-end text-nowrap" t-out="this.formatAmount(line.price)"/>

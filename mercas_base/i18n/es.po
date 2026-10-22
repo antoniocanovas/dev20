@@ -75,6 +75,8 @@ msgid "Current Lot"
 msgstr "Lote actual"
 
 #. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/stock_lot.py:0
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard_line__quantity
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__product_qty
 #: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
@@ -279,6 +281,8 @@ msgid "Price/Kg"
 msgstr "Precio/kg"
 
 #. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/stock_lot.py:0
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__supplier_amount
 msgid "Amount"
 msgstr "Importe"
@@ -1268,3 +1272,105 @@ msgid ""
 msgstr ""
 "No se ha podido validar automáticamente el albarán %s. Valídalo desde el "
 "propio albarán."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_product_attribute__mercas_role
+msgid "Merca Role"
+msgstr "Función en Mercas"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/stock_lot.py:0
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__mercas_quality
+#: model:ir.model.fields,field_description:mercas_base.field_sale_report__mercas_quality
+#: model:ir.model.fields.selection,name:mercas_base.selection__product_attribute__mercas_role__quality
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_order_product_search_mercas
+msgid "Quality"
+msgstr "Calidad"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/stock_lot.py:0
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__mercas_size
+#: model:ir.model.fields,field_description:mercas_base.field_sale_report__mercas_size
+#: model:ir.model.fields.selection,name:mercas_base.selection__product_attribute__mercas_role__size
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_order_product_search_mercas
+msgid "Size"
+msgstr "Calibre"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot__mercas_sale_classification
+msgid "Sales by Quality and Size"
+msgstr "Ventas por calidad y calibre"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "Average Price"
+msgstr "Precio medio"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_stock_lot__mercas_sale_classification
+msgid ""
+"Delivered sales of the lot by quality and size: quantity, amount and average"
+" price. Empty when no sale has them."
+msgstr ""
+"Ventas entregadas del lote por calidad y calibre: cantidad, importe y precio"
+" medio. Vacío si ninguna venta las tiene."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_sale_order_line__mercas_quality
+msgid ""
+"Values of the attributes with the Quality role: of the product variant, or "
+"chosen on the line for goods bought in bulk."
+msgstr ""
+"Valores de los atributos con la función Calidad: de la variante del "
+"producto, o elegidos en la línea para la mercancía comprada a granel."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_sale_order_line__mercas_size
+msgid ""
+"Values of the attributes with the Size role: of the product variant, or "
+"chosen on the line for goods bought in bulk."
+msgstr ""
+"Valores de los atributos con la función Calibre: de la variante del "
+"producto, o elegidos en la línea para la mercancía comprada a granel."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_product_attribute__mercas_role
+msgid ""
+"What the attribute tells of the goods, for the sales report, the lot and the"
+" settlement. An attribute that creates variants classifies goods bought "
+"already classified; one that never creates variants classifies each sale of "
+"goods bought in bulk. Values of both kinds with the same name are added up "
+"together."
+msgstr ""
+"Qué indica el atributo de la mercancía, para el análisis de ventas, el lote "
+"y la liquidación. Un atributo que crea variantes clasifica la mercancía "
+"comprada ya clasificada; uno que nunca crea variantes clasifica cada venta "
+"de la mercancía comprada a granel. Los valores de ambos tipos con el mismo "
+"nombre se suman juntos."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_picking__supplier_ref
+msgid "Supplier Delivery Note"
+msgstr "Albarán del proveedor"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_stock_picking__supplier_ref
+msgid ""
+"Code of the supplier's delivery note for this receipt. The Auto-Complete of "
+"the vendor bill also finds the purchase by it."
+msgstr ""
+"Código del albarán del proveedor de esta recepción. El autocompletar de la "
+"factura de proveedor también encuentra la compra por él."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_bill_union__mercas_receipts
+msgid "Receipts"
+msgstr "Recepciones"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_purchase_bill_union__mercas_receipts
+msgid "Receipts of the purchase order, with the supplier's delivery note."
+msgstr "Recepciones del pedido de compra, con el albarán del proveedor."

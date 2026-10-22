@@ -5,6 +5,7 @@
         <field name="name">Calibre</field>
         <field name="display_type">radio</field>
         <field name="create_variant">always</field>
+        <field name="mercas_role">size</field>
     </record>
     <record id="product_attribute_calibre_value_03" model="product.attribute.value">
         <field name="name">03</field>
@@ -40,6 +41,51 @@
     <record id="product_attribute_marca_value_abuelo" model="product.attribute.value">
         <field name="name">Abuelo</field>
         <field name="attribute_id" ref="product_attribute_marca"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <!-- Granel: la calidad y el calibre se eligen en cada venta, sin crear variantes -->
+    <record id="product_attribute_calidad_granel" model="product.attribute">
+        <field name="name">Calidad granel</field>
+        <field name="display_type">radio</field>
+        <field name="create_variant">no_variant</field>
+        <field name="mercas_role">quality</field>
+    </record>
+    <record id="product_attribute_calidad_granel_value_extra" model="product.attribute.value">
+        <field name="name">Extra</field>
+        <field name="attribute_id" ref="product_attribute_calidad_granel"/>
+        <field name="sequence">1</field>
+    </record>
+    <record id="product_attribute_calidad_granel_value_primera" model="product.attribute.value">
+        <field name="name">Primera</field>
+        <field name="attribute_id" ref="product_attribute_calidad_granel"/>
+        <field name="sequence">2</field>
+    </record>
+    <record id="product_attribute_calidad_granel_value_segunda" model="product.attribute.value">
+        <field name="name">Segunda</field>
+        <field name="attribute_id" ref="product_attribute_calidad_granel"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <record id="product_attribute_calibre_granel" model="product.attribute">
+        <field name="name">Calibre granel</field>
+        <field name="display_type">radio</field>
+        <field name="create_variant">no_variant</field>
+        <field name="mercas_role">size</field>
+    </record>
+    <record id="product_attribute_calibre_granel_value_03" model="product.attribute.value">
+        <field name="name">03</field>
+        <field name="attribute_id" ref="product_attribute_calibre_granel"/>
+        <field name="sequence">1</field>
+    </record>
+    <record id="product_attribute_calibre_granel_value_04" model="product.attribute.value">
+        <field name="name">04</field>
+        <field name="attribute_id" ref="product_attribute_calibre_granel"/>
+        <field name="sequence">2</field>
+    </record>
+    <record id="product_attribute_calibre_granel_value_05" model="product.attribute.value">
+        <field name="name">05</field>
+        <field name="attribute_id" ref="product_attribute_calibre_granel"/>
         <field name="sequence">3</field>
     </record>
 

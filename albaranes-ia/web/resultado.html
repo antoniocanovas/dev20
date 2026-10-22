@@ -51,7 +51,7 @@ tr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }
 </head>
 <body>
 <script id="datos" type="application/json">__DATOS__</script>
-<header><h1 id="titulo">Resultado</h1><a href="__BASE__revision">Pendientes</a><a href="__BASE__subir">Subir otra foto</a></header>
+<header><h1 id="titulo">Resultado</h1><a href="__BASE__revision">Por revisar</a><a href="__BASE__subir">Subir otra foto</a></header>
 <main><div class="panel"><div class="bloque" id="bloque"></div></div></main>
 <script>
 (function () {
@@ -59,14 +59,16 @@ tr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var fmt = function (n) { return n == null ? "—" : (Math.round(n * 1000) / 1000).toLocaleString("es-ES"); };
-  var ESTADOS = { recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Error", "bad"],
-    verificado: ["Verificado", "ok"], pendiente_revision: ["Pendiente de revisión", "warn"], aprobada: ["Aprobada", "ok"],
+  var ESTADOS = { recibida: ["Recibida", "neutral"], procesando: ["Procesando", "neutral"], error: ["Por revisar", "warn"],
+    verificado: ["Por revisar", "warn"], pendiente_revision: ["Por revisar", "warn"], aprobada: ["Aprobada", "ok"],
     corregida: ["Corregida", "ok"], rechazada: ["Rechazada", "bad"], rectificada: ["Rectificada en el ERP", "ok"] };
   var chip = function (e) { var x = ESTADOS[e] || [e, "neutral"]; return '<span class="chip ' + x[1] + '">' + esc(x[0]) + "</span>"; };
+  var MARCAS = { original: ["Original", "neutral"], modificado: ["Modificado", "warn"], error: ["Error", "bad"] };
+  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class="chip ' + x[1] + '">' + x[0] + "</span>" : ""; };
   var d = JSON.parse($("datos").textContent || "{}");
   var h = "";
   if (d.titulo) { $("titulo").textContent = d.titulo; document.title = d.titulo; }
-  if (d.estado) h += "<div>" + chip(d.estado) + (d.duplicada ? ' <span class="muted">Esta foto ya se había subido: se muestra la incidencia existente.</span>' : "") + "</div>";
+  if (d.estado) h += "<div>" + chip(d.estado) + (d.marca ? " " + marca(d.marca) : "") + (d.duplicada ? ' <span class="muted">Esta foto ya se había subido: se muestra el reconocimiento existente.</span>' : "") + "</div>";
   if (d.albaran) h += "<h2>Albarán " + esc(d.albaran) + "</h2>";
   if (d.cliente) h += '<div class="muted">' + esc(d.cliente) + (d.origen_numero ? " · número leído por " + (d.origen_numero === "codigo_barras" ? "código de barras" : "visión") : "") + "</div>";
   if (d.error) h += '<div class="error">' + esc(d.error) + "</div>";

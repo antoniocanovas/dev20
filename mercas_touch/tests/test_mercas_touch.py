@@ -361,6 +361,63 @@ class TestMercasTouch(MercasTouchCommon):
         with self.assertRaises(UserError):
             self.Touch.save_draft('sale', dict(vals, order_id=order.id))
 
+    def test_sell_bulk_with_quality_and_size(self):
+        """ Goods bought in bulk: the quality and the size are chosen on each line of the sale,
+        and can be changed afterwards, keeping the text of the line. """
+        quality = self.env['product.attribute'].create({
+            'name': 'Touch Quality', 'create_variant': 'no_variant', 'mercas_role': 'quality',
+            'value_ids': [Command.create({'name': 'Extra'}), Command.create({'name': 'First'})],
+        })
+        size = self.env['product.attribute'].create({
+            'name': 'Touch Size', 'create_variant': 'no_variant', 'mercas_role': 'size',
+            'value_ids': [Command.create({'name': '03'}), Command.create({'name': '04'})],
+        })
+        self.pear.product_tmpl_id.attribute_line_ids = [
+            Command.create({'attribute_id': attribute.id, 'value_ids': [Command.set(attribute.value_ids.ids)]})
+            for attribute in quality | size
+        ]
+        products = {product['id']: product for product in self.Touch.get_screen_data()['products']}
+        attributes = products[self.pear.id]['attributes']
+        self.assertEqual([attribute['name'] for attribute in attributes], ['Touch Quality', 'Touch Size'])
+        self.assertFalse(products[self.lettuce.id]['attributes'])
+        value = {(attribute['name'], v['name']): v['id'] for attribute in attributes for v in attribute['values']}
+        extra, first = value['Touch Quality', 'Extra'], value['Touch Quality', 'First']
+        size_03 = value['Touch Size', '03']
+
+        self._buy(100.0, lot_name='BULK-1')
+        lot = self.env['stock.lot'].search([('name', '=', 'BULK-1')])
+        vals = {'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'lines': [
+            {'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 10.0, 'price_unit': 1.5,
+             'attribute_value_ids': [extra, size_03], 'note': 'Ripe ones'},
+        ]}
+        draft = self.Touch.save_draft('sale', vals)
+        line = self.env['sale.order.line'].browse(draft['line_ids'][0])
+        self.assertEqual((line.mercas_quality, line.mercas_size), ('Extra', '03'))
+        self.assertIn('Extra', line.name, "The description shows the values")
+        self.assertEqual(draft['lines'][0]['attribute_value_ids'], [extra, size_03])
+        self.assertEqual(draft['lines'][0]['note'], 'Ripe ones')
+
+        # Changed afterwards: the description follows, the text of the line is kept
+        vals = dict(vals, order_id=draft['id'], lines=[
+            {'line_id': line.id, 'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 10.0,
+             'price_unit': 1.5, 'attribute_value_ids': [first]},
+        ])
+        draft = self.Touch.save_draft('sale', vals)
+        self.assertEqual(draft['line_ids'], [line.id])
+        self.assertEqual((line.mercas_quality, line.mercas_size), ('First', ''))
+        self.assertIn('First', line.name)
+        self.assertNotIn('Extra', line.name)
+        self.assertEqual(draft['lines'][0]['note'], 'Ripe ones')
+
+        # One value for each attribute, of the attributes of the product
+        for wrong in ([extra, first], [self.env['product.template.attribute.value'].search([], limit=1).id + 10**6]):
+            with self.assertRaises(ValidationError):
+                self.Touch.save_draft('sale', dict(vals, lines=[dict(vals['lines'][0], attribute_value_ids=wrong)]))
+
+        result = self.Touch.sell(vals)
+        summary = self.Touch.get_order_summary('sale', result['order']['id'])
+        self.assertEqual(summary['lines'][0]['attributes'], 'First')
+
     def test_resume_backend_quotation(self):
         order = self.env['sale.order'].create({
             'partner_id': self.customer.id,

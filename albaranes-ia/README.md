@@ -1,6 +1,6 @@
 # albaranes-ia: detección de albaranes modificados a mano
 
-Prototipo para detectar los cambios que hace el comercial a mano sobre el albarán impreso (tacha la cantidad con una "/" y escribe otra, o la sobrescribe). Lee la foto del albarán firmado con un modelo de visión, la compara con el ERP y deja a Administración una pantalla para aprobar o corregir. Después rectifica el albarán y la factura en el ERP, por ahora en modo simulación (`DRY_RUN`).
+Prototipo para detectar los cambios que hace el comercial a mano sobre el albarán impreso (tacha la cantidad con una "/" y escribe otra, o la sobrescribe). Lee la foto del albarán firmado con un modelo de visión, la compara con el ERP y deja a Administración una pantalla para revisar la cantidad final de cada línea y aprobar o rechazar. Después rectifica el albarán y la factura en el ERP, por ahora en modo simulación (`DRY_RUN`).
 
 En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y todo el acceso al ERP está aislado en `albaranes-api/erp/`.
 
@@ -17,20 +17,48 @@ En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y 
 9. **Código de barras:** el informe estándar *Operaciones de albarán* (`stock.action_report_picking`) sí lleva el `name` en Code128 (`report_stockpicking_operations.xml`). El sistema acepta los dos informes: si no hay código, el modelo lee el número impreso.
 10. **Secretos:** están en `/root/albaranes-ia/.env` (permisos 600) y en las credenciales de n8n. Ninguno está en el código.
 
-## Estado y cómo retomarlo (20/10/2026)
+## Estado y cómo retomarlo (22/10/2026)
 
-**Hecho:** las fases A–E están desplegadas y probadas en el entorno de pruebas (ver Pruebas). Primera prueba real del usuario, el 16/10:
-- **Foto:** `IMG_5412.HEIC`, incidencia **#17**, WH/OUT/00040 identificado por visión.
-- **Lectura:** acertó los dos cambios a mano: Caja 24 → 20 (92 %) y Cubo 8 → 7 (85 %, dudosa). Las otras 3 líneas, verificadas.
-- **Resolución:** **aprobada** (sin nombre de usuario).
-- **Plan `DRY_RUN`:** devolución de 4 Cajas y 1 Cubo, validarla y crear un abono en borrador desde S00026. La factura INV/2026/00010 ya está publicada.
+**Hecho:** las fases A–E están desplegadas y probadas en el entorno de pruebas (ver Pruebas). Después se ha ajustado la pantalla con el usuario (ver *Cambios del 22/10*). Todo lo de abajo está **desplegado** en el servidor.
 
-**Pendiente de decisión del usuario:**
-- **Rectificar de verdad la #17:** `DRY_RUN=false` en Easypanel y relanzar `/erp/rectificar` con su plan. **No hacerlo sin confirmación.**
+**Datos que hay ahora en `albaranes_ia`:**
+
+| # | Albarán | Estado | Tipo | Nota |
+|---|---|---|---|---|
+| 21 | WH/OUT/00040 | aprobada | Modificado | Segunda prueba real (22/10): Caja 24 → 20 y Cubo 8 → 7, aprobada sin tocar. Rectificación simulada |
+| 14 | WH/OUT/00041 | aprobada | Modificado | De `pruebas.sh` |
+| 4 | WH/OUT/00041 | aprobada | Modificado | De `pruebas.sh` |
+| 16, 6 | — | error | Error | Fotos que no son albaranes (`foto_no_albaran.jpg`). Sirven para probar *Reintentar* / *Eliminar* |
+
+- **Borrados el 22/10, a petición del usuario:** #1, #13 y #17 (WH/OUT/00040), para volver a subirlo. Las rectificaciones eran simulaciones (o estaba rechazado), así que Odoo no se tocó.
+  - Copia: `/root/albaranes-ia/backup_incidencias_WH-OUT-00040_202610220939.csv`.
+  - Sus notas siguen en el historial del picking 49 de Odoo (`mail_message` 1169, 1197 y 1202). No se han borrado porque no hace falta para volver a subirlo.
+- **La primera prueba real (#17, 16/10)** leyó lo mismo que la #21. Su plan `DRY_RUN` era una devolución de 4 Cajas y 1 Cubo, validarla y crear un abono en borrador desde S00026 (la factura INV/2026/00010 ya está publicada).
+
+**Pendiente de decisión del usuario (no hacer sin confirmación):**
+- **Rectificar de verdad:** `DRY_RUN=false` en Easypanel → albaranes-api → Entorno, y relanzar `/erp/rectificar` con un reconocimiento aprobado (ahora sería la #21, que sustituye a la #17).
 - **Commit:** `albaranes-ia/` sigue sin trackear en git. Si se borra, solo queda lo desplegado en el servidor.
+- **Notas antiguas de Odoo:** borrar o no las tres notas del picking 49 que mencionan la "incidencia" #1, #13 y #17.
 
-**Cambios posteriores a las pruebas:**
-- La tabla de revisión se ordena por la posición en la foto (`bbox[1]`) y ya no pone las dudosas primero.
+**Sin probar en el navegador** (sí con curl, en el servidor, salvo lo que se indica):
+- *Exportar a hoja de cálculo* y los dos *Imprimir*: son solo del navegador y no tienen prueba por curl.
+- *Reintentar* y *Eliminar*: las rutas están probadas con un POST de formulario con Basic Auth, que es lo que envía la página.
+
+**Ideas comentadas y no hechas:**
+- Separar el estado "Por revisar" entre *cambiado a mano* y *dudoso pero igual* (baja confianza, tachón ilegible, número que no coincide). Ahora los dos son `pendiente_revision`.
+- Cerrar automáticamente los `verificado` (aprobarlos no cambia nada en el ERP).
+- Exportación con una fila por línea (artículo, ERP, IA, final), o `.xlsx` con formato en vez de CSV.
+- Cambiar "incidencia" por "reconocimiento" también por dentro (tabla, rutas de la API, nodos de n8n). Requiere migrar la base y tocar los flujos, sin cambio visible.
+- Que el aviso de "ya reconocido antes" obligue a revisar (ahora solo informa).
+
+**Cambios del 22/10** (detalle en *Pantallas*):
+- **Terminología:** en pantalla, en las notas de Odoo y en los mensajes de la API se dice **reconocimiento**. Por dentro sigue siendo `incidencia` (tabla, rutas `/incidencias`, `incidencia_id`, nodos de n8n).
+- **Aviso de reconocimientos previos:** si se sube otra foto de un albarán que ya tiene reconocimientos, se avisa. Lo hace el nodo "Reconocimientos previos" con `GET /incidencias?albaran=…&excluir=…`.
+- **Tipo Original / Modificado / Error:** campo `marca` calculado por la API. Sustituye a los filtros "Modificados", "Verificados" y "Con error".
+- **Un solo botón Aprobar**, que aplica la columna *Final*. Se quitó "Corregir y aprobar".
+- **Reintentar y Eliminar** para los reconocimientos con error.
+- **Lista:** filtro por fechas, exportación CSV e impresión. Revisión: impresión.
+- La tabla de revisión se ordena por la posición en la foto (`bbox[1]`) y ya no pone las dudosas primero (del 16/10).
 
 **Incidencias conocidas:**
 - **DNS con Cloudflare WARP:** en el Mac del usuario, WARP (DNS `127.0.2.2`) devuelve `SERVFAIL` para `*.kw2y1s.easypanel.host`, y los DNS públicos sí lo resuelven. Para comprobar el servidor sin depender de WARP:
@@ -40,7 +68,7 @@ En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y 
 - **`API_TOKEN` sin definir:** la API no está expuesta a Internet. En producción hay que ponerlo.
 - **Un solo usuario Basic Auth (`revision`):** el campo "usuario" de la revisión es texto libre. En producción, un proxy con SSO (Cloudflare Access, Authelia…).
 
-**Producción:** necesita n8n, albaranes-api, Postgres para las incidencias, la clave del modelo y HTTPS. `barcode-ocr` es opcional. En lugar de Odoo, un adaptador AS400 en `erp/`, cuya parte delicada es rectificar con los programas del ERP. Además:
+**Producción:** necesita n8n, albaranes-api, Postgres para los reconocimientos, la clave del modelo y HTTPS. `barcode-ocr` es opcional. En lugar de Odoo, un adaptador AS400 en `erp/`, cuya parte delicada es rectificar con los programas del ERP. Además:
 - retención de fotos (RGPD);
 - recortar las ejecuciones de n8n;
 - alertas de error;
@@ -59,23 +87,28 @@ En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y 
                                  2 código de barras ───────────► barcode-ocr    /decode
                                    └ si no hay: número por IA ─► albaranes-api  /vision/peticion ─► OpenRouter (credencial n8n)
                                  3 albarán y líneas ───────────► albaranes-api  /erp/albaran ─────► Odoo 20 JSON-2
+                                   └ reconocimientos previos ──► albaranes-api  /incidencias?albaran=…&excluir=…
                                  4 lectura línea a línea ──────► OpenRouter / Anthropic (JSON Schema estricto)
-                                 5 reglas (nodo Decidir) → verificado | pendiente_revision
+                                 5 reglas (nodo Decidir) → verificado | pendiente_revision, marca original | modificado
                                  6 guardar resultado + nota en el historial del albarán
- Administración ◄── pantalla ── "Albaranes IA - Revisión"
-                                 GET  /albaranes/revision            lista
-                                 GET  /albaranes/revision/{id}       pantalla HTML
-                                 GET  /albaranes/api/incidencia/{id} JSON + imagen
-                                 POST /albaranes/api/incidencia/{id}/resolver  aprobar | corregir | rechazar
+ Administración ◄── pantalla ── "Albaranes IA - Revisión"   (todas bajo /webhook/albaranes/)
+                                 GET  revision?estado=&desde=&hasta=   lista
+                                 GET  revision/{id}                    pantalla HTML
+                                 GET  api/incidencia/{id}              JSON + imagen
+                                 POST api/incidencia/{id}/resolver     aprobar | corregir | rechazar
                                       └ rectificar ────────────► albaranes-api /erp/rectificar (DRY_RUN)
+                                 POST reintentar/{id}   foto original ─► ingesta (127.0.0.1:5678) con reprocesar=true
+                                 POST eliminar/{id}     ───────────────► albaranes-api DELETE /incidencias/{id} (solo en error)
 ```
+
+Los webhooks con parámetros comparten `webhookId` "albaranes". Dos rutas con el mismo método y el mismo número de segmentos chocarían. Por eso *reintentar* y *eliminar* son rutas de 2 segmentos y no `api/incidencia/{id}/…`.
 
 | Servicio (Easypanel) | Host interno | Qué hace |
 |---|---|---|
 | `barcode-ocr` | `ia-support_barcode-ocr:8000` | FastAPI + zxing-cpp + OpenCV. `POST /decode` devuelve el código o `null` |
-| `albaranes-api` | `ia-support_albaranes-api:8000` | Incidencias en su propia BD, preparación e interpretación de la lectura por IA, y **capa ERP** |
+| `albaranes-api` | `ia-support_albaranes-api:8000` | Reconocimientos (tabla `incidencia`) en su propia BD, preparación e interpretación de la lectura por IA, y **capa ERP** |
 | n8n | `ia-support_n8n` | Orquesta los flujos y sirve los webhooks y las páginas HTML |
-| BD `albaranes_ia` | `ia-support_surtidos-db` | Incidencias: foto, lectura, decisión, revisión y rectificación. Base de datos y rol propios, no la del ERP |
+| BD `albaranes_ia` | `ia-support_surtidos-db` | Reconocimientos (tabla `incidencia`): foto, lectura, decisión, revisión y rectificación. Base de datos y rol propios, no la del ERP |
 
 ### Capa ERP sustituible
 
@@ -122,7 +155,8 @@ El albarán entero queda verificado solo si lo están todas sus líneas y ademá
 
 ### Idempotencia
 
-- **Misma foto:** la identifica el SHA-256 del fichero. Si se sube otra vez, devuelve la misma incidencia (`duplicada: true`, unos 0,2 s) sin volver a llamar a la IA ni escribir otra nota. Con `reprocesar=true` se vuelve a leer, salvo que ya esté resuelta.
+- **Misma foto:** la identifica el SHA-256 del fichero. Si se sube otra vez, devuelve el mismo reconocimiento (`duplicada: true`, unos 0,2 s) sin volver a llamar a la IA ni escribir otra nota. Con `reprocesar=true` se vuelve a leer, salvo que ya esté resuelto. Si estaba a medias (`recibida`/`procesando`), se procesa aunque sea duplicada.
+- **Otra foto del mismo albarán:** tiene otra huella, así que es un reconocimiento nuevo. Se lee con la IA, se escribe otra nota y lleva el aviso *"Este albarán ya se había reconocido antes: #N del dd/mm/aaaa (estado)"*. El aviso no cambia el estado.
 - **Resolver:** solo se puede una vez; un segundo intento da 409.
 - **Rectificar:** comprueba antes que el albarán no haya cambiado en el ERP desde la lectura (409 si ha cambiado).
 
@@ -176,14 +210,73 @@ Imprime con **Imprimir → Albarán de entrega**, que sale en español y sin có
   ```
   Se puede cambiar en n8n → Credenciales → *Albaranes IA - Basic Auth*.
 
-### Revisar
+### Pantallas
 
-https://ia-support-n8n.kw2y1s.easypanel.host/webhook/albaranes/revision. La pantalla:
+Las páginas están en `web/` y se incrustan en los nodos Code al generar los flujos. Para cambiarlas: editar `web/*.html` y luego `scripts/desplegar.sh n8n`.
+
+| Página | Ruta (bajo `/webhook/albaranes/`) | Fichero |
+|---|---|---|
+| Subir foto | `subir` | `web/subir.html` |
+| Resultado (subida, foto repetida, revisión guardada, reintentar, eliminar) | — | `web/resultado.html` |
+| Lista | `revision` | `web/lista.html` |
+| Revisión de un reconocimiento | `revision/{id}` | `web/revision.html` |
+
+**Estado y tipo.** Cada reconocimiento muestra dos etiquetas:
+
+| Estado interno (`estado`) | Etiqueta | Filtro |
+|---|---|---|
+| `pendiente_revision`, `verificado`, `error` | Por revisar | **Por revisar** (por defecto) |
+| `aprobada`, `corregida`, `rectificada` | Aprobada / Corregida / Rectificada en el ERP | **Resueltos** |
+| `rechazada` | Rechazada | **Rechazados** |
+| `recibida`, `procesando` | Recibida / Procesando | solo en **Todos** |
+
+- **Tipo (`marca`, lo calcula la API en `_marca`):**
+  - **Error**, si `estado = error`;
+  - si está resuelto, **Modificado** cuando alguna cantidad final es distinta de la del ERP, y **Original** si no;
+  - si no, lo que detectó la IA: **Modificado** cuando alguna cantidad leída es distinta o hay líneas a mano que no están en el ERP. El nodo Decidir lo guarda en `decision.marca`; en reconocimientos antiguos se recalcula.
+- **Rechazado:** conserva lo que detectó la IA.
+- **Dónde se ve el tipo:** en la columna *Tipo* de la lista, en la cabecera de la revisión, en el resultado y en la nota de Odoo (*"**Modificado**, por revisar"* / *"**Original**, coincide con el ERP"*).
+
+**Lista** (https://ia-support-n8n.kw2y1s.easypanel.host/webhook/albaranes/revision):
+- **Filtros de estado:** Por revisar, Resueltos, Rechazados y Todos.
+- **Recibidos desde / hasta:** fecha de recepción en hora de Madrid; `hasta` incluye el día. Se combina con el estado: los enlaces conservan las fechas y el formulario conserva el estado. Una fecha no válida da *"Fecha no válida: usa AAAA-MM-DD"*.
+- **Exportar a hoja de cálculo:** CSV de la vista en curso, hecho en el navegador, de hasta 500 filas (`limite=500` en el nodo "Listar incidencias"). Lleva `;`, BOM UTF-8 y CRLF para Excel en español. Columnas:
+  - reconocimiento, albarán, cliente, estado y tipo;
+  - líneas, líneas a revisar y cambios aprobados;
+  - recibido, revisado por, fecha de revisión, comentario y error.
+  - Nombre del fichero: `albaranes_<filtro>_<desde>_<hasta>.csv`.
+- **Imprimir:** `window.print()`. Lleva un título con el filtro, las fechas, el número de albaranes y la hora; oculta cabecera, filtros y botones, y fuerza colores claros aunque esté en modo oscuro.
+
+**Revisión:**
 - **Foto:** a la izquierda, con zoom (rueda o pellizco), arrastre y giro. Al tocar una fila salta a su `bbox`.
-- **Tabla:** a la derecha, en el mismo orden que en la foto (de arriba abajo; las que no se ven en ella, al final). Las líneas que hay que revisar van resaltadas.
-- **Botones:** *Aprobar* usa las cantidades de la IA, *Corregir y aprobar* las que hayas escrito, y *Rechazar* (pide confirmación) no toca el ERP.
+- **Tabla:** a la derecha, en el mismo orden que en la foto (de arriba abajo; las que no se ven en ella, al final). Las líneas que hay que revisar van resaltadas. La columna *Final* viene con lo que leyó la IA y es editable.
+- **Aprobar:** aplica siempre la columna *Final*. Se envía `accion=aprobar` si no se ha tocado ninguna casilla y `accion=corregir` si se ha cambiado alguna, para que quede constancia (`aprobada` / `corregida`). Se desactiva si alguna casilla *Final* está vacía.
+- **Rechazar:** pide confirmación con un segundo clic. No toca el ERP.
+- **Con error** (en lugar de los dos anteriores):
+  - **Reintentar** → `POST reintentar/{id}`. n8n coge la foto original de la API y la pasa por el flujo de ingesta (`http://127.0.0.1:5678/webhook/albaranes/ingesta?html=1`, con la credencial Basic Auth y `reprocesar=true`). Es el mismo reconocimiento.
+  - **Eliminar** → `POST eliminar/{id}`, que pide confirmación. Borra el reconocimiento con su foto. La API (`DELETE /incidencias/{id}`) solo lo permite en `error` y da 409 en el resto.
+- **Imprimir:** página 1 con los datos (cabecera, avisos, tabla con la cantidad final en negrita y resolución); página 2 con la foto completa, sin el visor. Oculta los botones y la zona de aprobar.
 
-n8n sirve el HTML con `Content-Security-Policy: sandbox` (sin `allow-same-origin`). Por eso la página lleva los datos incrustados y envía un formulario normal en vez de usar `fetch`.
+**Restricción de las páginas:** n8n las sirve con `Content-Security-Policy: sandbox allow-downloads allow-forms allow-modals allow-popups allow-scripts …`, **sin `allow-same-origin`** (comprobado el 22/10). Consecuencias:
+- el origen es opaco, así que `fetch` a los webhooks **no envía la Basic Auth**. Toda acción va por **formulario normal** (`#form` en `revision.html`), y los datos van incrustados en la página (`__DATOS__`);
+- descargar (CSV con Blob) e imprimir sí están permitidos (`allow-downloads`, `allow-modals`);
+- `localStorage` puede fallar: está envuelto en `try/catch`. Solo recuerda el nombre de "Revisado por".
+
+### Chuleta para el servidor
+
+```sh
+ssh -p 22022 root@217.154.182.5
+# Reconocimientos (BD albaranes_ia; el usuario de Postgres está en $POSTGRES_USER del contenedor)
+docker exec $(docker ps -q -f name=ia-support_surtidos-db | head -1) sh -c \
+  'psql -U $POSTGRES_USER -d albaranes_ia -c "select id, creada, estado, albaran_numero, nombre_fichero from incidencia order by id"'
+# Llamar a los webhooks con las credenciales del .env (pedir.sh lee /root/albaranes-ia/.env: ejecutar en el servidor)
+sh /root/albaranes-ia/pruebas/pedir.sh "albaranes/api/incidencia/21"
+# La API por dentro (sin API_TOKEN), desde el contenedor de n8n
+docker exec $(docker ps -q -f name=ia-support_n8n | head -1) wget -qO- "http://ia-support_albaranes-api:8000/incidencias?limite=20"
+```
+
+- **Antes de borrar reconocimientos:** guardar una copia con `\copy (select * from incidencia where …) to stdout with csv header` en `/root/albaranes-ia/`. Las notas de Odoo están en `mail_message` (`model='stock.picking'`, `res_id` = id del albarán) de la BD `odoo`.
+- **Ejecuciones de n8n:** para depurar un flujo, mirar en n8n → Ejecuciones el nodo que falló. Los errores de la ingesta se guardan también en el campo `error` del reconocimiento (`"<nodo>: <mensaje>"`).
 
 ## Variables
 
@@ -228,8 +321,16 @@ Resultado del 16/10/2026: 15 correctas y 0 fallos. Comprueba:
 - 401 sin credenciales;
 - número por visión y por código de barras, y detección de `12 → 10` y `12 → 9`;
 - foto repetida sin duplicar, y foto que no es un albarán;
-- lista, pantalla y API de incidencia;
+- lista, pantalla y API del reconocimiento;
 - aprobar con rectificación simulada, y doble resolución rechazada.
+
+**Ampliado el 22/10 y aún sin ejecutar entero.** Las comprobaciones nuevas se probaron una a una con curl:
+- tipo `modificado` y `error`;
+- fecha no válida en la lista;
+- eliminar un aprobado da 409;
+- reintentar el de error (mismo id, evento `reprocesar`) y eliminarlo después (404).
+
+Cada ejecución crea reconocimientos nuevos de WH/OUT/00040 y 00041, con su nota en Odoo, y hace unas tres llamadas a la IA. El de error lo borra al final.
 
 Otros ficheros de `pruebas/`:
 - **`generar_foto_prueba.py`:** fotos sintéticas a partir del PDF del albarán, con tachones `barra:N`, `encima:N` y `garabato`, perspectiva, giro y sombra. Necesita pymupdf.

@@ -341,6 +341,7 @@ export class TouchScreen extends Component {
             lineId: line.line_id,
             product: line.product,
             lot: line.lot || null,
+            attributeValueIds: line.attribute_value_ids || [],
             qty: line.qty,
             price: line.price,
             boxQty: line.box_qty || 0,
@@ -406,6 +407,7 @@ export class TouchScreen extends Component {
             qty: line.qty,
             price_unit: line.price,
             ...(!isPurchase && line.lot ? { lot_id: line.lot.id } : {}),
+            ...(!isPurchase ? { attribute_value_ids: line.attributeValueIds || [] } : {}),
             box_qty: line.boxQty || 0,
             ...(line.boxProductId ? { box_product_id: line.boxProductId } : {}),
             ...(isPurchase
@@ -688,6 +690,7 @@ export class TouchScreen extends Component {
             originStateId: line ? line.originStateId : false,
             firm: line ? line.firm : Boolean(partner?.firm_negotiation),
             lotName: line ? line.lotName : "",
+            attributeValueIds: line ? [...(line.attributeValueIds || [])] : [],
             // Field written by the keypad
             field: "qty",
         };
@@ -792,6 +795,36 @@ export class TouchScreen extends Component {
         return (countryId && this.state.originStates[countryId]) || [];
     }
 
+    /** Attributes chosen on each sale of the product, as the quality and the size of bulk goods. */
+    entryAttributes() {
+        return this.state.mode === "sale" ? this.state.entry.product.attributes || [] : [];
+    }
+
+    /** A value of an attribute of the line: it replaces the other value of the attribute, and
+     * touched again it is removed. */
+    onEntryAttributeValue(attribute, value) {
+        const entry = this.state.entry;
+        const selected = entry.attributeValueIds.includes(value.id);
+        const otherIds = attribute.values.map((v) => v.id);
+        entry.attributeValueIds = entry.attributeValueIds.filter((id) => !otherIds.includes(id));
+        if (!selected) {
+            entry.attributeValueIds.push(value.id);
+        }
+    }
+
+    /** Values chosen on the line, as "Extra · 70-75". */
+    lineAttributes(line) {
+        const names = [];
+        for (const attribute of line.product.attributes || []) {
+            for (const value of attribute.values) {
+                if ((line.attributeValueIds || []).includes(value.id)) {
+                    names.push(value.name);
+                }
+            }
+        }
+        return names.join(" · ");
+    }
+
     onEntryFirm(ev) {
         this.state.entry.firm = ev.target.checked;
     }
@@ -845,6 +878,7 @@ export class TouchScreen extends Component {
             originStateId: entry.originStateId,
             firm: entry.firm,
             lotName: entry.lotName.trim(),
+            attributeValueIds: [...entry.attributeValueIds],
         };
         if (entry.line) {
             Object.assign(entry.line, values);

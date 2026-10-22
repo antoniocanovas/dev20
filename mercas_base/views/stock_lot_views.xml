@@ -79,10 +79,14 @@
                         </field>
                     </page>
                     <page string="Sales" name="sale_lines">
+                        <field name="mercas_sale_classification" nolabel="1" readonly="1"
+                               invisible="not mercas_sale_classification"/>
                         <field name="sale_line_ids" readonly="1" no_open="0">
                             <list>
                                 <field name="order_id" string="Order"/>
                                 <field name="product_id"/>
+                                <field name="mercas_quality" optional="show"/>
+                                <field name="mercas_size" optional="show"/>
                                 <field name="product_uom_qty" string="Quantity" sum="Quantity"/>
                                 <field name="price_unit" string="Achieved Price"/>
                                 <field name="price_subtotal" string="Subtotal" sum="Subtotal"/>
