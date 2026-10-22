@@ -191,6 +191,31 @@ class TestMercasTouch(MercasTouchCommon):
         found = self.Touch.find_by_barcode('8400000000017')
         self.assertEqual(found, {'lots': [], 'product_id': self.lettuce.id})
 
+    def test_damaged_label(self):
+        """ A damaged label: the lot is found by the code scanned or typed, the exact one
+        first, also once invoiced, and its labels are reprinted as many as boxes were bought. """
+        self._buy(30.0, lot_name='LABEL-7', box_qty=3, box_product_id=self.box.id)
+        self._buy(10.0, lot_name='LABEL-77')
+        lot = self.env['stock.lot'].search([('name', '=', 'LABEL-7')])
+        found = self.Touch.search_label_lots('label-7')
+        self.assertEqual([found[0]['id'], found[0]['exact']], [lot.id, True], "The exact lot first, typed in lowercase")
+        self.assertEqual([(entry['name'], entry['exact']) for entry in found[1:]], [('LABEL-77', False)])
+        self.assertEqual(found[0]['supplier'], self.supplier.name)
+        lot.invoiced = True
+        self.assertIn(lot.id, [entry['id'] for entry in self.Touch.search_label_lots('LABEL')],
+                      "Also the labels of a lot already invoiced")
+        self.assertIn(lot.id, [entry['id'] for entry in self.Touch.search_label_lots('')], "The last received")
+        self.assertFalse(any(entry['exact'] for entry in self.Touch.search_label_lots('LABEL_7')),
+                         "The code isn't a pattern for the exact lot")
+        action = self.Touch.get_lot_label_action([lot.id])
+        self.assertEqual(action['res_model'], 'mercas.label.print.wizard')
+        wizard = self.env['mercas.label.print.wizard'].with_user(self.user).with_context(action['context']).create({})
+        self.assertEqual([(line.lot_id, line.quantity) for line in wizard.line_ids], [(lot, 3)])
+        with self.assertRaises(ValidationError):
+            self.Touch.get_lot_label_action([])
+        with self.assertRaises(ValidationError):
+            self.Touch.get_lot_label_action([lot.id, 999999999])
+
     def test_boxes_return_and_deliver(self):
         # The customer takes 5 boxes with a sale and gives back 3
         self._buy(100.0, lot_name='BOX-1')

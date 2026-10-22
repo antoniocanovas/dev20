@@ -32,6 +32,11 @@ class MercasLabelPrintWizard(models.TransientModel):
         if "line_ids" not in fields_list:
             return res
 
+        lot_ids = self.env.context.get("mercas_label_lot_ids")
+        if lot_ids:
+            res["line_ids"] = self._lot_label_lines(self.env["stock.lot"].browse(lot_ids))
+            return res
+
         order = None
         box_line_field = None
         if res.get("purchase_id"):
@@ -58,6 +63,28 @@ class MercasLabelPrintWizard(models.TransientModel):
             for line in lines
         ]
         return res
+
+    @api.model
+    def _lot_label_lines(self, lots):
+        """Lines to reprint the labels of `lots`: as many as boxes were
+        bought of each lot, or one when the purchase doesn't tell."""
+        groups = self.env["purchase.order.line"]._read_group(
+            [
+                ("lot_id", "in", lots.ids),
+                ("state", "in", ("purchase", "done")),
+                ("box_purchase_line_id", "=", False),
+            ],
+            ["lot_id"], ["box_qty:sum"],
+        )
+        boxes = {lot: box_qty for lot, box_qty in groups}
+        return [
+            Command.create({
+                "product_id": lot.product_id.id,
+                "lot_id": lot.id,
+                "quantity": boxes.get(lot) or 1,
+            })
+            for lot in lots
+        ]
 
     def action_print(self):
         self.ensure_one()

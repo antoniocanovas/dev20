@@ -18,6 +18,12 @@
                         invisible="not invoiceable"
                     />
                     <button
+                        name="action_print_mercas_labels"
+                        string="Print Labels"
+                        type="object"
+                        class="btn-secondary"
+                    />
+                    <button
                         name="action_open_scrap"
                         string="Scrap"
                         type="object"

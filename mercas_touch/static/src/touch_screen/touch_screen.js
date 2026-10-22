@@ -59,6 +59,7 @@ export class TouchScreen extends Component {
             { key: "boxes", fkey: "F3", name: _t("Boxes"), icon: "inventory_2", help: _t("Boxes given back by customers or to suppliers") },
             { key: "lots", fkey: "F4", name: _t("Lots"), icon: "widgets", help: _t("Stock of the lots, scrap and settlement") },
             { key: "payment", fkey: "F5", name: _t("Payments"), icon: "payments", help: _t("Collect the invoices of a customer") },
+            { key: "labels", fkey: "F6", name: _t("Damaged label"), icon: "label", help: _t("Reprint the labels of a lot") },
         ];
         this.state = proxy({
             // false (main menu) or the key of a mode
@@ -104,6 +105,9 @@ export class TouchScreen extends Component {
             lotList: [],
             lotSelection: {},
             scrap: null,
+            // Damaged label: the lots found by the code scanned or typed
+            labelSearch: "",
+            labelLots: [],
             // Payments
             invoiceIds: [],
             amount: "",
@@ -119,10 +123,18 @@ export class TouchScreen extends Component {
         // The price field is focused and selected each time the editor moves to a line, so
         // that a keyboard or a scale replaces the price
         this.focusPrice = false;
+        // The code of a damaged label is typed or scanned as soon as its screen opens
+        this.focusLabelSearch = false;
         onPatched(() => {
             if (this.focusPrice) {
                 this.focusPrice = false;
                 const input = document.querySelector(".o_mercas_touch_price_edit_input");
+                input?.focus();
+                input?.select();
+            }
+            if (this.focusLabelSearch) {
+                this.focusLabelSearch = false;
+                const input = document.querySelector(".o_mercas_touch_label_search");
                 input?.focus();
                 input?.select();
             }
@@ -179,6 +191,10 @@ export class TouchScreen extends Component {
         this.state.mode = mode;
         if (mode === "lots") {
             await this.loadLots();
+        } else if (mode === "labels") {
+            this.state.labelSearch = "";
+            this.focusLabelSearch = true;
+            await this.loadLabelLots();
         } else if (this.hasDrafts()) {
             await this.loadDrafts();
         } else {
@@ -1315,6 +1331,63 @@ export class TouchScreen extends Component {
         }
     }
 
+    /** The box labels of the lots, as many as boxes were bought, in the wizard of mercas_base. */
+    async onPrintLotLabels(lotIds) {
+        const action = await this.run("get_lot_label_action", [lotIds]);
+        if (action) {
+            await this.action.doAction(action, {
+                onClose: () => {
+                    if (this.state.mode === "labels") {
+                        this.focusLabelSearch = true;
+                        this.render();
+                    }
+                },
+            });
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Damaged label: reprint the labels of a lot, scanned or typed
+    // ------------------------------------------------------------------
+
+    onLabelSearchInput(ev) {
+        this.state.labelSearch = ev.target.value;
+        browser.clearTimeout(this.searchTimeout);
+        this.searchTimeout = browser.setTimeout(() => this.loadLabelLots(), SEARCH_DELAY);
+    }
+
+    /** Enter ends a typed code, and a scanner in keyboard mode writing in the field. */
+    async onLabelSearchKeydown(ev) {
+        if (ev.key === "Enter") {
+            ev.preventDefault();
+            await this.findLabel(ev.target.value);
+        }
+    }
+
+    async loadLabelLots() {
+        const search = this.state.labelSearch;
+        const lots = await this.orm.call(MODEL, "search_label_lots", [search]);
+        if (this.state.mode === "labels" && this.state.labelSearch === search) {
+            this.state.labelLots = lots;
+        }
+        return lots;
+    }
+
+    /** The lot named exactly as the code goes straight to print; otherwise the lots found. */
+    async findLabel(code) {
+        browser.clearTimeout(this.searchTimeout);
+        this.state.labelSearch = code.trim();
+        const lots = await this.loadLabelLots();
+        const exact = lots.filter((lot) => lot.exact);
+        if (exact.length === 1) {
+            await this.onPrintLotLabels([exact[0].id]);
+        } else if (this.state.labelSearch && !lots.length) {
+            this.notification.add(_t("No lot found for %s.", this.state.labelSearch), { type: "warning" });
+            this.focusLabelSearch = true;
+            this.render();
+        }
+    }
+
     // ------------------------------------------------------------------
     // Payments
     // ------------------------------------------------------------------
@@ -1373,7 +1446,11 @@ export class TouchScreen extends Component {
     // ------------------------------------------------------------------
 
     async onBarcodeScanned(barcode) {
-        if (!["sale", "purchase", "lots"].includes(this.state.mode) || this.state.sending) {
+        if (!["sale", "purchase", "lots", "labels"].includes(this.state.mode) || this.state.sending) {
+            return;
+        }
+        if (this.state.mode === "labels") {
+            await this.findLabel(barcode);
             return;
         }
         if (this.state.mode === "lots") {

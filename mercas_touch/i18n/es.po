@@ -1295,3 +1295,68 @@ msgstr "· 1 línea"
 #: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "Invalid values for %s."
 msgstr "Valores no válidos para %s."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Choose the lots whose labels to print."
+msgstr "Elige los lotes cuyas etiquetas quieres imprimir."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Damaged label"
+msgstr "Etiqueta dañada"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Find"
+msgstr "Buscar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Labels"
+msgstr "Etiquetas"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "No lot found for %s."
+msgstr "No se ha encontrado ningún lote para %s."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No lot found."
+msgstr "No se ha encontrado ningún lote."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Reprint the labels of a lot"
+msgstr "Reimprime etiquetas de un lote"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Scan the label or type its lot"
+msgstr "Escanea la etiqueta o escribe su lote"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Some lots don't exist anymore."
+msgstr "Algunos lotes ya no existen."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid ""
+"Type the lot printed on the label, or part of it, the product or the "
+"supplier. A lot named exactly as the code opens its labels at once."
+msgstr ""
+"Escribe el lote impreso en la etiqueta, o parte de él, el producto o el "
+"proveedor. Un lote que se llame exactamente como el código abre sus "
+"etiquetas directamente."

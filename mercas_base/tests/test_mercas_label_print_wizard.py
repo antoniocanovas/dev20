@@ -160,3 +160,26 @@ class TestMercasLabelPrintWizard(TransactionCase):
         ).create({})
         proposed = {line.product_id: line.quantity for line in wizard.line_ids}
         self.assertEqual(proposed, {self.platano: 5})
+
+    def test_reprint_from_lots(self):
+        """Reprinting from the lots: as many labels as boxes were bought of
+        each lot, or one when no purchase tells."""
+        lot = self.env["stock.lot"].create({
+            "name": "LBL-REPRINT",
+            "product_id": self.platano.id,
+            "company_id": self.company.id,
+        })
+        self.purchase.order_line.filtered(
+            lambda l: l.product_id == self.platano
+        ).lot_id = lot
+        loose = self.env["stock.lot"].create({
+            "name": "LBL-LOOSE",
+            "product_id": self.pera.id,
+            "company_id": self.company.id,
+        })
+        action = (lot | loose).action_print_mercas_labels()
+        self.assertEqual(action["res_model"], "mercas.label.print.wizard")
+        wizard = self.env["mercas.label.print.wizard"].with_context(action["context"]).create({})
+        proposed = {line.lot_id: line.quantity for line in wizard.line_ids}
+        self.assertEqual(proposed, {lot: 10, loose: 1})
+        self.assertIn([self.platano.id, lot.id, 10], wizard.action_print()["data"]["labels"])

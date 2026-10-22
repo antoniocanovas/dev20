@@ -111,6 +111,8 @@ El botón **Imprimir etiquetas** (visible en pedidos de compra confirmados y en 
 - La cantidad es **editable** antes de imprimir: sirve tanto para imprimir de más como para reponer solo las etiquetas que se han roto (poniendo, p. ej., 3 en vez de las 10 propuestas).
 - El botón se puede pulsar tantas veces como haga falta (reimprimir), cada vez vuelve a proponer las cantidades desde cero.
 
+**Reimprimir desde el lote:** el formulario del lote tiene también el botón **Imprimir etiquetas** (`stock.lot.action_print_mercas_labels`), para reponer etiquetas sin buscar el pedido. Abre el mismo asistente con una línea por lote, con tantas etiquetas como cajas se compraron del lote (la suma de **Cajas** de sus líneas de compra confirmadas), o una si la compra no lo indica. También se puede abrir con varios lotes a la vez. Es lo que usa la reimpresión de `mercas_touch`.
+
 Reutiliza el mecanismo estándar de etiquetas de producto de Odoo (`product.label.layout` / los informes `product.report_product_template_label_*`): el asistente arma su propio `quantity_by_product` (cantidad por producto, no uniforme como en el asistente nativo) y llama directamente al informe, así que las etiquetas impresas son las mismas plantillas y formatos que ya conoce cualquier usuario de Odoo (Dymo, 2x7, 4x7, 4x12, con o sin precio).
 
 ### Compras — Facturación firme

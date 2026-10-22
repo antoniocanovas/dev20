@@ -45,6 +45,7 @@
                 </div>
                 <div class="flex-grow-1 overflow-auto p-3 o_mercas_touch_body">
                     <t t-if="this.state.mode === 'lots'" t-call="mercas_touch.TouchScreenLots"/>
+                    <t t-elif="this.state.mode === 'labels'" t-call="mercas_touch.TouchScreenLabels"/>
                     <t t-elif="this.hasDrafts() and !this.state.partner and !this.state.choosingCustomer" t-call="mercas_touch.TouchScreenDrafts"/>
                     <t t-elif="!this.state.partner" t-call="mercas_touch.TouchScreenPartners"/>
                     <t t-elif="this.state.done" t-call="mercas_touch.TouchScreenDone"/>
@@ -662,16 +663,24 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2">
                             <span class="small text-muted">Sold amount <t t-out="this.formatAmount(lot.sale_amount)"/></span>
-                            <button class="btn btn-secondary o_mercas_touch_scrap_lot" t-att-disabled="lot.stock &lt;= 0"
-                                    t-on-click="() => this.onScrapLot(lot)">
-                                <i class="oi" data-icon="delete"/> Scrap
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-secondary o_mercas_touch_lot_labels" t-att-disabled="this.state.sending"
+                                        t-on-click="() => this.onPrintLotLabels([lot.id])">
+                                    <i class="oi" data-icon="label"/> Labels
+                                </button>
+                                <button class="btn btn-secondary o_mercas_touch_scrap_lot" t-att-disabled="lot.stock &lt;= 0"
+                                        t-on-click="() => this.onScrapLot(lot)">
+                                    <i class="oi" data-icon="delete"/> Scrap
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="o_mercas_touch_lot_actions d-flex flex-wrap align-items-center gap-2 mt-3 py-2 bg-view border-top">
                 <span class="me-auto"><t t-out="this.selectedLotIds().length"/> lots selected</span>
+                <button class="btn btn-secondary btn-lg o_mercas_touch_selected_labels" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
+                        t-on-click="() => this.onPrintLotLabels(this.selectedLotIds())"><i class="oi" data-icon="label"/> Labels</button>
                 <button class="btn btn-primary btn-lg o_mercas_touch_settle" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
                         t-on-click="() => this.onInvoiceLots('settle')">Settle</button>
                 <button class="btn btn-secondary btn-lg o_mercas_touch_advance" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
@@ -680,6 +689,43 @@
                         t-on-click="() => this.onInvoiceLots('firm')">Firm invoice</button>
             </div>
         </t>
+    </t>
+
+    <!-- Damaged label: the lot is scanned or, when the label can't be read, typed -->
+    <t t-name="mercas_touch.TouchScreenLabels">
+        <div class="d-flex flex-column gap-3 o_mercas_touch_labels">
+            <div class="input-group input-group-lg o_mercas_touch_search">
+                <span class="input-group-text"><i class="oi" data-icon="barcode"/></span>
+                <input type="search" class="form-control o_mercas_touch_label_search" autocomplete="off"
+                       placeholder="Scan the label or type its lot"
+                       t-att-value="this.state.labelSearch" t-on-input="this.onLabelSearchInput"
+                       t-on-keydown="this.onLabelSearchKeydown"/>
+                <button class="btn btn-primary o_mercas_touch_label_find" t-att-disabled="this.state.sending"
+                        t-on-click="() => this.findLabel(this.state.labelSearch)">
+                    <i class="oi" data-icon="search"/> Find
+                </button>
+            </div>
+            <div class="text-muted small">
+                Type the lot printed on the label, or part of it, the product or the supplier. A lot named exactly as the code opens its labels at once.
+            </div>
+            <div t-if="!this.state.labelLots.length" class="alert alert-info">No lot found.</div>
+            <div class="o_mercas_touch_grid">
+                <button t-foreach="this.state.labelLots" t-as="lot" t-key="lot.id"
+                        t-att-class="'btn btn-light border o_mercas_touch_tile o_mercas_touch_label_lot ' + (lot.exact ? 'border-primary border-2' : '')"
+                        t-att-disabled="this.state.sending" t-on-click="() => this.onPrintLotLabels([lot.id])">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="oi fs-3 text-muted" data-icon="label"/>
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fs-5 fw-bold text-truncate" t-out="lot.name"/>
+                            <div class="text-truncate" t-out="lot.product"/>
+                            <div class="small text-muted text-truncate">
+                                <t t-out="lot.supplier"/><t t-if="lot.origin"> · <t t-out="lot.origin"/></t> · <t t-out="this.formatDate(lot.date)"/>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </div>
     </t>
 
     <t t-name="mercas_touch.TouchScreenPayment">

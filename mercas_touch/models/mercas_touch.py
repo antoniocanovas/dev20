@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools.sql import escape_psql
 
 from odoo.addons.web.controllers.utils import clean_action
 
@@ -12,6 +13,8 @@ PARTNER_LIMIT = 60
 PRODUCT_LIMIT = 500
 # Lots shown in the lots mode
 LOT_LIMIT = 200
+# Lots shown to reprint their labels
+LABEL_LOT_LIMIT = 60
 # Drafts shown when starting a sale or a purchase
 DRAFT_LIMIT = 100
 # Most lines of a sale, a purchase or a box movement
@@ -333,6 +336,47 @@ class MercasTouch(models.AbstractModel):
             domain += ['|', '|', ('name', 'ilike', query), ('product_id', 'ilike', query), ('partner_id', 'ilike', query)]
         lots = Lot.search(domain, limit=LOT_LIMIT, order='create_date desc, id desc')
         return [self._get_lot_summary(lot) for lot in lots]
+
+    @api.model
+    def search_label_lots(self, query=''):
+        """ Lots whose labels can be reprinted, invoiced or not: the ones named exactly as
+        `query` first (a scanned or typed label), then the ones whose name, product or supplier
+        contain it; without `query`, the last received. """
+        Lot = self.env['stock.lot']
+        company_domain = Lot._check_company_domain(self.env.company)
+        query = (query or '').strip() if isinstance(query, str) else ''
+        lots = Lot.browse()
+        domain = list(company_domain)
+        if query:
+            lots = Lot.search([('name', '=ilike', escape_psql(query)), *company_domain], order='create_date desc, id desc')
+            domain += [('id', 'not in', lots.ids),
+                       '|', '|', ('name', 'ilike', query), ('product_id', 'ilike', query), ('partner_id', 'ilike', query)]
+        lots |= Lot.search(domain, limit=LABEL_LOT_LIMIT, order='create_date desc, id desc')
+        return [self._get_label_lot_data(lot, exact=lot.name.lower() == query.lower()) for lot in lots]
+
+    def _get_label_lot_data(self, lot, exact=False):
+        origin = ', '.join(name for name in (lot.origin_state_id.name, lot.origin_country_id.name) if name)
+        return {
+            'id': lot.id,
+            'name': lot.name,
+            'product': lot.product_id.display_name,
+            'supplier': lot.partner_id.name or '',
+            'origin': origin,
+            'date': fields.Datetime.to_string(lot.create_date),
+            'exact': exact,
+        }
+
+    @api.model
+    def get_lot_label_action(self, lot_ids):
+        """ The wizard of `mercas_base` to reprint the box labels of the lots, as many as boxes
+        were bought of each one. """
+        if not isinstance(lot_ids, list) or not lot_ids or not all(is_record_id(lot_id) for lot_id in lot_ids):
+            raise ValidationError(self.env._("Choose the lots whose labels to print."))
+        lots = self.env['stock.lot'].browse(lot_ids).exists()
+        if len(lots) != len(set(lot_ids)):
+            raise ValidationError(self.env._("Some lots don't exist anymore."))
+        lots.check_access('read')
+        return self._get_client_action(lots.action_print_mercas_labels())
 
     def _get_lot_summary(self, lot):
         return {

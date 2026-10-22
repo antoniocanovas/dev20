@@ -312,6 +312,18 @@ class StockLot(models.Model):
             if lot.invoiced != new_value:
                 lot.with_context(mercas_auto_invoiced=True).write({"invoiced": new_value})
 
+    def action_print_mercas_labels(self):
+        """Open the wizard to reprint the box labels of these lots, without
+        looking for the order they came with."""
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Print Labels"),
+            "res_model": "mercas.label.print.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"mercas_label_lot_ids": self.ids},
+        }
+
     def action_open_scrap(self):
         """Open the standard scrap form of the lot, like its own "Scrap"
         action, with the quantity left at 0 for the user to fill in.

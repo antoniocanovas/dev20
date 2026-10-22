@@ -390,6 +390,8 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:mercas_base.view_mercas_label_print_wizard_form
 #: model_terms:ir.ui.view,arch_db:mercas_base.view_purchase_order_form_mercas
 #: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas
+#: code:addons/mercas_base/models/stock_lot.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
 msgid "Print Labels"
 msgstr ""
 
