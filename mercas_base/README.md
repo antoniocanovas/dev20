@@ -167,7 +167,7 @@ En la ficha de producto (`product.template`) hay dos campos junto a la cantidad 
 
 ### Maestros — País y Provincia de origen
 
-Los modelos `res.country` y `res.country.state` disponen del campo booleano **Origen Mercas** (`mercas_origin`), visible en sus vistas de formulario y lista. Permite marcar los países y provincias habituales de origen de la mercancía para su uso futuro como filtro (controlado por **Filtro origen** en la empresa).
+El modelo `res.country` dispone del campo booleano **Origen Mercas** (`mercas_origin`), visible en sus vistas de formulario y lista. Permite marcar los países habituales de origen de la mercancía. Con **Filtro origen** activo en la empresa, las compras solo ofrecen esos países y, de provincias, todas las de esos países: las provincias no se marcan. La provincia de origen de una línea de compra se limita además al país de origen de la línea, si lo tiene.
 
 ### Lotes de stock (`stock.lot`)
 
@@ -346,7 +346,7 @@ Ambos exigen que exista al menos un producto marcado como caja/envase (mismo gua
 | **Purchase lot auto** | Activa la creación automática de lotes al confirmar pedidos de compra. |
 | **Columna país origen** | Muestra la columna de país de origen en las líneas de pedido de compra. |
 | **Columna provincia origen** | Muestra la columna de provincia de origen en las líneas de pedido de compra. |
-| **Filtro origen** | Restringe la selección de país/provincia a los marcados como Origen Mercas. |
+| **Filtro origen** | Restringe la selección de país a los marcados como Origen Mercas, con todas sus provincias. |
 
 ### Contabilidad
 | Campo | Descripción |

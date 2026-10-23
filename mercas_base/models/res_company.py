@@ -46,7 +46,7 @@ class ResCompany(models.Model):
     origin_filter = fields.Boolean(
         string="Origin Filter",
         default=False,
-        help="Restricts the country/state selection to those marked as Merca Origin.",
+        help="Restricts the country selection to those marked as Merca Origin, with all their states.",
     )
     mercas_margin = fields.Float(
         string="Merca Margin (%)",

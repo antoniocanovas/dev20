@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
 
+    <!-- Views of the former mercas_origin of the states, deleted before the country form
+         is validated again -->
+    <delete model="ir.ui.view" id="view_country_form_states_mercas"/>
+    <delete model="ir.ui.view" id="view_country_state_tree_mercas"/>
+    <delete model="ir.ui.view" id="view_country_state_form_mercas"/>
+
     <!-- res.country -->
     <record id="view_country_tree_mercas" model="ir.ui.view">
         <field name="name">res.country.list.mercas</field>
@@ -23,41 +29,6 @@
                     <field name="mercas_origin"/>
                 </group>
             </group>
-        </field>
-    </record>
-
-    <!-- res.country.state (standalone) -->
-    <record id="view_country_state_tree_mercas" model="ir.ui.view">
-        <field name="name">res.country.state.list.mercas</field>
-        <field name="model">res.country.state</field>
-        <field name="inherit_id" ref="base.view_country_state_tree"/>
-        <field name="arch" type="xml">
-            <field name="code" position="after">
-                <field name="mercas_origin"/>
-            </field>
-        </field>
-    </record>
-
-    <record id="view_country_state_form_mercas" model="ir.ui.view">
-        <field name="name">res.country.state.form.mercas</field>
-        <field name="model">res.country.state</field>
-        <field name="inherit_id" ref="base.view_country_state_form"/>
-        <field name="arch" type="xml">
-            <field name="country_id" position="after">
-                <field name="mercas_origin"/>
-            </field>
-        </field>
-    </record>
-
-    <!-- mercas_origin column on the states One2many inside the country form -->
-    <record id="view_country_form_states_mercas" model="ir.ui.view">
-        <field name="name">res.country.form.states.mercas</field>
-        <field name="model">res.country</field>
-        <field name="inherit_id" ref="base.view_country_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='state_ids']/list/field[@name='code']" position="after">
-                <field name="mercas_origin"/>
-            </xpath>
         </field>
     </record>
 

@@ -253,7 +253,7 @@
                     <label class="form-label mb-1" t-out="attribute.name"/>
                     <div class="d-flex flex-wrap gap-2">
                         <button t-foreach="attribute.values" t-as="value" t-key="value.id"
-                                t-att-class="'btn btn-lg o_mercas_touch_attribute_value ' + (entry.attributeValueIds.includes(value.id) ? 'btn-primary' : 'btn-outline-secondary')"
+                                t-att-class="'btn btn-lg o_mercas_touch_attribute_value ' + (entry.attributeValueIds.includes(value.id) ? 'btn-primary' : 'btn-secondary')"
                                 t-on-click="() => this.onEntryAttributeValue(attribute, value)"
                                 t-out="value.name"/>
                     </div>

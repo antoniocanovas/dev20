@@ -565,27 +565,23 @@ class TestMercasTouch(MercasTouchCommon):
 
     def test_origin_countries_and_states(self):
         """ Without the origin filter of the company, every country, and the states of the
-        country chosen; with it, only the countries and states marked as origin. """
+        country chosen; with it, only the countries marked as origin, with all their states. """
         Country, State = self.env['res.country'], self.env['res.country.state']
         spain, france = self.env.ref('base.es'), self.env.ref('base.fr')
         self.company.origin_filter = False
         origin = self.Touch.get_screen_data()['origin']
         self.assertEqual(len(origin['countries']), Country.search_count([]))
-        self.assertEqual(origin['states'], [])
         states = self.Touch.get_origin_states(spain.id)
         self.assertEqual(len(states), State.search_count([('country_id', '=', spain.id)]))
         self.assertTrue(all(state['country_id'] == spain.id for state in states))
 
         Country.search([]).mercas_origin = False
-        State.search([]).mercas_origin = False
-        murcia = State.search([('country_id', '=', spain.id)], limit=1)
         (spain | france).mercas_origin = True
-        murcia.mercas_origin = True
         self.company.origin_filter = True
         origin = self.Touch.get_screen_data()['origin']
         self.assertEqual({c['id'] for c in origin['countries']}, {spain.id, france.id})
-        self.assertEqual([s['id'] for s in origin['states']], murcia.ids)
-        self.assertEqual([s['id'] for s in self.Touch.get_origin_states(spain.id)], murcia.ids)
+        self.assertEqual(self.Touch.get_origin_states(spain.id), states)
+        self.assertEqual(self.Touch.get_origin_states(self.env.ref('base.it').id), [])
 
     def test_draft_filters_and_summary(self):
         """ Besides the drafts in progress, the confirmed orders still to invoice and all of

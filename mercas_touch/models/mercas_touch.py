@@ -74,12 +74,10 @@ class MercasTouch(models.AbstractModel):
             ('type', 'in', ('bank', 'cash')),
             *self.env['account.journal']._check_company_domain(company),
         ], order='sequence, id')
-        # With the origin filter of the company, only the countries and states marked as origin;
-        # without it, every country, and the states of each country when it is chosen
+        # With the origin filter of the company, only the countries marked as origin; the states
+        # of each country are loaded when it is chosen
         origin_domain = [('mercas_origin', '=', True)] if company.origin_filter else []
         countries = self.env['res.country'].search(origin_domain, order='name')
-        states = self.env['res.country.state'].search(origin_domain, order='country_id, name') \
-            if company.origin_filter else self.env['res.country.state']
         return {
             'company_id': company.id,
             'currency_id': company.currency_id.id,
@@ -92,24 +90,20 @@ class MercasTouch(models.AbstractModel):
             'origin': {
                 'country': company.origin_country,
                 'state': company.origin_state,
-                'filter': company.origin_filter,
                 'countries': [{'id': country.id, 'name': country.name} for country in countries],
-                'states': [
-                    {'id': state.id, 'name': state.name, 'country_id': state.country_id.id}
-                    for state in states
-                ],
             },
             'has_risk': 'risk_exception' in self.env['res.partner']._fields,
         }
 
     @api.model
     def get_origin_states(self, country_id):
-        """ States of origin of a country, as the purchase offers them. """
+        """ States of origin of a country, as the purchase offers them: all of them, if the
+        country is an origin one (with the origin filter of the company). """
         if not is_record_id(country_id):
             raise ValidationError(self.env._("Invalid country."))
         domain = [('country_id', '=', country_id)]
         if self.env.company.origin_filter:
-            domain.append(('mercas_origin', '=', True))
+            domain.append(('country_id.mercas_origin', '=', True))
         states = self.env['res.country.state'].search(domain, order='name')
         return [{'id': state.id, 'name': state.name, 'country_id': state.country_id.id} for state in states]
 

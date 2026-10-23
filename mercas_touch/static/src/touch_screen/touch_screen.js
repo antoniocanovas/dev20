@@ -90,8 +90,7 @@ export class TouchScreen extends Component {
             entry: null,
             // Lines of the sale or the purchase
             lines: [],
-            // States of origin of each country, loaded when the country is chosen (without the
-            // origin filter of the company, which sends the few states of origin at once)
+            // States of origin of each country, loaded when the country is chosen
             originStates: {},
             // Price of a line being changed from the ticket: { key, value, fresh }
             priceEdit: null,
@@ -793,7 +792,7 @@ export class TouchScreen extends Component {
 
     async loadOriginStates(countryId) {
         const origin = this.state.data.origin;
-        if (this.state.mode !== "purchase" || !origin.state || origin.filter || !countryId ||
+        if (this.state.mode !== "purchase" || !origin.state || !countryId ||
             this.state.originStates[countryId]) {
             return;
         }
@@ -801,13 +800,9 @@ export class TouchScreen extends Component {
         this.state.originStates = { ...this.state.originStates, [countryId]: states };
     }
 
-    /** States of origin to choose: of the country chosen, or all the states of origin. */
+    /** States of origin to choose: those of the country chosen. */
     originStates() {
         const countryId = this.state.entry?.originCountryId;
-        const origin = this.state.data.origin;
-        if (origin.filter) {
-            return origin.states.filter((state) => !countryId || state.country_id === countryId);
-        }
         return (countryId && this.state.originStates[countryId]) || [];
     }
 

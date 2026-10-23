@@ -393,7 +393,6 @@ msgstr "Compensación %s"
 
 #. module: mercas_base
 #: model:ir.model.fields,field_description:mercas_base.field_res_country__mercas_origin
-#: model:ir.model.fields,field_description:mercas_base.field_res_country_state__mercas_origin
 msgid "Merca Origin"
 msgstr "Origen Mercas"
 
@@ -618,9 +617,12 @@ msgstr "Filtro origen"
 
 #. module: mercas_base
 #: model:ir.model.fields,field_help:mercas_base.field_res_company__origin_filter
-msgid "Restricts the country/state selection to those marked as Merca Origin."
+msgid ""
+"Restricts the country selection to those marked as Merca Origin, with all "
+"their states."
 msgstr ""
-"Restringe la selección de país/provincia a los marcados como Origen Mercas."
+"Restringe la selección de país a los marcados como Origen Mercas, con todas "
+"sus provincias."
 
 #. module: mercas_base
 #: model:ir.model.fields,field_description:mercas_base.field_res_company__mercas_margin

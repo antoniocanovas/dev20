@@ -64,7 +64,7 @@ Al tocar un pedido confirmado se abre su **resumen**: estado, estado de facturac
 
 Igual que la venta: al entrar se ven las **compras en borrador** para seguir con una, o **Nueva compra**, que pregunta el proveedor. La compra se guarda como petición de presupuesto con cada cambio, así que se puede pasar a otra compra sin cerrar la primera.
 
-Por línea: kg, precio, cajas, país y provincia de origen (si están activados en la compañía). Sin el *Filtro origen* de la compañía se ofrecen todos los países y las provincias del país elegido; con el filtro, solo los países y provincias marcados como *Origen Mercas*, **facturación firme** (por defecto la del proveedor) y el **lote**: si se deja vacío, se crea uno nuevo. Mientras la compra está en borrador, el lote pedido se guarda solo por su nombre (*Lote a recibir*), sin crear todavía el lote. *Comprar y recibir* confirma, recibe y crea los lotes, y muestra los lotes creados para imprimir sus **etiquetas de caja**.
+Por línea: kg, precio, cajas, país y provincia de origen (si están activados en la compañía). Sin el *Filtro origen* de la compañía se ofrecen todos los países y las provincias del país elegido; con el filtro, solo los países marcados como *Origen Mercas*, con todas sus provincias; **facturación firme** (por defecto la del proveedor) y el **lote**: si se deja vacío, se crea uno nuevo. Mientras la compra está en borrador, el lote pedido se guarda solo por su nombre (*Lote a recibir*), sin crear todavía el lote. *Comprar y recibir* confirma, recibe y crea los lotes, y muestra los lotes creados para imprimir sus **etiquetas de caja**.
 
 ### F3 · Cajas
 

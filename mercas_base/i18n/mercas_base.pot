@@ -358,7 +358,6 @@ msgstr ""
 
 #. module: mercas_base
 #: model:ir.model.fields,field_description:mercas_base.field_res_country__mercas_origin
-#: model:ir.model.fields,field_description:mercas_base.field_res_country_state__mercas_origin
 msgid "Merca Origin"
 msgstr ""
 
@@ -542,7 +541,9 @@ msgstr ""
 
 #. module: mercas_base
 #: model:ir.model.fields,field_help:mercas_base.field_res_company__origin_filter
-msgid "Restricts the country/state selection to those marked as Merca Origin."
+msgid ""
+"Restricts the country selection to those marked as Merca Origin, with all "
+"their states."
 msgstr ""
 
 #. module: mercas_base
