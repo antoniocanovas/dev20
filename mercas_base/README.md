@@ -158,6 +158,21 @@ El botón **Compensar** en facturas de proveedor (`in_invoice`) en estado public
 2. Valida y concilia el asiento con la línea a pagar de la factura de proveedor.
 3. El crédito resultante aparece como **crédito pendiente** en las facturas de cliente del mismo partner y puede aplicarse directamente desde ellas.
 
+### Contabilidad — Aviso de líneas vacías en facturas de proveedor
+
+Odoo 19 y 20 avisan de *líneas vacías* en una factura de compra con dos o más líneas a total 0, contando las secciones; una factura con las secciones PRODUCTOS y Envases lo mostraba siempre, y su botón las borraba. `account.move._get_alerts` solo cuenta las líneas de producto.
+
+### Contabilidad — Autofacturación de proveedores
+
+Para los proveedores cuyas facturas expedimos nosotros en su nombre (facturación por el destinatario), con el estándar de Odoo de los diarios de **Autofacturación**:
+
+- **Proveedor:** casilla **Autofacturación** y fecha del **Acuerdo de autofacturación** (el acuerdo previo con el proveedor) en la pestaña de compras del contacto (de la empresa; sus contactos la heredan).
+- **Diario:** al instalar o actualizar el módulo, cada compañía con plan contable tiene su diario **Autofacturas proveedores** (código `AF`, de compras, con autofacturación y secuencia propia para las rectificativas), seleccionado en **Diario de autofacturas** de la empresa. Si ya había un diario de autofacturación, se usa ese. Va detrás de los demás diarios de compras, así que nunca es el diario por defecto.
+- **Diario automático:** las facturas y rectificativas de un proveedor con autofacturación van a ese diario, se creen como se creen (factura del pedido, liquidación, adelanto o factura firme de lotes, envases, a mano al elegir el proveedor). Se puede cambiar a mano, por ejemplo si un día el proveedor manda su propia factura. Una factura de un proveedor sin autofacturación no se puede confirmar en un diario de autofacturación.
+- **Número:** el estándar numera con una serie por proveedor (`AF` + id del proveedor + año/mes/número). Al confirmar, si la factura no tiene referencia del proveedor, toma ese número: es el número de la factura del proveedor (el que se envía al SII y el del 347).
+- **PDF:** el informe estándar se titula *Autofactura*; además lleva la mención **Facturación por el destinatario** y los datos del **emisor** (el proveedor: nombre, dirección y NIF) y del **destinatario** (la empresa).
+- **Envío:** con el botón *Enviar* de la factura, que usa la plantilla estándar de autofacturación, para su aceptación por el proveedor según el acuerdo.
+
 ### Maestros — Producto: caja/envase
 
 En la ficha de producto (`product.template`) hay dos campos junto a la cantidad disponible:
@@ -283,11 +298,21 @@ El asistente (**Mercas > Liquidaciones**, ver *El asistente de liquidación: tre
 2. Agrupa por proveedor y crea **una factura por proveedor** (puede mezclar lotes de ambos regímenes en el mismo documento). Por cada lote:
    - **Facturación firme**: una línea con cantidad = saldo pendiente (`Kg recibidos - Kg facturados en firme`) y precio = el de la línea de compra de origen (marcada `mercas_is_firm_line`), más, si es la primera factura en firme del lote y queda algo de liquidación por venta sin reconciliar, una línea de descuento (ver *Paso de liquidación por venta a facturación firme*).
    - **Liquidación por venta**: una línea con el importe bruto de liquidación (final si `completed`, estimado por anticipo si no — ver *Anticipos*), más una línea a precio 0 por el desecho si el **Modo de liquidación** de la empresa es "Precio medio + desecho aparte" y el lote tiene algo desechado, más, si hay facturas/abonos previos posteados de este lote, una línea de descuento por cada uno.
+   - **Cajas:** la primera factura del lote (firme, adelanto o liquidación) incluye también las líneas de cajas de su compra pendientes de facturar (`_mercas_pending_box_invoice_lines`), enlazadas a su línea de pedido como en la factura estándar, así que se facturan una sola vez por cualquiera de los dos caminos.
    - Todas las líneas de un lote llevan descripción compuesta por el nombre del producto y, en segunda línea, `DD/MM/YYYY | Ref.pedido | Ref.proveedor | Núm.lote` (las de descuento llevan su propia referencia).
 3. Actualiza el coste (`purchase_price`) en las líneas de venta relacionadas de los lotes de liquidación por venta ya **completados** (no en anticipos, para no propagar un coste todavía estimado), si el módulo `sale_margin` está instalado.
 4. Confirma la factura automáticamente si **Confirmar factura proveedor automáticamente** está activo en la empresa — en cuyo caso `invoiced` se recalcula de inmediato (ver arriba); si no, se recalculará cuando alguien la postee manualmente.
 
 El asistente de liquidación (**Mercas > Liquidaciones**) muestra, además de las columnas de venta/margen, la facturación firme, kg recibidos/facturados y el importe a facturar de cada lote (calculado según su régimen), y permite marcar **Mostrar todos** para ver también lotes aún no facturables.
+
+#### Factura estándar del pedido de compra y facturación por lote
+
+Una línea de compra con lote se factura **por el lote** (`purchase.order.line._mercas_is_invoiced_from_lot`) cuando el lote está en liquidación por venta, o cuando está en facturación firme pero ya tiene facturas hechas desde el lote (un adelanto antes de pasar a firme, o una factura firme del asistente): así se descuenta lo ya facturado y no se factura dos veces. El resto de líneas se facturan con la **factura estándar** del pedido:
+
+- **Lotes en facturación firme** sin facturas desde el lote: la factura estándar (cantidad recibida × precio de compra) es la factura firme. Su línea lleva `mercas_is_firm_line`, así que cuenta en *Kg facturados (neto)* y el lote se marca como facturado al confirmarla.
+- **Líneas sin lote**: cajas (si no se facturaron ya con el lote), productos sin trazabilidad y servicios.
+
+*Crear factura* del pedido (`action_create_invoice`) y el autocompletado de la factura de proveedor desde el pedido (`_add_purchase_order_lines`) dejan fuera las líneas que se facturan por el lote, y las secciones que quedan vacías sin ellas (`_mercas_without_lot_lines`). Si en el pedido solo quedan esas líneas, *Crear factura* avisa de que se facturan desde los lotes.
 
 #### Vista lista y búsqueda de lotes
 
@@ -352,6 +377,7 @@ Ambos exigen que exista al menos un producto marcado como caja/envase (mismo gua
 | Campo | Descripción |
 |---|---|
 | **Diario de compensación** | Diario de tipo "Operaciones varias" para los asientos de compensación. |
+| **Diario de autofacturas** | Diario de compras con autofacturación de las facturas de los proveedores con autofacturación. Se crea y selecciona al instalar el módulo. |
 | **Margen Mercas (%)** | Margen general aplicado a los lotes cuando el partner no tiene margen propio. |
 | **Confirmar factura proveedor automáticamente** | Si está activo, las facturas de liquidación de lotes se confirman al generarse. |
 | **Modo de liquidación** | "Precio medio (una línea)" o "Precio medio + desecho aparte". Solo afecta a lotes en liquidación por venta (no a facturación firme) — ver *Anticipos en liquidación por venta*. |
@@ -372,7 +398,13 @@ El módulo crea un menú raíz **Mercas** con accesos directos a las pantallas e
 
 ## Instalación
 
-El `post_init_hook` activa automáticamente, como si un usuario marcase las casillas en *Inventario > Configuración > Ajustes*, las opciones: ubicaciones de almacenamiento, números de serie y lote, variantes de producto, unidades de medida y embalajes, y firma en las órdenes de entrega. No requiere configuración manual adicional tras instalar el módulo.
+El `post_init_hook` activa automáticamente, como si un usuario marcase las casillas en *Inventario > Configuración > Ajustes*, las opciones: ubicaciones de almacenamiento, números de serie y lote, variantes de producto, unidades de medida y embalajes, y firma en las órdenes de entrega. No requiere configuración manual adicional tras instalar el módulo. Al instalar o actualizar, además, cada compañía con plan contable recibe su diario de autofacturas, seleccionado en la empresa (ver *Contabilidad — Autofacturación de proveedores*).
+
+## Notas técnicas
+
+- **Secciones y cajas en ventas y compras:** la lógica común (secciones PRODUCTOS/Envases, una línea de caja por línea de producto y la renumeración) está en el mixin abstracto `mercas.box.order.mixin` (`models/mercas_box_order_mixin.py`). `sale.order` y `purchase.order` solo indican el campo que enlaza la caja con su línea (`_mercas_box_link_field`), el de cantidad (`_mercas_box_qty_field`) y los valores extra de las secciones (`_mercas_section_vals`).
+- **Cálculos del lote:** `_mercas_posted_net` (suma con signo de las líneas de facturas y abonos de proveedor publicados), `_mercas_sale_move_lines`, `_mercas_scrap_move_lines` y `_mercas_confirmed_purchase_lines` reúnen los criterios que comparten los campos calculados, las facturas y el asistente. El precio neto de una línea de venta es `sale.order.line._mercas_net_price`.
+- **Tests:** `tests/` cubre liquidación y anticipos, factura estándar sin líneas de lote, aviso de líneas vacías, autofacturación (`test_self_billing.py`), cajas, clasificación, etiquetas, cambio de lote y autocompletar de la factura. Se pasan con `--test-tags /mercas_base` sobre una base con el módulo instalado (por ejemplo `test_mercas_touch19`).
 
 ## Dependencias
 

@@ -35,6 +35,20 @@ En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y 
   - Sus notas siguen en el historial del picking 49 de Odoo (`mail_message` 1169, 1197 y 1202). No se han borrado porque no hace falta para volver a subirlo.
 - **La primera prueba real (#17, 16/10)** leyó lo mismo que la #21. Su plan `DRY_RUN` era una devolución de 4 Cajas y 1 Cubo, validarla y crear un abono en borrador desde S00026 (la factura INV/2026/00010 ya está publicada).
 
+**Varias fotos por albarán (23/10/2026, desplegado y probado):** un reconocimiento puede tener varias fotos, una por hoja del albarán (máximo 10). Detalle en *Varias fotos por albarán*.
+- **Antes de desplegar:** copia de la BD en `/root/albaranes-ia/backup_albaranes_ia_202610231007.dump`. La migración pasó las 5 fotos existentes a `incidencia_pagina`.
+- **Pruebas:** `pruebas.sh` da 26 correctas y 0 fallos. *Reintentar* con 2 fotos se ha probado aparte sobre el #25.
+- **Reconocimientos de prueba nuevos:** #25 (2 fotos, por revisar) y los que crea `pruebas.sh`.
+- **Falta:** la prueba real con un albarán de dos hojas fotografiado con el móvil, y probar en el navegador la página de subida y el visor con varias fotos.
+
+**Albaranes de terceros (23/10/2026, desplegado y probado):** al subir se elige *Propio*, *Terceros · entrada* (albarán del proveedor en la recepción) o *Terceros · entrega* (albarán que hace el cliente al recibir). En los de terceros se busca nuestro albarán escrito a mano y se comparan cantidades y precios **sin escribir nada en el ERP**. Detalle en *Albaranes de terceros*.
+- **Odoo de pruebas:** se ha instalado **Compras** (copia antes: `/root/albaranes-ia/backup_odoo_antes_compras_202610231203.dump` y `backup_odoo_filestore_202610231203.tgz`). El usuario de integración tiene permisos de Compras. Datos nuevos: proveedor *Suministros Levante, S.L.* (B30111223), P00014 → WH/IN/00016 y P00015 → WH/IN/00017, sin validar.
+- **EAN (26/10):** E-COM07 tiene el código de barras 8412345000072 y E-COM10 el 8412345000102 (copia antes: `/root/albaranes-ia/backup_odoo_antes_ean_202610260738.dump`). Se usan en la prueba de emparejado por EAN; el resto de productos sigue sin código de barras.
+- **BD:** copia antes en `/root/albaranes-ia/backup_albaranes_ia_202610231216.dump`. Columnas nuevas `tipo` y `referencias` en `incidencia`.
+- **Pruebas:** `pruebas.sh` da 45 correctas y 0 fallos (19 de terceros, 26/10). Las pantallas se han revisado en el navegador con las páginas descargadas (sin poder pulsar los botones, que necesitan la Basic Auth).
+- **Reconocimientos de prueba:** #35 (entrada valorada, WH/IN/00016), #45 (entrada sin referencia), #47 (entrega, WH/OUT/00040) y los que crea `pruebas.sh`.
+- **Falta:** la prueba real con albaranes de un proveedor y de un cliente, y pulsar en el navegador *Buscar en el ERP y comparar* y *Volver a leer*.
+
 **Pendiente de decisión del usuario (no hacer sin confirmación):**
 - **Rectificar de verdad:** `DRY_RUN=false` en Easypanel → albaranes-api → Entorno, y relanzar `/erp/rectificar` con un reconocimiento aprobado (ahora sería la #21, que sustituye a la #17).
 - **Commit:** `albaranes-ia/` sigue sin trackear en git. Si se borra, solo queda lo desplegado en el servidor.
@@ -82,13 +96,13 @@ En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y 
 
 ```
  móvil / escáner                       n8n (webhooks con Basic Auth)
- ─────────────── POST foto ──► "Albaranes IA - Ingesta"
-                                 1 guardar foto ───────────────► albaranes-api  /incidencias      (idempotente por SHA-256)
-                                 2 código de barras ───────────► barcode-ocr    /decode
+ ─────────────── POST fotos ─► "Albaranes IA - Ingesta"
+                                 1 guardar fotos (páginas) ────► albaranes-api  /incidencias      (idempotente por SHA-256)
+                                 2 código de barras, por foto ─► barcode-ocr    /decode
                                    └ si no hay: número por IA ─► albaranes-api  /vision/peticion ─► OpenRouter (credencial n8n)
                                  3 albarán y líneas ───────────► albaranes-api  /erp/albaran ─────► Odoo 20 JSON-2
                                    └ reconocimientos previos ──► albaranes-api  /incidencias?albaran=…&excluir=…
-                                 4 lectura línea a línea ──────► OpenRouter / Anthropic (JSON Schema estricto)
+                                 4 lectura línea a línea ──────► OpenRouter / Anthropic (JSON Schema estricto, todas las fotos)
                                  5 reglas (nodo Decidir) → verificado | pendiente_revision, marca original | modificado
                                  6 guardar resultado + nota en el historial del albarán
  Administración ◄── pantalla ── "Albaranes IA - Revisión"   (todas bajo /webhook/albaranes/)
@@ -97,7 +111,7 @@ En producción el ERP será AS400/DB2. Odoo 20 es solo el entorno de pruebas, y 
                                  GET  api/incidencia/{id}              JSON + imagen
                                  POST api/incidencia/{id}/resolver     aprobar | corregir | rechazar
                                       └ rectificar ────────────► albaranes-api /erp/rectificar (DRY_RUN)
-                                 POST reintentar/{id}   foto original ─► ingesta (127.0.0.1:5678) con reprocesar=true
+                                 POST reintentar/{id}   fotos originales ─► ingesta (127.0.0.1:5678) con reprocesar=true
                                  POST eliminar/{id}     ───────────────► albaranes-api DELETE /incidencias/{id} (solo en error)
 ```
 
@@ -119,6 +133,18 @@ Los webhooks con parámetros comparten `webhookId` "albaranes". Dos rutas con el
 - `albaranes-api` prepara la petición: prompt, JSON Schema estricto, imagen reducida a 1568 px y modelo de `VISION_MODEL`.
 - n8n la envía con su credencial (*Openrouter Header Auth account*), así que la clave no sale de n8n.
 - `albaranes-api` interpreta la respuesta.
+
+**Número de albarán por visión** (solo si no hay código de barras legible), en dos intentos:
+1. Solo la primera foto, reducida a 800 px (`NUMERO_LADO_MAX`), con un prompt corto y el modelo ligero
+   (`VISION_MODEL_NUMERO`, por defecto `anthropic/claude-haiku-5.5`). Unos 0,0002 $.
+2. Si no lo lee: todas las fotos a 1568 px con `VISION_MODEL` (como antes). Solo cuesta cuando hace falta.
+
+Modelo, tokens y coste de cada intento se guardan en `lectura_codigo.ia_numero`. Los del emparejado ya estaban en
+`decision.emparejamiento`. Antes de este cambio (27/10/2026), 18 de 26 albaranes propios no tenían código de barras
+legible y la llamada del número mandaba todas las fotos a 1568 px con Sonnet (unos 0,007–0,011 $).
+Medido tras el despliegue (pruebas.sh 45/0): primer intento con Haiku, unas 1.000 entradas / 30 salidas, 0,0001 $.
+Con las 2 fotos subidas en otro orden (la primera sin número) el primer intento devuelve null y el segundo, con Sonnet,
+lo lee: 4.429 / 30 tokens, 0,0092 $ (lo que costaba siempre antes).
 
 Respuesta por línea: `articulo, impreso, tachado, manuscrito, cantidad_final, confianza, dudoso, motivo, bbox`, con `bbox` normalizado de 0 a 1. Se le pasan como contexto las líneas del ERP (`move_id`, referencia, producto, pedido y entregado) para que asocie cada fila.
 
@@ -153,8 +179,35 @@ El albarán entero queda verificado solo si lo están todas sus líneas y ademá
 - el número leído coincide con el del ERP;
 - la foto no es de mala calidad.
 
+### Varias fotos por albarán
+
+Un albarán de varias hojas se sube como **un solo reconocimiento con varias fotos** (páginas), en orden y como mucho 10 (`MAX_PAGINAS` en la API, `MAX_FOTOS` en `build_workflows.py`).
+
+- **Subida:** en *Subir foto* se van añadiendo fotos ("Hacer foto" o "Elegir fotos"), se pueden reordenar y quitar, y se envían juntas. Por curl, varios `-F foto=@…` (o `pruebas/subir.sh p1.jpg "" p2.jpg`).
+- **n8n:** el webhook deja los ficheros como `foto0`, `foto1`… El nodo HTTP solo manda un fichero por campo, así que "Guardar incidencia" tiene 10 campos fijos (`foto_1`…`foto_10`); los vacíos no se envían. Eso solo funciona con el nodo HTTP en la **versión 4.1**: en la 4.2, un campo de fichero vacío da *"Cannot read properties of undefined (reading 'value')"*. Manda también `paginas` (cuántas llegaron), y la API da 422 si no coinciden.
+- **BD:** las fotos están en la tabla `incidencia_pagina` (`incidencia_id`, `pagina`, foto normalizada y original). Al arrancar, la API copia a la página 1 las fotos de los reconocimientos anteriores. Las columnas `foto*` de `incidencia` se quedan con esos datos antiguos y ya no se escriben; se podrían borrar más adelante.
+- **Código de barras:** se busca en todas las fotos y vale el primero. Si hay códigos distintos, se avisa.
+- **IA:** una sola llamada con todas las fotos, cada una precedida de "Página N". Cada línea devuelve `pagina`, y su `bbox` es relativo a esa foto. `paginas[].numero_albaran` permite avisar de *"Foto de otro albarán"*, y ese aviso obliga a revisar. Con varias fotos, `max_tokens` sube 1000 por foto extra.
+- **API:** `GET /incidencias/{id}` devuelve `paginas: [{pagina, nombre_fichero, ancho, alto}]`. Con `imagen=true`, cada página lleva su `imagen` (data URL); ya no existe el campo `imagen` suelto. `GET /incidencias/{id}/imagen?pagina=N`. La nota de rectificación adjunta todas las fotos (`-p1`, `-p2`…).
+- **Revisión:** botones *Foto 1*, *Foto 2*… en el visor; al tocar una línea se cambia a su foto. La tabla va ordenada por foto y posición, y cada línea indica en qué foto está. Al imprimir sale una foto por hoja.
+- **Lista y resultado:** muestran "N fotos" cuando hay más de una. El CSV lleva la columna *Fotos*.
+- **Reintentar:** reenvía todas las fotos originales, en orden.
+
+### Albaranes de terceros
+
+Tres tipos de operación (`incidencia.tipo`): **propio** (lo de siempre), **entrada** (albarán de un proveedor al recibir material, valorado o no) y **entrega** (el cliente hace su propio albarán al recibir y paga según él). En los de terceros **solo se lee el ERP**: ni nota en el historial, ni rectificación (la API da 409 en `/erp/rectificar`).
+
+1. **Lectura (IA, `vision.py` tipo `terceros`):** se transcribe su albarán sin contexto del ERP (sus códigos no son los nuestros): emisor y CIF, su número y fecha, si está valorado, líneas con su código, EAN, descripción, cantidad (con tachones y cantidades a mano), precio, descuento e importe, y `referencias_erp`: nuestro albarán o pedido escrito a mano (puede haber varios). Los portes y otros cargos también son líneas. Ojo: el proveedor de IA admite como mucho 16 campos que puedan ser `null` por esquema.
+2. **Búsqueda en el ERP (`POST /terceros/{id}/emparejar`):** con las referencias que escribe el usuario (al subir o en la revisión) o, si no hay, las que ha leído la IA. Se separan por espacios o comas. Cada una puede ser el número del albarán, solo sus dígitos o el número del pedido (de compra en entrada, de venta en entrega), y en ese caso se toman sus albaranes. La capa ERP tiene para esto `buscar_albaranes(referencia, tipo)`, y el albarán normalizado lleva ahora `precio`, `descuento` y `ean` por línea (del pedido de venta o de compra) y `compra`.
+3. **Emparejado:** sus líneas con las nuestras, primero por EAN o código idéntico y el resto con la IA en una llamada de solo texto (tipo `emparejar`, unos 0,007 $). Un emparejamiento con confianza menor de 0,8 queda como *emparejamiento dudoso*.
+4. **Comparación (`POST /terceros/{id}/comparar`, `terceros.py`):** una línea por cada línea nuestra, con la cantidad esperada (la del albarán; si es 0, la pedida), la suya (suma de sus líneas emparejadas) y, si está valorado, el precio neto con descuento (tolerancia 0,5 %, mínimo un céntimo). Motivos: `no_en_documento`, `cantidad_distinta`, `precio_distinto`, `emparejamiento_dudoso`, `modificada` (cambiada a mano en su albarán), confianza baja o lectura dudosa. Sus líneas sin pareja van a `extras`. Avisos: referencia no encontrada, albarán de otro tipo, empresas distintas, emisor distinto del del ERP, suma de importes que no cuadra con la base y reconocimientos previos del mismo tipo. La *Final* propuesta es la cantidad de su albarán (0 si no aparece).
+5. **Pantallas:** en *Subir* un selector de tipo (se recuerda el último) y el campo opcional *Nuestro albarán en el ERP*. En la revisión, el campo *Nuestro albarán en el ERP* siempre editable con el botón **Buscar en el ERP y comparar** (`POST buscar/:id`: vuelve a buscar y comparar sin volver a leer las fotos) y, para cualquier tipo, **¿No es este tipo de albarán? → Volver a leer** (Reintentar con otro tipo). La lista tiene filtro y columna de operación, y en terceros el resultado es *Coincide* / *Con diferencias* en vez de *Original* / *Modificado*.
+6. **Coste:** unos 0,025 $ por albarán (lectura más emparejado).
+
 ### Idempotencia
 
+- **Varias fotos:** la huella es el SHA-256 de las huellas de las fotos, en orden. Con una sola foto es la de la foto, igual que antes. Las mismas fotos en otro orden cuentan como otro reconocimiento.
+- **Otro tipo:** las mismas fotos subidas con otro tipo de operación se vuelven a leer con el tipo nuevo (salvo que ya estén resueltas).
 - **Misma foto:** la identifica el SHA-256 del fichero. Si se sube otra vez, devuelve el mismo reconocimiento (`duplicada: true`, unos 0,2 s) sin volver a llamar a la IA ni escribir otra nota. Con `reprocesar=true` se vuelve a leer, salvo que ya esté resuelto. Si estaba a medias (`recibida`/`procesando`), se procesa aunque sea duplicada.
 - **Otra foto del mismo albarán:** tiene otra huella, así que es un reconocimiento nuevo. Se lee con la IA, se escribe otra nota y lleva el aviso *"Este albarán ya se había reconocido antes: #N del dd/mm/aaaa (estado)"*. El aviso no cambia el estado.
 - **Resolver:** solo se puede una vez; un segundo intento da 409.
@@ -248,7 +301,7 @@ Las páginas están en `web/` y se incrustan en los nodos Code al generar los fl
 - **Imprimir:** `window.print()`. Lleva un título con el filtro, las fechas, el número de albaranes y la hora; oculta cabecera, filtros y botones, y fuerza colores claros aunque esté en modo oscuro.
 
 **Revisión:**
-- **Foto:** a la izquierda, con zoom (rueda o pellizco), arrastre y giro. Al tocar una fila salta a su `bbox`.
+- **Foto:** a la izquierda, con desplazamiento (arrastre, rueda o dos dedos en el trackpad), zoom (pellizco, Ctrl/⌘ + rueda o botones) y giro. Al tocar una fila salta a su `bbox`.
 - **Tabla:** a la derecha, en el mismo orden que en la foto (de arriba abajo; las que no se ven en ella, al final). Las líneas que hay que revisar van resaltadas. La columna *Final* viene con lo que leyó la IA y es editable.
 - **Aprobar:** aplica siempre la columna *Final*. Se envía `accion=aprobar` si no se ha tocado ninguna casilla y `accion=corregir` si se ha cambiado alguna, para que quede constancia (`aprobada` / `corregida`). Se desactiva si alguna casilla *Final* está vacía.
 - **Rechazar:** pide confirmación con un segundo clic. No toca el ERP.
@@ -332,13 +385,26 @@ Resultado del 16/10/2026: 15 correctas y 0 fallos. Comprueba:
 
 Cada ejecución crea reconocimientos nuevos de WH/OUT/00040 y 00041, con su nota en Odoo, y hace unas tres llamadas a la IA. El de error lo borra al final.
 
+**Varias fotos (23/10, todo correcto):** `foto_2paginas_WH-OUT-00040_p1.jpg` y `_p2.jpg` son la foto de WH/OUT/00040 cortada en dos con solape (Caja en las dos). Comprueba:
+- que es un solo reconocimiento, con cada línea en su foto;
+- el duplicado;
+- que en otro orden es un reconocimiento nuevo.
+
+**Terceros (23/10, todo correcto):** fotos de `generar_albaran_terceros.py`:
+- `foto_proveedor_valorado_WH-IN-00016.jpg`: Suministros Levante, "WH/IN/00016" a mano, armario 6 → 5 a mano, caja a 14,50 (el pedido dice 14), cubo a 10 con 5 % (igual que el pedido) y portes.
+- `foto_proveedor_sin_referencia_WH-IN-00017.jpg`: sin referencia ni precios; se prueba *Buscar* con WH/IN/00017, con dos referencias y con una que no existe.
+- `foto_proveedor_ean_WH-IN-00016.jpg` (26/10): con columna EAN; armario y cubo llevan el EAN que tienen en Odoo y una descripción que no se parece a la nuestra, y se emparejan por EAN sin la IA; caja y alfombrilla, sin EAN, los empareja la IA. Cubo 10 → 9 a mano.
+- `foto_cliente_entrega_WH-OUT-00040.jpg`: albarán de recepción del cliente con sus códigos, "00040" a mano y armario 12 → 10.
+Comprueba además el pedido indicado al subir (P00014), que aprobar no rectifica y que la API rechaza rectificar uno de terceros.
+
 Otros ficheros de `pruebas/`:
+- **`generar_albaran_terceros.py`:** albaranes de proveedor y de cliente sintéticos (`proveedor_valorado`, `proveedor_sin_referencia`, `proveedor_ean`, `cliente_entrega`), con la referencia y los cambios a mano y la misma simulación de foto.
 - **`generar_foto_prueba.py`:** fotos sintéticas a partir del PDF del albarán, con tachones `barra:N`, `encima:N` y `garabato`, perspectiva, giro y sombra. Necesita pymupdf.
 - **`prueba_rectificacion.py`:** rectificación real sobre WH/OUT/00042 y 00043. Se crean con:
   ```sh
   RECTIFICACION=1 odoo shell ... < scripts/datos_prueba.py
   ```
-- **`subir.sh` y `pedir.sh`:** llamadas a los webhooks con las credenciales del `.env`, sin mostrarlas.
+- **`subir.sh` y `pedir.sh`:** llamadas a los webhooks con las credenciales del `.env`, sin mostrarlas. `subir.sh foto [query] [más fotos…]`.
 
 ### Lectura de las fotos sintéticas (claude-sonnet-5.5, unos 13 s y 0,02 $ por albarán)
 
@@ -354,8 +420,13 @@ Otros ficheros de `pruebas/`:
 
 - **Cajas (`bbox`):** son aproximadas. Con fotos muy inclinadas pueden desplazarse una fila, pero sirven para llevar la vista a la zona.
 - **Números entre filas:** si se escribe un número entre dos filas, el caso es ambiguo de verdad. El modelo lo marca como dudoso y lo decide la persona que revisa.
-- **Una foto por albarán:** no se tratan los albaranes de varias páginas.
+- **Varias fotos:** una página de otro albarán se detecta por el número impreso o por el código de barras; si no se ve ninguno de los dos, no se detecta. Si dos fotos se solapan, la IA las tiene que unir y no repetir líneas: lo pide el prompt, pero hay que revisarlo con fotos reales.
 - **Datos guardados en n8n:** el flujo guarda las ejecuciones correctas, útil para depurar, y n8n guarda con ellas las cabeceras del webhook, incluida la de Basic Auth. En producción conviene `saveDataSuccessExecution: none` o un token por cabecera que se rote.
+- **Terceros:**
+  - sin tabla de equivalencias todavía: cada albarán vuelve a emparejar con la IA, sin aprender de lo que confirma el revisor (diseño en `albaranes_nagarmur.md`);
+  - nuestro número de pedido impreso por el proveedor ("Su pedido: P00015") no se toma como referencia: solo lo escrito a mano;
+  - no hay cambio de unidad (cajas frente a unidades);
+  - en producción las carpetas de entrada y entrega sustituirán al selector.
 - **Caducidad de la API key:** la de Odoo caduca el 14/01/2027.
 - **Producción (AS400/DB2):**
   - escribir el adaptador `erp/db2.py`;

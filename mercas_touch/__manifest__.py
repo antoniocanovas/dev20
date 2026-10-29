@@ -1,12 +1,12 @@
 {
     'name': 'Mercas Touch',
     'version': '20.0.1.0.0',
-    'summary': "Pantalla táctil de mostrador para mercas: venta con lotes, recepción, cajas, lotes y cobros",
+    'summary': "Pantalla táctil de mostrador para mercas: venta con lotes, recepción, cajas, lotes, cobros y DeCA",
     'author': 'Antonio Cánovas',
     'license': 'LGPL-3',
     'category': 'Inventory',
     'icon': '/mercas_touch/static/description/icon.png',
-    'depends': ['mercas_base', 'barcodes'],
+    'depends': ['mercas_base', 'barcodes', 'l10n_es_deca_oca'],
     'data': [
         'views/mercas_touch_views.xml',
     ],

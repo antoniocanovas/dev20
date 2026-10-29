@@ -182,6 +182,59 @@ class TestStockLotLiquidation(TransactionCase):
         self.assertAlmostEqual(price_2, 1.0, places=4)
         self.assertLess(price_2, price_1)
 
+    def test_standard_bill_leaves_out_lot_lines(self):
+        """The lines with a lot are invoiced from the lot: the standard bill
+        of the purchase, and the one loaded from it, only take the others."""
+        with self.assertRaises(UserError):
+            self.purchase.action_create_invoice()
+
+        transport = self.env["product.product"].create({
+            "name": "Settlement Transport",
+            "type": "service",
+            "purchase_method": "purchase",
+            "supplier_taxes_id": [Command.clear()],
+        })
+        self.purchase.order_line = [Command.create({
+            "product_id": transport.id,
+            "product_qty": 1.0,
+            "price_unit": 50.0,
+        })]
+        lot_line = self.purchase.order_line.filtered("lot_id")
+        transport_line = self.purchase.order_line.filtered(lambda l: l.product_id == transport)
+        self.assertEqual(self.purchase._mercas_standard_bill_lines(), transport_line)
+
+        loaded = self.env["account.move"].new({"move_type": "in_invoice", "partner_id": self.supplier.id})
+        loaded._add_purchase_order_lines(self.purchase.order_line)
+        self.assertNotIn(lot_line, loaded.invoice_line_ids.purchase_line_id)
+        self.assertIn(transport_line, loaded.invoice_line_ids.purchase_line_id)
+
+        self.purchase.action_create_invoice()
+        bill = self.purchase.invoice_ids
+        self.assertEqual(len(bill), 1)
+        self.assertEqual(bill.invoice_line_ids.filtered("product_id").purchase_line_id, transport_line)
+        self.assertEqual(bill.amount_total, 50.0)
+        self.assertFalse(self.lot.supplier_invoice_line_ids, "The lot stays to invoice from the lot")
+
+    def test_empty_lines_alert_ignores_sections(self):
+        """The sections of a bill (at 0) aren't empty lines to remove."""
+        bill = self.env["account.move"].create({
+            "move_type": "in_invoice",
+            "partner_id": self.supplier.id,
+            "invoice_line_ids": [
+                Command.create({"display_type": "line_section", "name": "PRODUCTOS"}),
+                Command.create({"product_id": self.product.id, "quantity": 5, "price_unit": 2.0}),
+                Command.create({"display_type": "line_section", "name": "Envases"}),
+            ],
+        })
+        self.assertNotIn("account_remove_empty_lines", bill.alerts or {})
+        bill.invoice_line_ids = [
+            Command.create({"product_id": self.product.id, "quantity": 0, "price_unit": 2.0}),
+            Command.create({"product_id": self.product.id, "quantity": 1, "price_unit": 0.0}),
+        ]
+        alert = bill.alerts["account_remove_empty_lines"]
+        empty = bill.invoice_line_ids.filtered(lambda l: l.display_type == "product" and not l.price_total)
+        self.assertEqual(sorted(alert["action_call"][2]), sorted(empty.ids))
+
     def test_firm_negotiation_access_control(self):
         """Only an Accounting Manager can change the firm negotiation, and
         nobody can do it once the lot has firm invoicing recorded."""

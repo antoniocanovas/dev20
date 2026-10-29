@@ -1,9 +1,15 @@
-from odoo import _, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import float_is_zero
 
 
 class PurchaseOrder(models.Model):
-    _inherit = "purchase.order"
+    _name = "purchase.order"
+    _inherit = ["purchase.order", "mercas.box.order.mixin"]
+
+    _mercas_box_link_field = "box_purchase_line_id"
+    _mercas_box_qty_field = "product_qty"
+    _mercas_section_vals = {"product_qty": 0}
 
     mercas_origin_country = fields.Boolean(related="company_id.origin_country")
     mercas_origin_state = fields.Boolean(related="company_id.origin_state")
@@ -78,102 +84,6 @@ class PurchaseOrder(models.Model):
 
         return result
 
-    def _mercas_prepare_box_lines(self):
-        """Add PRODUCTOS/Envases sections, create/refresh one box line per
-        product line with box_qty > 0 (using the box product's purchase
-        price, same logic as sales), and re-sequence every line so it stays
-        inside the section it belongs to. Runs again after confirm (from
-        line create/write) so lines added later are grouped too, instead of
-        trailing after Envases where the UI appends new rows by default."""
-        PurchaseLine = self.env["purchase.order.line"]
-
-        product_lines = self.order_line.filtered(
-            lambda l: not l.display_type and not l.box_purchase_line_id
-        )
-        has_productos = self.order_line.filtered(
-            lambda l: l.display_type == "line_section" and l.name == "PRODUCTOS"
-        )
-        box_lines_needed = product_lines.filtered(
-            lambda l: l.box_qty > 0 and l.box_product_id
-        )
-        if not product_lines or (not box_lines_needed and not has_productos):
-            return
-
-        # --- PRODUCTOS section ---
-        if has_productos:
-            productos_section = has_productos[0]
-        else:
-            productos_section = PurchaseLine.create({
-                "order_id": self.id,
-                "display_type": "line_section",
-                "name": "PRODUCTOS",
-                "sequence": 0,
-                "product_qty": 0,
-            })
-
-        # --- Envases section ---
-        has_envases = self.order_line.filtered(
-            lambda l: l.display_type == "line_section" and l.name == "Envases"
-        )
-        if has_envases:
-            envases_section = has_envases[0]
-        else:
-            envases_section = PurchaseLine.create({
-                "order_id": self.id,
-                "display_type": "line_section",
-                "name": "Envases",
-                "sequence": 0,
-                "product_qty": 0,
-            })
-
-        # --- Create / update box lines ---
-        existing_by_parent = {
-            bl.box_purchase_line_id.id: bl
-            for bl in self.order_line.filtered(lambda l: l.box_purchase_line_id)
-        }
-        for line in box_lines_needed:
-            if line.id in existing_by_parent:
-                existing_by_parent[line.id].write({
-                    "product_id": line.box_product_id.id,
-                    "product_qty": line.box_qty,
-                })
-            else:
-                PurchaseLine.create({
-                    "order_id": self.id,
-                    "product_id": line.box_product_id.id,
-                    "product_qty": line.box_qty,
-                    "box_purchase_line_id": line.id,
-                })
-
-        self._mercas_reorder_box_sections(productos_section, envases_section)
-
-    def _mercas_reorder_box_sections(self, productos_section, envases_section):
-        """Renumber sequence so every line sits inside its section: PRODUCTOS,
-        then all product lines (keeping their current relative order), then
-        Envases, then all box lines (following their parent line's order)."""
-        product_lines = self.order_line.filtered(
-            lambda l: not l.display_type and not l.box_purchase_line_id
-        ).sorted(key=lambda l: (l.sequence, l.id))
-        box_lines_by_parent = {
-            bl.box_purchase_line_id.id: bl
-            for bl in self.order_line.filtered(lambda l: l.box_purchase_line_id)
-        }
-
-        seq = 0
-        productos_section.sequence = seq
-        for line in product_lines:
-            seq += 10
-            line.sequence = seq
-
-        seq += 10
-        envases_section.sequence = seq
-
-        for line in product_lines:
-            box_line = box_lines_by_parent.get(line.id)
-            if box_line:
-                seq += 10
-                box_line.sequence = seq
-
     def _mercas_autocreate_lots(self):
         """Auto-assign new lots to tracked lines that have no lot set."""
         Lot = self.env["stock.lot"]
@@ -234,6 +144,43 @@ class PurchaseOrder(models.Model):
             "view_mode": "form",
             "target": "current",
         }
+
+    def _mercas_standard_bill_lines(self):
+        """Lines still to invoice with the standard bill of the purchase: all
+        but the ones invoiced from their lot (see
+        purchase.order.line._mercas_is_invoiced_from_lot)."""
+        precision = self.env["decimal.precision"].precision_get("Product Unit")
+        return self.order_line.filtered(
+            lambda l: not l.display_type
+            and not l._mercas_is_invoiced_from_lot()
+            and not float_is_zero(l.qty_to_invoice, precision_digits=precision)
+        )
+
+    def action_create_invoice(self, attachment_ids=False):
+        """The standard bill leaves out the lines invoiced from their lot:
+        billing them at the price of the purchase would skip the sale
+        settlement, and the lot would be invoiced twice when settled."""
+        with_lots = self.filtered(
+            lambda o: any(line._mercas_is_invoiced_from_lot() for line in o.order_line)
+        )
+        if with_lots and not self._mercas_standard_bill_lines():
+            raise UserError(
+                _("The lines with a lot of %s are invoiced from their lots: "
+                  "settlement, advance or firm invoice.")
+                % ", ".join(with_lots.mapped("name"))
+            )
+        previous = self.invoice_ids
+        result = super().action_create_invoice(attachment_ids=attachment_ids)
+        lot_lines = with_lots.order_line - with_lots.order_line._mercas_without_lot_lines()
+        for invoice in self.invoice_ids - previous:
+            to_remove = invoice.invoice_line_ids.filtered(
+                lambda l: l.purchase_line_id in lot_lines
+            )
+            if to_remove:
+                invoice.write({
+                    "invoice_line_ids": [Command.delete(line.id) for line in to_remove],
+                })
+        return result
 
     def button_purchase_and_receive(self):
         """Confirm the PO and validate receipts. For box-return orders this also
@@ -299,6 +246,38 @@ class PurchaseOrderLine(models.Model):
         ),
     )
 
+    def _mercas_is_invoiced_from_lot(self):
+        """A line with a lot under sale settlement is invoiced from the lot
+        (settlement or advance). Under firm negotiation the standard bill
+        does it, unless the lot was already invoiced from the lot (an
+        advance before turning firm, a firm invoice of the lot): then the
+        lot goes on, to deduct those invoices and not to invoice twice."""
+        self.ensure_one()
+        lot = self.lot_id
+        if not lot:
+            return False
+        if not lot.mercas_firm_negotiation:
+            return True
+        return bool(lot.supplier_invoice_line_ids.filtered(
+            lambda l: l.move_id.state != "cancel" and not l.purchase_line_id
+        ))
+
+    def _mercas_without_lot_lines(self):
+        """These lines but the ones invoiced from their lot, and the sections
+        and subsections left empty without them."""
+        headers = ("line_section", "line_subsection")
+        kept = self.browse()
+        for order in self.order_id:
+            pending = []  # open headers, waiting for a line under them
+            for line in self.filtered(lambda l: l.order_id == order).sorted(lambda l: (l.sequence, l.id)):
+                if line.display_type in headers:
+                    level = headers.index(line.display_type)
+                    pending = [h for h in pending if headers.index(h.display_type) < level] + [line]
+                elif not line._mercas_is_invoiced_from_lot():
+                    kept |= self.browse([h.id for h in pending]) | line
+                    pending = []
+        return self.filtered(lambda l: l in kept)
+
     @api.depends("order_id.partner_id")
     def _compute_mercas_firm_negotiation(self):
         for line in self:
@@ -316,6 +295,9 @@ class PurchaseOrderLine(models.Model):
         vals = super()._prepare_account_move_line(move)
         if self.lot_id:
             vals["lot_id"] = self.lot_id.id
+            # The received kg of a firm lot billed at the purchase price: they
+            # count as invoiced in the lot (net_invoiced_kg)
+            vals["mercas_is_firm_line"] = self.lot_id.mercas_firm_negotiation
         return vals
 
     @api.model_create_multi
@@ -351,10 +333,6 @@ class PurchaseOrderLine(models.Model):
                 if line.origin_state_id:
                     update["origin_state_id"] = line.origin_state_id.id
                 line.lot_id.write(update)
-            for line in self.filtered(lambda l: l.lot_id):
-                line.lot_id.with_context(mercas_propagate_firm_negotiation=True).write(
-                    {"mercas_firm_negotiation": line.mercas_firm_negotiation}
-                )
         if "origin_country_id" in vals or "origin_state_id" in vals:
             for line in self.filtered(lambda l: l.lot_id):
                 update = {}
@@ -363,7 +341,7 @@ class PurchaseOrderLine(models.Model):
                 if "origin_state_id" in vals:
                     update["origin_state_id"] = line.origin_state_id.id or False
                 line.lot_id.write(update)
-        if "mercas_firm_negotiation" in vals:
+        if vals.get("lot_id") or "mercas_firm_negotiation" in vals:
             for line in self.filtered(lambda l: l.lot_id):
                 line.lot_id.with_context(mercas_propagate_firm_negotiation=True).write(
                     {"mercas_firm_negotiation": line.mercas_firm_negotiation}
@@ -377,16 +355,11 @@ class PurchaseOrderLine(models.Model):
                 all_box_lines = self.env["purchase.order.line"].search(
                     [("box_purchase_line_id", "in", lines_to_check.ids)]
                 )
-                box_lines_by_parent = {}
-                for box_line in all_box_lines:
-                    box_lines_by_parent.setdefault(
-                        box_line.box_purchase_line_id.id, self.env["purchase.order.line"]
-                    )
-                    box_lines_by_parent[box_line.box_purchase_line_id.id] |= box_line
+                box_lines_by_parent = all_box_lines.grouped("box_purchase_line_id")
 
                 to_unlink = self.env["purchase.order.line"]
                 for line in lines_to_check:
-                    box_lines = box_lines_by_parent.get(line.id)
+                    box_lines = box_lines_by_parent.get(line)
                     if not box_lines:
                         continue
                     if "box_qty" in vals and line.box_qty == 0:

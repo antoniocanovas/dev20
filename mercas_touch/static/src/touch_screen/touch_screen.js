@@ -6,7 +6,7 @@ import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_d
 import { isDisplayStandalone } from "@web/core/browser/feature_detection";
 import { formatCurrency } from "@web/core/currency";
 import { _t } from "@web/core/l10n/translation";
-import { deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
+import { deserializeDate, deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
 import { normalize } from "@web/core/l10n/utils";
 import { registry } from "@web/core/registry";
 import { useBus, useService } from "@web/core/utils/hooks";
@@ -388,8 +388,13 @@ export class TouchScreen extends Component {
             return;
         }
         const summary = await this.orm.call(MODEL, "get_order_summary", [done.kind, done.id]);
+        // The bills listed change as well: posted (to print) or deleted
+        const invoices = done.invoiceList && await this.orm.call(MODEL, "get_purchase_invoices", [done.id]);
         if (this.state.done === done) {
             Object.assign(done, summary);
+            if (invoices) {
+                done.invoiceList = invoices.length ? invoices : null;
+            }
         }
         await this.reloadPartner();
     }
@@ -1140,12 +1145,71 @@ export class TouchScreen extends Component {
         }
     }
 
-    /** The bill of a purchase, made from the order as in the backend, reviewed in a dialog. */
+    /** The bill of the lines without lot of a purchase, made from the order as in the backend,
+     * reviewed in a dialog. */
     async onInvoicePurchase() {
         const action = await this.run("invoice_purchase", [this.state.done.id]);
         if (action) {
             await this.action.doAction(action, { onClose: () => this.refreshOrderSummary() });
         }
+    }
+
+    /** The invoice of the lots of a purchase, with their regime: settlement, advance or firm. */
+    async onInvoicePurchaseLots(mode) {
+        const action = await this.run("invoice_purchase_lots", [this.state.done.id, mode]);
+        await this.refreshOrderSummary();
+        if (action) {
+            await this.action.doAction(action, { onClose: () => this.refreshOrderSummary() });
+        }
+    }
+
+    /** The bills of a purchase, listed (even only one) to look them up, print them again or
+     * delete the drafts. */
+    async onShowPurchaseInvoices() {
+        const done = this.state.done;
+        if (done.invoiceList) {
+            done.invoiceList = null;
+            return;
+        }
+        const invoices = await this.orm.call(MODEL, "get_purchase_invoices", [done.id]);
+        if (this.state.done === done) {
+            done.invoiceList = invoices;
+        }
+    }
+
+    async onPrintPurchaseInvoice(invoice) {
+        const action = await this.run("get_purchase_invoice_print_action", [this.state.done.id, invoice.id]);
+        if (action) {
+            await this.action.doAction(action);
+        }
+    }
+
+    onDeleteInvoice(invoice) {
+        const done = this.state.done;
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Delete the bill"),
+            body: _t("The bill in draft of %(amount)s will be deleted.", {
+                amount: this.formatAmount(invoice.amount_total),
+            }),
+            confirmLabel: _t("Delete"),
+            cancelLabel: _t("Keep it"),
+            confirm: async () => {
+                if (await this.run("delete_purchase_invoice", [done.id, invoice.id])) {
+                    await this.refreshOrderSummary();
+                }
+            },
+            cancel: () => {},
+        });
+    }
+
+    async onOpenInvoice(invoiceId) {
+        await this.action.doAction({
+            type: "ir.actions.act_window",
+            res_model: "account.move",
+            res_id: invoiceId,
+            views: [[false, "form"]],
+            target: "new",
+        }, { onClose: () => this.refreshOrderSummary() });
     }
 
     /** Collect the invoice of the sale just made, in the payments of the customer. */
@@ -1165,6 +1229,12 @@ export class TouchScreen extends Component {
     async onPrint(kind) {
         const done = this.state.done;
         const action = await this.orm.call(MODEL, "get_print_action", [done.model, done.id, kind]);
+        await this.action.doAction(action);
+    }
+
+    /** The DeCA of the delivery: its carrier and licence plates, proposed, and then printed. */
+    async onDeca() {
+        const action = await this.orm.call(MODEL, "get_deca_action", [this.state.done.id]);
         await this.action.doAction(action);
     }
 
@@ -1520,6 +1590,11 @@ export class TouchScreen extends Component {
 
     formatDate(value) {
         return value ? formatDate(deserializeDateTime(value)) : "";
+    }
+
+    /** A date without time, as the date of an invoice. */
+    formatDay(value) {
+        return value ? formatDate(deserializeDate(value)) : "";
     }
 }
 

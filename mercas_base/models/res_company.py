@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class ResCompany(models.Model):
@@ -57,6 +57,16 @@ class ResCompany(models.Model):
         string="Auto-Confirm Supplier Invoice",
         default=False,
     )
+    mercas_self_billing_journal_id = fields.Many2one(
+        comodel_name="account.journal",
+        string="Self-Billing Journal",
+        domain=[("type", "=", "purchase"), ("is_self_billing", "=", True)],
+        check_company=True,
+        help=(
+            "Purchase journal of the vendor bills of the suppliers with "
+            "self-billing: we issue their invoices on their behalf."
+        ),
+    )
     compensation_journal_id = fields.Many2one(
         comodel_name="account.journal",
         string="Offsetting Journal",
@@ -98,3 +108,61 @@ class ResCompany(models.Model):
             "Does not apply to lots under firm negotiation."
         ),
     )
+    mercas_default_carrier = fields.Selection(
+        selection=[
+            ("last", "Last carrier of the customer"),
+            ("customer", "The customer"),
+            ("none", "None"),
+        ],
+        string="Default Carrier",
+        default="last",
+        required=True,
+        help=(
+            "Carrier proposed on the deliveries, for the transport document "
+            "(DeCA):\n"
+            "- Last carrier of the customer: the carrier and the licence "
+            "plates of the last delivery of the customer that has them.\n"
+            "- The customer: the customer picks up the goods with their own "
+            "vehicle; the licence plates are left empty.\n"
+            "- None: the carrier is filled in on each delivery."
+        ),
+    )
+
+    @api.model
+    def _mercas_setup_self_billing_journal(self):
+        """Self-billing journal of each company with a chart of accounts,
+        selected in the company (run on install and update of the module).
+        A self-billing journal already there is reused; the new one goes
+        after the other purchase journals, so it's never the default one."""
+        Journal = self.env["account.journal"]
+        for company in self.search([]):
+            if company.mercas_self_billing_journal_id:
+                continue
+            company_domain = Journal._check_company_domain(company)
+            purchase = Journal.search([*company_domain, ("type", "=", "purchase")])
+            if not purchase:
+                continue
+            journal = purchase.filtered("is_self_billing")[:1]
+            if not journal:
+                default = purchase[:1]
+                code = "AF"
+                if Journal.with_context(active_test=False).search_count(
+                        [*company_domain, ("code", "=", code)]):
+                    code = "AF%s" % company.id
+                journal = Journal.create({
+                    "name": "Supplier Self-Billing",
+                    "code": code,
+                    "type": "purchase",
+                    "is_self_billing": True,
+                    "refund_sequence": True,
+                    "sequence": max(purchase.mapped("sequence")) + 1,
+                    "default_account_id": default.default_account_id.id,
+                    "company_id": company.id,
+                })
+                if self.env["res.lang"].search_count([("code", "=", "es_ES")]):
+                    journal.update_field_translations("name", {"es_ES": "Autofacturas proveedores"})
+            elif not self.env["account.move"].search_count([("journal_id", "=", journal.id)], limit=1):
+                # Not used yet: the dedicated sequence of the credit notes,
+                # which can only be changed before the first entry
+                journal.refund_sequence = True
+            company.mercas_self_billing_journal_id = journal

@@ -107,5 +107,4 @@ class TestMercasTouchUi(HttpCase):
         })['order']
         self.start_tour('/odoo/mercas-touch', 'mercas_touch_to_invoice_tour', login='touch_tour')
         self.assertEqual(self.env['sale.order'].browse(order['id']).invoice_status, 'invoiced')
-        purchase = self.env['purchase.order'].search([('partner_id', '=', self.supplier.id)])
-        self.assertTrue(purchase.invoice_ids, "The bill was made from the purchase")
+        self.assertTrue(self.lot.supplier_invoice_line_ids, "The bill of the lot was made from the purchase")

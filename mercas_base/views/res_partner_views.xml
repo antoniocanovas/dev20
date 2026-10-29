@@ -11,6 +11,10 @@
                 <field name="mercas_margin"/>
                 <field name="mercas_firm_negotiation" widget="boolean_toggle"/>
             </group>
+            <group name="purchase" position="inside">
+                <field name="mercas_self_billing" widget="boolean_toggle" invisible="not is_company and parent_id"/>
+                <field name="mercas_self_billing_date" invisible="not mercas_self_billing or (not is_company and parent_id)"/>
+            </group>
             <div name="button_box" position="inside">
                 <field name="mercas_has_box_location" invisible="1"/>
                 <button

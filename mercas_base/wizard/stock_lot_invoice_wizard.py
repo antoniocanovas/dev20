@@ -258,9 +258,7 @@ class StockLotInvoiceWizardLine(models.TransientModel):
     def _compute_amount_to_invoice(self):
         for line in self:
             if line.mercas_firm_negotiation:
-                purchase_line = line.lot_id.purchase_line_ids.filtered(
-                    lambda l: l.order_id.state in ("purchase", "done")
-                )[:1]
+                purchase_line = line.lot_id._mercas_confirmed_purchase_lines()[:1]
                 price_unit = purchase_line.price_unit if purchase_line else 0.0
                 pending = line.received_kg - line.net_invoiced_kg
                 gross = pending * price_unit if pending > 0 else 0.0

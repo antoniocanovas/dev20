@@ -64,22 +64,37 @@ tr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }
     corregida: ["Corregida", "ok"], rechazada: ["Rechazada", "bad"], rectificada: ["Rectificada en el ERP", "ok"] };
   var chip = function (e) { var x = ESTADOS[e] || [e, "neutral"]; return '<span class="chip ' + x[1] + '">' + esc(x[0]) + "</span>"; };
   var MARCAS = { original: ["Original", "neutral"], modificado: ["Modificado", "warn"], error: ["Error", "bad"] };
-  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class="chip ' + x[1] + '">' + x[0] + "</span>" : ""; };
   var d = JSON.parse($("datos").textContent || "{}");
+  /* Terceros: no hay "modificado" sino diferencias con nuestros albaranes */
+  var tercero = d.tipo === "entrada" || d.tipo === "entrega";
+  if (tercero) MARCAS = { original: ["Coincide", "ok"], modificado: ["Con diferencias", "warn"], error: ["Error", "bad"] };
+  var TIPOS = { propio: "Albarán propio", entrada: "Terceros · entrada (proveedor)", entrega: "Terceros · entrega (cliente)" };
+  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class="chip ' + x[1] + '">' + x[0] + "</span>" : ""; };
   var h = "";
   if (d.titulo) { $("titulo").textContent = d.titulo; document.title = d.titulo; }
-  if (d.estado) h += "<div>" + chip(d.estado) + (d.marca ? " " + marca(d.marca) : "") + (d.duplicada ? ' <span class="muted">Esta foto ya se había subido: se muestra el reconocimiento existente.</span>' : "") + "</div>";
-  if (d.albaran) h += "<h2>Albarán " + esc(d.albaran) + "</h2>";
-  if (d.cliente) h += '<div class="muted">' + esc(d.cliente) + (d.origen_numero ? " · número leído por " + (d.origen_numero === "codigo_barras" ? "código de barras" : "visión") : "") + "</div>";
+  if (d.estado) h += "<div>" + chip(d.estado) + (d.marca ? " " + marca(d.marca) : "") + (d.tipo ? ' <span class="chip neutral">' + esc(TIPOS[d.tipo] || d.tipo) + "</span>" : "") + (d.duplicada ? ' <span class="muted">Esta foto ya se había subido: se muestra el reconocimiento existente.</span>' : "") + "</div>";
+  if (tercero) {
+    h += "<h2>" + esc(d.emisor || "Emisor sin identificar") + (d.documento ? " · albarán " + esc(d.documento) : "") + "</h2>";
+    h += '<div class="muted">' + (d.albaran ? "Nuestro albarán: <b>" + esc(d.albaran) + "</b>" + (d.cliente ? " (" + esc(d.cliente) + ")" : "") +
+      (d.origen_numero ? " · " + (d.origen_numero === "manual" ? "indicado a mano" : "escrito en el documento") : "")
+      : "Sin identificar nuestro albarán") + (d.valorado ? " · valorado" : "") + (d.paginas > 1 ? " · " + d.paginas + " fotos" : "") + "</div>";
+  } else if (d.albaran) h += "<h2>Albarán " + esc(d.albaran) + "</h2>";
+  if (d.cliente && !tercero) h += '<div class="muted">' + esc(d.cliente) + (d.origen_numero ? " · número leído por " + (d.origen_numero === "codigo_barras" ? "código de barras" : "visión") : "") + (d.paginas > 1 ? " · " + d.paginas + " fotos" : "") + "</div>";
   if (d.error) h += '<div class="error">' + esc(d.error) + "</div>";
   (d.avisos || []).forEach(function (a) { h += '<div class="aviso">' + esc(a) + "</div>"; });
   if (d.tabla && d.tabla.length) {
-    h += '<div class="tabla-wrap"><table><thead><tr><th>Artículo</th><th class="num">ERP</th><th class="num">IA</th><th class="num">Confianza</th><th>Resultado</th></tr></thead><tbody>' +
+    var precios = tercero && d.valorado;
+    h += '<div class="tabla-wrap"><table><thead><tr><th>Artículo</th><th class="num">' + (tercero ? "Nuestro" : "ERP") + '</th><th class="num">' + (tercero ? "Su albarán" : "IA") + "</th>" +
+      (precios ? '<th class="num">Precio nuestro</th><th class="num">Su precio</th>' : "") + '<th class="num">Confianza</th><th>Resultado</th></tr></thead><tbody>' +
       d.tabla.map(function (r) {
         return '<tr class="' + (r.estado !== "verificado" ? "revisar " : "") + (r.ia !== r.erp ? "dif" : "") + '"><td>' + esc(r.articulo) + '</td><td class="num">' + fmt(r.erp) +
-          '</td><td class="num">' + (r.ia == null ? "?" : fmt(r.ia)) + '</td><td class="num">' + (r.confianza == null ? "—" : Math.round(r.confianza * 100) + "%") +
+          '</td><td class="num">' + (r.ia == null ? (tercero ? "—" : "?") : fmt(r.ia)) + "</td>" +
+          (precios ? '<td class="num">' + fmt(r.precio_erp) + '</td><td class="num">' + fmt(r.precio_doc) + "</td>" : "") +
+          '<td class="num">' + (r.confianza == null ? "—" : Math.round(r.confianza * 100) + "%") +
           "</td><td>" + (r.estado === "verificado" ? "OK" : esc(r.motivos || "revisar")) + "</td></tr>"; }).join("") + "</tbody></table></div>";
   }
+  if (tercero && d.extras && d.extras.length) h += '<div class="aviso">Líneas de su albarán sin pareja en el nuestro: ' +
+    d.extras.map(function (e) { return esc(e.articulo) + " → " + fmt(e.cantidad_final); }).join("; ") + "</div>";
   if (d.pasos && d.pasos.length) h += "<div><b>" + (d.dry_run ? "Simulación (DRY_RUN): se haría" : "Hecho en el ERP") + "</b><ul>" + d.pasos.map(function (p) { return "<li>" + esc(p) + "</li>"; }).join("") + "</ul></div>";
   if (d.mensaje) h += "<div>" + esc(d.mensaje) + "</div>";
   if (d.enlace) h += '<div><a class="boton" href="' + esc(d.enlace) + '">' + esc(d.enlace_texto || "Abrir") + "</a></div>";

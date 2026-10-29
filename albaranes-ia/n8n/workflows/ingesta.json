@@ -37,7 +37,7 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "return [{ json: { cuerpo: \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Subir albar\\u00e1n</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\nform { display: grid; gap: 14px; padding: 16px; }\\ninput[type=file] { font: inherit; padding: 16px; border: 2px dashed var(--border); border-radius: 10px; background: var(--bg); color: var(--text); width: 100%; }\\nlabel { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); }\\n#vista { max-width: 100%; max-height: 50vh; border-radius: 8px; display: none; }\\n</style>\\n</head>\\n<body>\\n<header><h1>Subir foto de albar\\u00e1n</h1><a href=\\\"revision\\\">Por revisar</a></header>\\n<main>\\n  <div class=\\\"panel\\\">\\n    <form method=\\\"post\\\" action=\\\"ingesta?html=1\\\" enctype=\\\"multipart/form-data\\\" id=\\\"form\\\">\\n      <input type=\\\"file\\\" name=\\\"foto\\\" id=\\\"foto\\\" accept=\\\"image/*\\\" capture=\\\"environment\\\" required>\\n      <img id=\\\"vista\\\" alt=\\\"Vista previa\\\">\\n      <label><input type=\\\"checkbox\\\" name=\\\"reprocesar\\\" value=\\\"true\\\"> Volver a procesar si ya se subi\\u00f3 esta misma foto</label>\\n      <div><button type=\\\"submit\\\" id=\\\"enviar\\\">Subir y leer</button></div>\\n      <p class=\\\"muted\\\">La lectura tarda unos 20-40 segundos. Una foto por albar\\u00e1n, con buena luz y todo el documento a la vista.</p>\\n    </form>\\n  </div>\\n</main>\\n<script>\\n(function () {\\n  var f = document.getElementById(\\\"foto\\\"), v = document.getElementById(\\\"vista\\\");\\n  f.addEventListener(\\\"change\\\", function () { if (f.files[0]) { v.src = URL.createObjectURL(f.files[0]); v.style.display = \\\"block\\\"; } });\\n  document.getElementById(\\\"form\\\").addEventListener(\\\"submit\\\", function () { var b = document.getElementById(\\\"enviar\\\"); b.disabled = true; b.textContent = \\\"Leyendo el albar\\u00e1n\\u2026\\\"; });\\n})();\\n</script>\\n</body>\\n</html>\\n\", codigo: 200, tipo: 'text/html; charset=utf-8' } }];"
+        "jsCode": "return [{ json: { cuerpo: \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Subir albar\\u00e1n</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\nform { display: grid; gap: 14px; padding: 16px; }\\ninput[type=file] { font: inherit; padding: 16px; border: 2px dashed var(--border); border-radius: 10px; background: var(--bg); color: var(--text); width: 100%; }\\nlabel { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); }\\n.elegir { display: flex; flex-wrap: wrap; gap: 8px; }\\n.elegir label { cursor: pointer; }\\n.elegir input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }\\n.boton.secundario { background: var(--panel); color: var(--accent); }\\n#fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }\\n#fotos:empty { display: none; }\\n.pag { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); display: grid; }\\n.pag img { width: 100%; height: 160px; object-fit: contain; background: var(--visor); }\\n.pag div { display: flex; align-items: center; gap: 4px; padding: 4px 6px; font-size: 13px; }\\n.pag div span { margin-right: auto; font-weight: 600; }\\n.pag button { padding: 2px 8px; font-size: 13px; background: var(--panel); color: var(--text); border-color: var(--border); }\\n#simple { display: none; }\\nfieldset { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 0; display: grid; gap: 8px; }\\nlegend { font-size: 13px; color: var(--muted); padding: 0 4px; }\\n.tipos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }\\n.tipos label { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 2px 8px; padding: 8px 10px;\\n  border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text); }\\n.tipos label:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }\\n.tipos input { margin: 3px 0 0; grid-row: span 2; }\\n.tipos b { font-weight: 600; } .tipos small { color: var(--muted); font-size: 12px; }\\n.campo { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }\\n.campo[hidden] { display: none; }\\n.campo input { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }\\n</style>\\n</head>\\n<body>\\n<header><h1>Subir albar\\u00e1n</h1><a href=\\\"revision\\\">Por revisar</a></header>\\n<main>\\n  <div class=\\\"panel\\\">\\n    <form method=\\\"post\\\" action=\\\"ingesta?html=1\\\" enctype=\\\"multipart/form-data\\\" id=\\\"form\\\">\\n      <fieldset>\\n        <legend>Tipo de albar\\u00e1n</legend>\\n        <div class=\\\"tipos\\\">\\n          <label><input type=\\\"radio\\\" name=\\\"tipo\\\" value=\\\"propio\\\" checked><b>Propio</b><small>Nuestro albar\\u00e1n impreso, con los cambios a mano</small></label>\\n          <label><input type=\\\"radio\\\" name=\\\"tipo\\\" value=\\\"entrada\\\"><b>Terceros \\u00b7 entrada</b><small>Albar\\u00e1n del proveedor al recibir material (valorado o no)</small></label>\\n          <label><input type=\\\"radio\\\" name=\\\"tipo\\\" value=\\\"entrega\\\"><b>Terceros \\u00b7 entrega</b><small>Albar\\u00e1n que hace el cliente al recibir nuestra mercanc\\u00eda</small></label>\\n        </div>\\n        <label class=\\\"campo\\\" id=\\\"campo-ref\\\" hidden>Nuestro albar\\u00e1n en el ERP (opcional)\\n          <input type=\\\"text\\\" name=\\\"referencias\\\" id=\\\"referencias\\\" autocomplete=\\\"off\\\" autocapitalize=\\\"characters\\\" placeholder=\\\"Ej.: WH/IN/00016, P00014\\\">\\n          <small class=\\\"muted\\\">Si lo dejas vac\\u00edo se usa el que est\\u00e9 escrito a mano en el documento. Varios, separados por espacios o comas.</small>\\n        </label>\\n      </fieldset>\\n      <!-- Con DataTransfer las fotos se van a\\u00f1adiendo (c\\u00e1mara o galer\\u00eda) a #foto; si el\\n           navegador no lo admite, queda el selector simple con varias fotos a la vez. -->\\n      <div class=\\\"elegir\\\" id=\\\"elegir\\\">\\n        <label class=\\\"boton\\\"><input type=\\\"file\\\" id=\\\"camara\\\" accept=\\\"image/*\\\" capture=\\\"environment\\\">Hacer foto</label>\\n        <label class=\\\"boton secundario\\\"><input type=\\\"file\\\" id=\\\"galeria\\\" accept=\\\"image/*\\\" multiple>Elegir fotos</label>\\n      </div>\\n      <input type=\\\"file\\\" name=\\\"foto\\\" id=\\\"foto\\\" accept=\\\"image/*\\\" multiple hidden>\\n      <input type=\\\"file\\\" name=\\\"foto\\\" id=\\\"simple\\\" accept=\\\"image/*\\\" multiple>\\n      <div id=\\\"fotos\\\"></div>\\n      <label><input type=\\\"checkbox\\\" name=\\\"reprocesar\\\" value=\\\"true\\\"> Volver a procesar si ya se subi\\u00f3 esta misma foto</label>\\n      <div><button type=\\\"submit\\\" id=\\\"enviar\\\" disabled>Subir y leer</button></div>\\n      <p class=\\\"muted\\\">Si el albar\\u00e1n tiene varias hojas, a\\u00f1ade una foto por hoja, en orden (como mucho 10). La lectura tarda unos 20-40 segundos; algo m\\u00e1s con varias fotos. Con buena luz y todo el documento a la vista.</p>\\n    </form>\\n  </div>\\n</main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var MAX = 10;\\n  var $ = function (id) { return document.getElementById(id); };\\n  var foto = $(\\\"foto\\\"), enviar = $(\\\"enviar\\\"), dt = null;\\n  /* Tipo de albar\\u00e1n: se recuerda el \\u00faltimo usado; el campo de referencias solo es de terceros */\\n  var tipos = Array.prototype.slice.call(document.querySelectorAll(\\\"input[name=tipo]\\\"));\\n  var tipoGuardado = null;\\n  try { tipoGuardado = localStorage.getItem(\\\"subir.tipo\\\"); } catch (e) {}\\n  tipos.forEach(function (r) { if (r.value === tipoGuardado) r.checked = true; });\\n  var verTipo = function () {\\n    var t = (tipos.filter(function (r) { return r.checked; })[0] || {}).value;\\n    $(\\\"campo-ref\\\").hidden = t === \\\"propio\\\";\\n    $(\\\"referencias\\\").disabled = t === \\\"propio\\\";\\n    $(\\\"referencias\\\").placeholder = t === \\\"entrega\\\" ? \\\"Ej.: WH/OUT/00040, S00026\\\" : \\\"Ej.: WH/IN/00016, P00014\\\";\\n    try { localStorage.setItem(\\\"subir.tipo\\\", t); } catch (e) {}\\n  };\\n  tipos.forEach(function (r) { r.addEventListener(\\\"change\\\", verTipo); });\\n  verTipo();\\n  try { dt = new DataTransfer(); foto.files = dt.files; } catch (e) { dt = null; }\\n  if (!dt) {\\n    /* Navegador sin DataTransfer: selector simple (las fotos que se elijan de una vez) */\\n    $(\\\"elegir\\\").style.display = \\\"none\\\"; foto.disabled = true;\\n    var simple = $(\\\"simple\\\"); simple.style.display = \\\"block\\\"; simple.required = true;\\n    simple.addEventListener(\\\"change\\\", function () { enviar.disabled = !simple.files.length; });\\n  } else {\\n    $(\\\"simple\\\").disabled = true;\\n    var pintar = function () {\\n      foto.files = dt.files;\\n      var lista = $(\\\"fotos\\\"); lista.innerHTML = \\\"\\\";\\n      Array.prototype.forEach.call(dt.files, function (f, i) {\\n        var d = document.createElement(\\\"div\\\"); d.className = \\\"pag\\\";\\n        var img = document.createElement(\\\"img\\\"); img.src = URL.createObjectURL(f); img.alt = \\\"Foto \\\" + (i + 1);\\n        var barra = document.createElement(\\\"div\\\");\\n        barra.innerHTML = \\\"<span>Foto \\\" + (i + 1) + \\\"</span>\\\";\\n        var boton = function (txt, titulo, fn) { var b = document.createElement(\\\"button\\\"); b.type = \\\"button\\\"; b.textContent = txt; b.title = titulo; b.onclick = fn; barra.appendChild(b); };\\n        if (i > 0) boton(\\\"\\u2191\\\", \\\"Subir de orden\\\", function () { mover(i, i - 1); });\\n        boton(\\\"\\u2715\\\", \\\"Quitar\\\", function () { quitar(i); });\\n        d.appendChild(img); d.appendChild(barra); lista.appendChild(d);\\n      });\\n      var n = dt.files.length;\\n      enviar.disabled = !n;\\n      enviar.textContent = n > 1 ? \\\"Subir \\\" + n + \\\" fotos y leer\\\" : \\\"Subir y leer\\\";\\n      $(\\\"elegir\\\").style.display = n >= MAX ? \\\"none\\\" : \\\"\\\";\\n    };\\n    var rehacer = function (ficheros) { dt = new DataTransfer(); ficheros.forEach(function (f) { dt.items.add(f); }); pintar(); };\\n    var mover = function (de, a) { var f = Array.prototype.slice.call(dt.files); f.splice(a, 0, f.splice(de, 1)[0]); rehacer(f); };\\n    var quitar = function (i) { var f = Array.prototype.slice.call(dt.files); f.splice(i, 1); rehacer(f); };\\n    var anadir = function (e) {\\n      Array.prototype.slice.call(e.target.files).forEach(function (f) { if (dt.files.length < MAX) dt.items.add(f); });\\n      e.target.value = \\\"\\\"; pintar();\\n    };\\n    $(\\\"camara\\\").addEventListener(\\\"change\\\", anadir);\\n    $(\\\"galeria\\\").addEventListener(\\\"change\\\", anadir);\\n  }\\n  $(\\\"form\\\").addEventListener(\\\"submit\\\", function () { enviar.disabled = true; enviar.textContent = \\\"Leyendo el albar\\u00e1n\\u2026\\\"; });\\n})();\\n</script>\\n</body>\\n</html>\\n\", codigo: 200, tipo: 'text/html; charset=utf-8' } }];"
       }
     },
     {
@@ -97,7 +97,7 @@
       "id": "AlbIaIngesta0001-04",
       "name": "Guardar incidencia",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.1,
       "position": [
         220,
         0
@@ -111,12 +111,69 @@
           "parameters": [
             {
               "parameterType": "formBinaryData",
-              "name": "foto",
-              "inputDataFieldName": "={{ Object.keys($binary || {})[0] || 'foto' }}"
+              "name": "foto_1",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[0] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_2",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[1] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_3",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[2] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_4",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[3] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_5",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[4] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_6",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[5] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_7",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[6] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_8",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[7] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_9",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[8] || '' }}"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "foto_10",
+              "inputDataFieldName": "={{ Object.keys($binary || {}).sort((a, b) => (parseInt(a.replace(/\\D/g, '')) || 0) - (parseInt(b.replace(/\\D/g, '')) || 0))[9] || '' }}"
+            },
+            {
+              "name": "paginas",
+              "value": "={{ String(Object.keys($binary || {}).length) }}"
             },
             {
               "name": "reprocesar",
               "value": "={{ String(($json.query || {}).reprocesar || ($json.body || {}).reprocesar || 'false') }}"
+            },
+            {
+              "name": "tipo",
+              "value": "={{ String(($json.query || {}).tipo || ($json.body || {}).tipo || 'propio') }}"
+            },
+            {
+              "name": "referencias",
+              "value": "={{ String(($json.query || {}).referencias || ($json.body || {}).referencias || '') }}"
             }
           ]
         },
@@ -187,11 +244,58 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Por revisar</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Por revisar\\\", \\\"warn\\\"],\\n    verificado: [\\\"Por revisar\\\", \\\"warn\\\"], pendiente_revision: [\\\"Por revisar\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var MARCAS = { original: [\\\"Original\\\", \\\"neutral\\\"], modificado: [\\\"Modificado\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class=\\\"chip ' + x[1] + '\\\">' + x[0] + \\\"</span>\\\" : \\\"\\\"; };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.marca ? \\\" \\\" + marca(d.marca) : \\\"\\\") + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra el reconocimiento existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">ERP</th><th class=\\\"num\\\">IA</th><th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? \\\"?\\\" : fmt(r.ia)) + '</td><td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst i = $input.first().json;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst d = i.decision || {};\nconst datos = {\n  titulo: 'Foto ya procesada', duplicada: true, incidencia_id: i.id, estado: i.estado, marca: i.marca,\n  albaran: i.albaran_numero, cliente: ((i.erp || {}).cliente || {}).nombre, origen_numero: i.origen_numero,\n  tabla: (d.lineas || []).map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,\n    erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: (l.motivos || []).join(', ') })),\n  error: i.error, enlace: '/webhook/albaranes/revision/' + i.id, enlace_texto: 'Abrir revisión',\n  revision_url: d.revision_url,\n};\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' })) : json(datos);"
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Por revisar</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Por revisar\\\", \\\"warn\\\"],\\n    verificado: [\\\"Por revisar\\\", \\\"warn\\\"], pendiente_revision: [\\\"Por revisar\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var MARCAS = { original: [\\\"Original\\\", \\\"neutral\\\"], modificado: [\\\"Modificado\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  /* Terceros: no hay \\\"modificado\\\" sino diferencias con nuestros albaranes */\\n  var tercero = d.tipo === \\\"entrada\\\" || d.tipo === \\\"entrega\\\";\\n  if (tercero) MARCAS = { original: [\\\"Coincide\\\", \\\"ok\\\"], modificado: [\\\"Con diferencias\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var TIPOS = { propio: \\\"Albar\\u00e1n propio\\\", entrada: \\\"Terceros \\u00b7 entrada (proveedor)\\\", entrega: \\\"Terceros \\u00b7 entrega (cliente)\\\" };\\n  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class=\\\"chip ' + x[1] + '\\\">' + x[0] + \\\"</span>\\\" : \\\"\\\"; };\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.marca ? \\\" \\\" + marca(d.marca) : \\\"\\\") + (d.tipo ? ' <span class=\\\"chip neutral\\\">' + esc(TIPOS[d.tipo] || d.tipo) + \\\"</span>\\\" : \\\"\\\") + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra el reconocimiento existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (tercero) {\\n    h += \\\"<h2>\\\" + esc(d.emisor || \\\"Emisor sin identificar\\\") + (d.documento ? \\\" \\u00b7 albar\\u00e1n \\\" + esc(d.documento) : \\\"\\\") + \\\"</h2>\\\";\\n    h += '<div class=\\\"muted\\\">' + (d.albaran ? \\\"Nuestro albar\\u00e1n: <b>\\\" + esc(d.albaran) + \\\"</b>\\\" + (d.cliente ? \\\" (\\\" + esc(d.cliente) + \\\")\\\" : \\\"\\\") +\\n      (d.origen_numero ? \\\" \\u00b7 \\\" + (d.origen_numero === \\\"manual\\\" ? \\\"indicado a mano\\\" : \\\"escrito en el documento\\\") : \\\"\\\")\\n      : \\\"Sin identificar nuestro albar\\u00e1n\\\") + (d.valorado ? \\\" \\u00b7 valorado\\\" : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  } else if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente && !tercero) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    var precios = tercero && d.valorado;\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">' + (tercero ? \\\"Nuestro\\\" : \\\"ERP\\\") + '</th><th class=\\\"num\\\">' + (tercero ? \\\"Su albar\\u00e1n\\\" : \\\"IA\\\") + \\\"</th>\\\" +\\n      (precios ? '<th class=\\\"num\\\">Precio nuestro</th><th class=\\\"num\\\">Su precio</th>' : \\\"\\\") + '<th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? (tercero ? \\\"\\u2014\\\" : \\\"?\\\") : fmt(r.ia)) + \\\"</td>\\\" +\\n          (precios ? '<td class=\\\"num\\\">' + fmt(r.precio_erp) + '</td><td class=\\\"num\\\">' + fmt(r.precio_doc) + \\\"</td>\\\" : \\\"\\\") +\\n          '<td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (tercero && d.extras && d.extras.length) h += '<div class=\\\"aviso\\\">L\\u00edneas de su albar\\u00e1n sin pareja en el nuestro: ' +\\n    d.extras.map(function (e) { return esc(e.articulo) + \\\" \\u2192 \\\" + fmt(e.cantidad_final); }).join(\\\"; \\\") + \\\"</div>\\\";\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst i = $input.first().json;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst d = i.decision || {};\nconst datos = {\n  titulo: 'Foto ya procesada', duplicada: true, incidencia_id: i.id, estado: i.estado, marca: i.marca,\n  albaran: i.albaran_numero, cliente: (((i.erp || {}).albaranes || [i.erp || {}])[0] || {}).cliente?.nombre, origen_numero: i.origen_numero,\n  paginas: (i.paginas || []).length, tipo: i.tipo, emisor: ((i.lectura || {}).emisor || {}).nombre, documento: (i.lectura || {}).numero_documento,\n  tabla: (d.lineas || []).map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,\n    erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: (l.motivos || []).join(', ') })),\n  error: i.error, enlace: '/webhook/albaranes/revision/' + i.id, enlace_texto: 'Abrir revisión',\n  revision_url: d.revision_url,\n};\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' })) : json(datos);"
       }
     },
     {
       "id": "AlbIaIngesta0001-08",
+      "name": "¿Albarán propio?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        500,
+        80
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ ($('Guardar incidencia').first().json.tipo || 'propio') === 'propio' }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-09",
+      "name": "Páginas",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        550,
+        80
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const n = $('Guardar incidencia').first().json.paginas || 1;\nreturn Array.from({ length: n }, (_, i) => ({ json: { pagina: i + 1 } }));"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-10",
       "name": "Foto normalizada",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -201,7 +305,7 @@
       ],
       "parameters": {
         "method": "GET",
-        "url": "=http://ia-support_albaranes-api:8000/incidencias/{{ $('Guardar incidencia').first().json.id }}/imagen",
+        "url": "=http://ia-support_albaranes-api:8000/incidencias/{{ $('Guardar incidencia').first().json.id }}/imagen?pagina={{ $json.pagina }}",
         "options": {
           "timeout": 60000,
           "response": {
@@ -214,7 +318,7 @@
       }
     },
     {
-      "id": "AlbIaIngesta0001-09",
+      "id": "AlbIaIngesta0001-11",
       "name": "Leer código de barras",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -252,7 +356,21 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "AlbIaIngesta0001-10",
+      "id": "AlbIaIngesta0001-12",
+      "name": "Elegir código",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        990,
+        80
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Primer código leído; `codigos` (distintos) sirve para avisar de fotos de otro albarán.\nconst lecturas = $input.all().map((it, i) => ({ pagina: i + 1, ...it.json }));\nconst codigos = [...new Set(lecturas.map(l => l.codigo).filter(Boolean))];\nreturn [{ json: { codigo: codigos[0] || '', codigos, lecturas } }];"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-13",
       "name": "¿Hay código de barras?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -285,7 +403,7 @@
       }
     },
     {
-      "id": "AlbIaIngesta0001-11",
+      "id": "AlbIaIngesta0001-14",
       "name": "Número por código",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -300,7 +418,7 @@
       }
     },
     {
-      "id": "AlbIaIngesta0001-12",
+      "id": "AlbIaIngesta0001-15",
       "name": "Petición número",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -316,12 +434,12 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'numero' }) }}"
+        "jsonBody": "={{ JSON.stringify({ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'numero', intento: 1 }) }}"
       },
       "onError": "continueErrorOutput"
     },
     {
-      "id": "AlbIaIngesta0001-13",
+      "id": "AlbIaIngesta0001-16",
       "name": "IA: número de albarán",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -353,7 +471,7 @@
       }
     },
     {
-      "id": "AlbIaIngesta0001-14",
+      "id": "AlbIaIngesta0001-17",
       "name": "Interpretar número",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -374,22 +492,129 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "AlbIaIngesta0001-15",
-      "name": "Número por visión",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
+      "id": "AlbIaIngesta0001-18",
+      "name": "¿Número leído?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
       "position": [
         1980,
         180
       ],
       "parameters": {
-        "mode": "raw",
-        "jsonOutput": "={{ JSON.stringify({ numero: $json.lectura.numero_albaran || '', origen: 'vision', lectura_codigo: $('Leer código de barras').first().json, lectura_numero: $json.lectura }) }}",
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ !!($json.lectura.numero_albaran || '').trim() }}",
+              "rightValue": ""
+            }
+          ]
+        },
         "options": {}
       }
     },
     {
-      "id": "AlbIaIngesta0001-16",
+      "id": "AlbIaIngesta0001-19",
+      "name": "Petición número 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/peticion",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'numero', intento: 2 }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-20",
+      "name": "IA: número de albarán 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify($json.cabeceras || {}) }}"
+      },
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "t9FUZIt3bCUbzN4K",
+          "name": "Openrouter Header Auth account"
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-21",
+      "name": "Interpretar número 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        360
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/interpretar",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tipo: 'numero', proveedor: $('Petición número 2').first().json.proveedor, respuesta: $json }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-22",
+      "name": "Número por visión",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2200,
+        180
+      ],
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ numero: $json.lectura.numero_albaran || '', origen: 'vision', lectura_codigo: Object.assign({}, $('Elegir código').first().json, { ia_numero: [$('Interpretar número').first().json.lectura].concat($('Interpretar número 2').isExecuted ? [$('Interpretar número 2').first().json.lectura] : []).map(l => Object.assign({ numero: l.numero_albaran }, l.meta)) }), lectura_numero: $json.lectura }) }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-23",
       "name": "Albarán en el ERP",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -416,7 +641,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "AlbIaIngesta0001-17",
+      "id": "AlbIaIngesta0001-24",
       "name": "Reconocimientos previos",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -438,6 +663,10 @@
               "value": "={{ $json.numero }}"
             },
             {
+              "name": "tipo",
+              "value": "propio"
+            },
+            {
               "name": "excluir",
               "value": "={{ $('Guardar incidencia').first().json.id }}"
             }
@@ -447,7 +676,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "AlbIaIngesta0001-18",
+      "id": "AlbIaIngesta0001-25",
       "name": "Petición lectura",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -468,7 +697,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "AlbIaIngesta0001-19",
+      "id": "AlbIaIngesta0001-26",
       "name": "IA: leer albarán",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -500,7 +729,7 @@
       }
     },
     {
-      "id": "AlbIaIngesta0001-20",
+      "id": "AlbIaIngesta0001-27",
       "name": "Interpretar lectura",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -521,7 +750,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "AlbIaIngesta0001-21",
+      "id": "AlbIaIngesta0001-28",
       "name": "Decidir",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -531,11 +760,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "// Reglas: cada línea del ERP se compara con la lectura de la IA.\nconst ins = $input.first().json;\nconst lect = ins.lectura, reglas = ins.reglas;\nconst erp = $('Albarán en el ERP').first().json;\nconst inc = $('Guardar incidencia').first().json;\nconst num = ($('Número por código').isExecuted ? $('Número por código') : $('Número por visión')).first().json;\nconst umbral = reglas.umbral, varMax = reglas.variacion_sospechosa;\nconst leidas = lect.lineas || [];\nconst ids = new Set(erp.lineas.map(l => l.id));\nconst lineas = erp.lineas.map(l => {\n  const r = leidas.find(x => x.move_id === l.id);\n  const motivos = [];\n  let final = r ? r.cantidad_final : null;\n  if (!r) motivos.push('no_leida');\n  else {\n    if (final == null) motivos.push(r.tachado ? 'tachon_ilegible' : 'no_leida');\n    if (r.confianza < umbral) motivos.push('baja_confianza');\n    if (r.dudoso) motivos.push('dudosa');\n    if (final != null && final !== l.cantidad) {\n      motivos.push('modificada');\n      if (l.cantidad > 0 && Math.abs(final - l.cantidad) / l.cantidad > varMax) motivos.push('variacion_sospechosa');\n      if (final > l.cantidad_pedida) motivos.push('supera_pedido');\n    }\n    if (r.tachado && final != null && final === l.cantidad) motivos.push('tachado_sin_cambio');\n  }\n  return {\n    linea_id: l.id, referencia: l.referencia, producto: l.producto, unidad: l.unidad,\n    pedida: l.cantidad_pedida, erp: l.cantidad,\n    impreso: r ? r.impreso : null, tachado: r ? r.tachado : false, manuscrito: r ? r.manuscrito : null,\n    cantidad_final: final, confianza: r ? r.confianza : null, dudoso: r ? r.dudoso : true,\n    motivo_ia: r ? r.motivo : null, bbox: r ? r.bbox : null,\n    estado: motivos.length ? 'pendiente_revision' : 'verificado', motivos,\n  };\n});\nconst extras = leidas.filter(x => !ids.has(x.move_id));\nconst avisos = [];\nif (extras.length) avisos.push(extras.length + ' línea(s) leídas que no están en el ERP');\nif (lect.numero_albaran && lect.numero_albaran.replace(/\\s/g, '') !== erp.numero) avisos.push('El número leído en la foto (' + lect.numero_albaran + ') no coincide con ' + erp.numero);\nif (lect.calidad_imagen === 'mala') avisos.push('Calidad de imagen mala: conviene repetir la foto');\nconst estado = lineas.every(l => l.estado === 'verificado') && !extras.length && lect.calidad_imagen !== 'mala' && avisos.length === 0\n  ? 'verificado' : 'pendiente_revision';\n// Aviso de reconocimientos previos del mismo albarán: se informa, pero no cambia el estado.\nconst previos = ($('Reconocimientos previos').first().json.resultados || [])\n  .map(r => ({ id: r.id, estado: r.estado, creada: r.creada }));\nconst ESTADO_TXT = { recibida: 'recibido', procesando: 'procesando', verificado: 'por revisar', pendiente_revision: 'por revisar',\n  error: 'con error', aprobada: 'aprobado', corregida: 'corregido', rechazada: 'rechazado', rectificada: 'rectificado en el ERP' };\nconst dia = c => String(c || '').slice(0, 10).split('-').reverse().join('/');\nif (previos.length) avisos.push('Este albarán ya se había reconocido antes: ' +\n  previos.map(r => '#' + r.id + ' del ' + dia(r.creada) + ' (' + (ESTADO_TXT[r.estado] || r.estado) + ')').join(', '));\nconst revision_url = (ins.url_revision || '') + '/' + inc.id;\n// Original / Modificado según lo que detecta la IA (tras aprobar, la API lo recalcula con lo aprobado).\nconst marca = lineas.some(l => l.cantidad_final != null && l.cantidad_final !== l.erp) || extras.length ? 'modificado' : 'original';\nconst decision = { estado, marca, umbral, variacion_sospechosa: varMax, lineas, extras, avisos, previos, revision_url };\n\n// Nota para el historial del albarán\nconst e = s => String(s ?? '').replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[c]));\nconst f = n => n == null ? '?' : String(n).replace('.', ',');\nconst MOT = { modificada: 'cambiada a mano', tachon_ilegible: 'tachón sin número legible', baja_confianza: 'confianza baja',\n  dudosa: 'lectura dudosa', variacion_sospechosa: 'variación grande', supera_pedido: 'supera lo pedido', no_leida: 'no leída',\n  tachado_sin_cambio: 'tachado sin cambio' };\nconst revisar = lineas.filter(l => l.estado !== 'verificado');\nlet nota = '<p><b>Foto del albarán leída por IA</b> (reconocimiento #' + inc.id + '): <b>' +\n  (marca === 'modificado' ? 'Modificado' : 'Original') + '</b>, ' +\n  (estado === 'verificado' ? 'coincide con el ERP' : 'por revisar') + '.</p>';\nif (revisar.length) nota += '<ul>' + revisar.map(l => '<li>' + e((l.referencia ? '[' + l.referencia + '] ' : '') + l.producto) + ': ERP ' +\n  f(l.erp) + ' → foto ' + f(l.cantidad_final) + ' (' + e(l.motivos.map(m => MOT[m] || m).join(', ')) +\n  (l.confianza != null ? ', confianza ' + Math.round(l.confianza * 100) + '%' : '') + ')</li>').join('') + '</ul>';\nfor (const a of avisos) nota += '<p>' + e(a) + '</p>';\nif (estado !== 'verificado') nota += '<p>Revisar en: ' + e(revision_url) + '</p>';\n\nreturn [{ json: {\n  incidencia_id: inc.id, albaran_id: erp.id, nota,\n  patch: { estado, albaran_numero: erp.numero, albaran_id: erp.id, origen_numero: num.origen,\n           lectura_codigo: num.lectura_codigo || null, erp, lectura: lect, decision, evento: 'lectura' },\n} }];"
+        "jsCode": "// Reglas: cada línea del ERP se compara con la lectura de la IA.\nconst ins = $input.first().json;\nconst lect = ins.lectura, reglas = ins.reglas;\nconst erp = $('Albarán en el ERP').first().json;\nconst inc = $('Guardar incidencia').first().json;\nconst num = ($('Número por código').isExecuted ? $('Número por código') : $('Número por visión')).first().json;\nconst umbral = reglas.umbral, varMax = reglas.variacion_sospechosa;\nconst npag = inc.paginas || 1;\nconst leidas = lect.lineas || [];\nconst ids = new Set(erp.lineas.map(l => l.id));\nconst lineas = erp.lineas.map(l => {\n  const r = leidas.find(x => x.move_id === l.id);\n  const motivos = [];\n  let final = r ? r.cantidad_final : null;\n  if (!r) motivos.push('no_leida');\n  else {\n    if (final == null) motivos.push(r.tachado ? 'tachon_ilegible' : 'no_leida');\n    if (r.confianza < umbral) motivos.push('baja_confianza');\n    if (r.dudoso) motivos.push('dudosa');\n    if (final != null && final !== l.cantidad) {\n      motivos.push('modificada');\n      if (l.cantidad > 0 && Math.abs(final - l.cantidad) / l.cantidad > varMax) motivos.push('variacion_sospechosa');\n      if (final > l.cantidad_pedida) motivos.push('supera_pedido');\n    }\n    if (r.tachado && final != null && final === l.cantidad) motivos.push('tachado_sin_cambio');\n  }\n  return {\n    linea_id: l.id, referencia: l.referencia, producto: l.producto, unidad: l.unidad,\n    pedida: l.cantidad_pedida, erp: l.cantidad,\n    impreso: r ? r.impreso : null, tachado: r ? r.tachado : false, manuscrito: r ? r.manuscrito : null,\n    cantidad_final: final, confianza: r ? r.confianza : null, dudoso: r ? r.dudoso : true,\n    motivo_ia: r ? r.motivo : null, bbox: r ? r.bbox : null,\n    pagina: r ? Math.min(Math.max(r.pagina || 1, 1), npag) : null,\n    estado: motivos.length ? 'pendiente_revision' : 'verificado', motivos,\n  };\n});\nconst extras = leidas.filter(x => !ids.has(x.move_id));\nconst avisos = [];\nif (extras.length) avisos.push(extras.length + ' línea(s) leídas que no están en el ERP');\nif (lect.numero_albaran && lect.numero_albaran.replace(/\\s/g, '') !== erp.numero) avisos.push('El número leído en la foto (' + lect.numero_albaran + ') no coincide con ' + erp.numero);\nif (lect.calidad_imagen === 'mala') avisos.push('Calidad de imagen mala: conviene repetir la foto');\n// Varias fotos: alguna puede ser de otro albarán (número impreso o código de barras distinto).\nconst sinEsp = s => String(s || '').replace(/\\s/g, '');\nconst otras = npag > 1 ? (lect.paginas || []).filter(p => p.numero_albaran && sinEsp(p.numero_albaran) !== erp.numero) : [];\nif (otras.length) avisos.push('Foto de otro albarán: ' + otras.map(p => 'foto ' + p.pagina + ' (' + p.numero_albaran + ')').join(', '));\nconst codigos = $('Elegir código').first().json.codigos || [];\nif (codigos.length > 1) avisos.push('Las fotos tienen códigos de barras distintos: ' + codigos.join(', '));\nconst estado = lineas.every(l => l.estado === 'verificado') && !extras.length && lect.calidad_imagen !== 'mala' && avisos.length === 0\n  ? 'verificado' : 'pendiente_revision';\n// Aviso de reconocimientos previos del mismo albarán: se informa, pero no cambia el estado.\nconst previos = ($('Reconocimientos previos').first().json.resultados || [])\n  .map(r => ({ id: r.id, estado: r.estado, creada: r.creada }));\nconst ESTADO_TXT = { recibida: 'recibido', procesando: 'procesando', verificado: 'por revisar', pendiente_revision: 'por revisar',\n  error: 'con error', aprobada: 'aprobado', corregida: 'corregido', rechazada: 'rechazado', rectificada: 'rectificado en el ERP' };\nconst dia = c => String(c || '').slice(0, 10).split('-').reverse().join('/');\nif (previos.length) avisos.push('Este albarán ya se había reconocido antes: ' +\n  previos.map(r => '#' + r.id + ' del ' + dia(r.creada) + ' (' + (ESTADO_TXT[r.estado] || r.estado) + ')').join(', '));\nconst revision_url = (ins.url_revision || '') + '/' + inc.id;\n// Original / Modificado según lo que detecta la IA (tras aprobar, la API lo recalcula con lo aprobado).\nconst marca = lineas.some(l => l.cantidad_final != null && l.cantidad_final !== l.erp) || extras.length ? 'modificado' : 'original';\nconst decision = { estado, marca, umbral, variacion_sospechosa: varMax, lineas, extras, avisos, previos, revision_url };\n\n// Nota para el historial del albarán\nconst e = s => String(s ?? '').replace(/[&<>\"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;' }[c]));\nconst f = n => n == null ? '?' : String(n).replace('.', ',');\nconst MOT = { modificada: 'cambiada a mano', tachon_ilegible: 'tachón sin número legible', baja_confianza: 'confianza baja',\n  dudosa: 'lectura dudosa', variacion_sospechosa: 'variación grande', supera_pedido: 'supera lo pedido', no_leida: 'no leída',\n  tachado_sin_cambio: 'tachado sin cambio' };\nconst revisar = lineas.filter(l => l.estado !== 'verificado');\nlet nota = '<p><b>' + (npag > 1 ? npag + ' fotos del albarán leídas' : 'Foto del albarán leída') + ' por IA</b> (reconocimiento #' + inc.id + '): <b>' +\n  (marca === 'modificado' ? 'Modificado' : 'Original') + '</b>, ' +\n  (estado === 'verificado' ? 'coincide con el ERP' : 'por revisar') + '.</p>';\nif (revisar.length) nota += '<ul>' + revisar.map(l => '<li>' + e((l.referencia ? '[' + l.referencia + '] ' : '') + l.producto) + ': ERP ' +\n  f(l.erp) + ' → foto ' + f(l.cantidad_final) + ' (' + e(l.motivos.map(m => MOT[m] || m).join(', ')) +\n  (l.confianza != null ? ', confianza ' + Math.round(l.confianza * 100) + '%' : '') + ')</li>').join('') + '</ul>';\nfor (const a of avisos) nota += '<p>' + e(a) + '</p>';\nif (estado !== 'verificado') nota += '<p>Revisar en: ' + e(revision_url) + '</p>';\n\nreturn [{ json: {\n  incidencia_id: inc.id, albaran_id: erp.id, nota,\n  patch: { estado, albaran_numero: erp.numero, albaran_id: erp.id, origen_numero: num.origen,\n           lectura_codigo: num.lectura_codigo || null, erp, lectura: lect, decision, evento: 'lectura' },\n} }];"
       }
     },
     {
-      "id": "AlbIaIngesta0001-22",
+      "id": "AlbIaIngesta0001-29",
       "name": "Guardar resultado",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -556,7 +785,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "AlbIaIngesta0001-23",
+      "id": "AlbIaIngesta0001-30",
       "name": "Nota en el albarán",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -577,7 +806,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "AlbIaIngesta0001-24",
+      "id": "AlbIaIngesta0001-31",
       "name": "Respuesta lectura",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -587,11 +816,248 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Por revisar</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Por revisar\\\", \\\"warn\\\"],\\n    verificado: [\\\"Por revisar\\\", \\\"warn\\\"], pendiente_revision: [\\\"Por revisar\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var MARCAS = { original: [\\\"Original\\\", \\\"neutral\\\"], modificado: [\\\"Modificado\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class=\\\"chip ' + x[1] + '\\\">' + x[0] + \\\"</span>\\\" : \\\"\\\"; };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.marca ? \\\" \\\" + marca(d.marca) : \\\"\\\") + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra el reconocimiento existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">ERP</th><th class=\\\"num\\\">IA</th><th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? \\\"?\\\" : fmt(r.ia)) + '</td><td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst d = $('Decidir').first().json;\nconst p = d.patch, dec = p.decision;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst notaOk = !$input.first().json.error;\nconst tabla = dec.lineas.map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,\n  erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: l.motivos.join(', ') }));\nconst datos = {\n  titulo: 'Lectura del albarán', incidencia_id: d.incidencia_id, estado: p.estado, marca: dec.marca, albaran: p.albaran_numero,\n  cliente: (p.erp.cliente || {}).nombre, origen_numero: p.origen_numero, tabla,\n  avisos: dec.avisos.concat(notaOk ? [] : ['No se pudo añadir la nota en el albarán del ERP']),\n  extras: dec.extras, revision_url: dec.revision_url, modelo: (p.lectura.meta || {}).modelo,\n  tokens: (p.lectura.meta || {}).tokens,\n  enlace: '/webhook/albaranes/revision/' + d.incidencia_id, enlace_texto: p.estado === 'verificado' ? 'Ver detalle' : 'Revisar ahora',\n};\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' })) : json(datos);"
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Por revisar</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Por revisar\\\", \\\"warn\\\"],\\n    verificado: [\\\"Por revisar\\\", \\\"warn\\\"], pendiente_revision: [\\\"Por revisar\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var MARCAS = { original: [\\\"Original\\\", \\\"neutral\\\"], modificado: [\\\"Modificado\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  /* Terceros: no hay \\\"modificado\\\" sino diferencias con nuestros albaranes */\\n  var tercero = d.tipo === \\\"entrada\\\" || d.tipo === \\\"entrega\\\";\\n  if (tercero) MARCAS = { original: [\\\"Coincide\\\", \\\"ok\\\"], modificado: [\\\"Con diferencias\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var TIPOS = { propio: \\\"Albar\\u00e1n propio\\\", entrada: \\\"Terceros \\u00b7 entrada (proveedor)\\\", entrega: \\\"Terceros \\u00b7 entrega (cliente)\\\" };\\n  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class=\\\"chip ' + x[1] + '\\\">' + x[0] + \\\"</span>\\\" : \\\"\\\"; };\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.marca ? \\\" \\\" + marca(d.marca) : \\\"\\\") + (d.tipo ? ' <span class=\\\"chip neutral\\\">' + esc(TIPOS[d.tipo] || d.tipo) + \\\"</span>\\\" : \\\"\\\") + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra el reconocimiento existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (tercero) {\\n    h += \\\"<h2>\\\" + esc(d.emisor || \\\"Emisor sin identificar\\\") + (d.documento ? \\\" \\u00b7 albar\\u00e1n \\\" + esc(d.documento) : \\\"\\\") + \\\"</h2>\\\";\\n    h += '<div class=\\\"muted\\\">' + (d.albaran ? \\\"Nuestro albar\\u00e1n: <b>\\\" + esc(d.albaran) + \\\"</b>\\\" + (d.cliente ? \\\" (\\\" + esc(d.cliente) + \\\")\\\" : \\\"\\\") +\\n      (d.origen_numero ? \\\" \\u00b7 \\\" + (d.origen_numero === \\\"manual\\\" ? \\\"indicado a mano\\\" : \\\"escrito en el documento\\\") : \\\"\\\")\\n      : \\\"Sin identificar nuestro albar\\u00e1n\\\") + (d.valorado ? \\\" \\u00b7 valorado\\\" : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  } else if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente && !tercero) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    var precios = tercero && d.valorado;\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">' + (tercero ? \\\"Nuestro\\\" : \\\"ERP\\\") + '</th><th class=\\\"num\\\">' + (tercero ? \\\"Su albar\\u00e1n\\\" : \\\"IA\\\") + \\\"</th>\\\" +\\n      (precios ? '<th class=\\\"num\\\">Precio nuestro</th><th class=\\\"num\\\">Su precio</th>' : \\\"\\\") + '<th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? (tercero ? \\\"\\u2014\\\" : \\\"?\\\") : fmt(r.ia)) + \\\"</td>\\\" +\\n          (precios ? '<td class=\\\"num\\\">' + fmt(r.precio_erp) + '</td><td class=\\\"num\\\">' + fmt(r.precio_doc) + \\\"</td>\\\" : \\\"\\\") +\\n          '<td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (tercero && d.extras && d.extras.length) h += '<div class=\\\"aviso\\\">L\\u00edneas de su albar\\u00e1n sin pareja en el nuestro: ' +\\n    d.extras.map(function (e) { return esc(e.articulo) + \\\" \\u2192 \\\" + fmt(e.cantidad_final); }).join(\\\"; \\\") + \\\"</div>\\\";\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst d = $('Decidir').first().json;\nconst p = d.patch, dec = p.decision;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst notaOk = !$input.first().json.error;\nconst tabla = dec.lineas.map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto,\n  erp: l.erp, ia: l.cantidad_final, confianza: l.confianza, estado: l.estado, motivos: l.motivos.join(', ') }));\nconst datos = {\n  titulo: 'Lectura del albarán', incidencia_id: d.incidencia_id, estado: p.estado, marca: dec.marca, albaran: p.albaran_numero,\n  cliente: (p.erp.cliente || {}).nombre, origen_numero: p.origen_numero, tabla,\n  paginas: $('Guardar incidencia').first().json.paginas,\n  avisos: dec.avisos.concat(notaOk ? [] : ['No se pudo añadir la nota en el albarán del ERP']),\n  extras: dec.extras, revision_url: dec.revision_url, modelo: (p.lectura.meta || {}).modelo,\n  tokens: (p.lectura.meta || {}).tokens,\n  enlace: '/webhook/albaranes/revision/' + d.incidencia_id, enlace_texto: p.estado === 'verificado' ? 'Ver detalle' : 'Revisar ahora',\n};\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' })) : json(datos);"
       }
     },
     {
-      "id": "AlbIaIngesta0001-25",
+      "id": "AlbIaIngesta0001-32",
+      "name": "Petición lectura terceros",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        -560
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/peticion",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ incidencia_id: $('Guardar incidencia').first().json.id, tipo: 'terceros' }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-33",
+      "name": "IA: leer albarán de terceros",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        940,
+        -560
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 180000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify($json.cabeceras || {}) }}"
+      },
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "t9FUZIt3bCUbzN4K",
+          "name": "Openrouter Header Auth account"
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-34",
+      "name": "Interpretar lectura terceros",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1160,
+        -560
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "http://ia-support_albaranes-api:8000/vision/interpretar",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tipo: 'terceros', proveedor: $('Petición lectura terceros').first().json.proveedor, respuesta: $json }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-35",
+      "name": "Guardar lectura terceros",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1380,
+        -560
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=http://ia-support_albaranes-api:8000/incidencias/{{ $('Guardar incidencia').first().json.id }}",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ estado: 'procesando', lectura: $json.lectura, evento: 'lectura' }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-36",
+      "name": "Buscar en el ERP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        -560
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_albaranes-api:8000/terceros/{{ $('Guardar incidencia').first().json.id }}/emparejar",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-37",
+      "name": "¿Emparejar con IA?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1820,
+        -560
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "c",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              },
+              "leftValue": "={{ !!$json.peticion }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-38",
+      "name": "IA: emparejar líneas",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2040,
+        -660
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.peticion.url }}",
+        "options": {
+          "timeout": 120000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.peticion.body) }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={{ JSON.stringify($json.peticion.cabeceras || {}) }}"
+      },
+      "onError": "continueErrorOutput",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "t9FUZIt3bCUbzN4K",
+          "name": "Openrouter Header Auth account"
+        }
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-39",
+      "name": "Comparar",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2260,
+        -660
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_albaranes-api:8000/terceros/{{ $('Guardar incidencia').first().json.id }}/comparar",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ busqueda: $('Buscar en el ERP').first().json, proveedor: $('Buscar en el ERP').first().json.peticion.proveedor, respuesta: $json }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-40",
+      "name": "Comparar sin IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2260,
+        -460
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=http://ia-support_albaranes-api:8000/terceros/{{ $('Guardar incidencia').first().json.id }}/comparar",
+        "options": {
+          "timeout": 60000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ busqueda: $('Buscar en el ERP').first().json }) }}"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "AlbIaIngesta0001-41",
+      "name": "Respuesta terceros",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2480,
+        -560
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Por revisar</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Por revisar\\\", \\\"warn\\\"],\\n    verificado: [\\\"Por revisar\\\", \\\"warn\\\"], pendiente_revision: [\\\"Por revisar\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var MARCAS = { original: [\\\"Original\\\", \\\"neutral\\\"], modificado: [\\\"Modificado\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  /* Terceros: no hay \\\"modificado\\\" sino diferencias con nuestros albaranes */\\n  var tercero = d.tipo === \\\"entrada\\\" || d.tipo === \\\"entrega\\\";\\n  if (tercero) MARCAS = { original: [\\\"Coincide\\\", \\\"ok\\\"], modificado: [\\\"Con diferencias\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var TIPOS = { propio: \\\"Albar\\u00e1n propio\\\", entrada: \\\"Terceros \\u00b7 entrada (proveedor)\\\", entrega: \\\"Terceros \\u00b7 entrega (cliente)\\\" };\\n  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class=\\\"chip ' + x[1] + '\\\">' + x[0] + \\\"</span>\\\" : \\\"\\\"; };\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.marca ? \\\" \\\" + marca(d.marca) : \\\"\\\") + (d.tipo ? ' <span class=\\\"chip neutral\\\">' + esc(TIPOS[d.tipo] || d.tipo) + \\\"</span>\\\" : \\\"\\\") + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra el reconocimiento existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (tercero) {\\n    h += \\\"<h2>\\\" + esc(d.emisor || \\\"Emisor sin identificar\\\") + (d.documento ? \\\" \\u00b7 albar\\u00e1n \\\" + esc(d.documento) : \\\"\\\") + \\\"</h2>\\\";\\n    h += '<div class=\\\"muted\\\">' + (d.albaran ? \\\"Nuestro albar\\u00e1n: <b>\\\" + esc(d.albaran) + \\\"</b>\\\" + (d.cliente ? \\\" (\\\" + esc(d.cliente) + \\\")\\\" : \\\"\\\") +\\n      (d.origen_numero ? \\\" \\u00b7 \\\" + (d.origen_numero === \\\"manual\\\" ? \\\"indicado a mano\\\" : \\\"escrito en el documento\\\") : \\\"\\\")\\n      : \\\"Sin identificar nuestro albar\\u00e1n\\\") + (d.valorado ? \\\" \\u00b7 valorado\\\" : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  } else if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente && !tercero) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    var precios = tercero && d.valorado;\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">' + (tercero ? \\\"Nuestro\\\" : \\\"ERP\\\") + '</th><th class=\\\"num\\\">' + (tercero ? \\\"Su albar\\u00e1n\\\" : \\\"IA\\\") + \\\"</th>\\\" +\\n      (precios ? '<th class=\\\"num\\\">Precio nuestro</th><th class=\\\"num\\\">Su precio</th>' : \\\"\\\") + '<th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? (tercero ? \\\"\\u2014\\\" : \\\"?\\\") : fmt(r.ia)) + \\\"</td>\\\" +\\n          (precios ? '<td class=\\\"num\\\">' + fmt(r.precio_erp) + '</td><td class=\\\"num\\\">' + fmt(r.precio_doc) + \\\"</td>\\\" : \\\"\\\") +\\n          '<td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (tercero && d.extras && d.extras.length) h += '<div class=\\\"aviso\\\">L\\u00edneas de su albar\\u00e1n sin pareja en el nuestro: ' +\\n    d.extras.map(function (e) { return esc(e.articulo) + \\\" \\u2192 \\\" + fmt(e.cantidad_final); }).join(\\\"; \\\") + \\\"</div>\\\";\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst i = $input.first().json;\nconst d = i.decision || {};\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst datos = {\n  titulo: i.tipo === 'entrada' ? 'Albarán de proveedor' : 'Albarán del cliente', incidencia_id: i.id, estado: i.estado, marca: i.marca,\n  tipo: i.tipo, albaran: i.albaran_numero, emisor: ((i.lectura || {}).emisor || {}).nombre, documento: (i.lectura || {}).numero_documento,\n  cliente: ((((i.erp || {}).albaranes || [])[0] || {}).cliente || {}).nombre, origen_numero: i.origen_numero,\n  referencias: (i.erp || {}).referencias || [], valorado: d.valorado, paginas: $('Guardar incidencia').first().json.paginas,\n  tabla: (d.lineas || []).map(l => ({ articulo: (l.referencia ? '[' + l.referencia + '] ' : '') + l.producto, erp: l.erp, ia: l.cantidad_doc,\n    precio_erp: l.precio_erp, precio_doc: l.precio_doc, confianza: l.confianza, estado: l.estado, motivos: (l.motivos || []).join(', ') })),\n  avisos: d.avisos || [], extras: d.extras || [], revision_url: d.revision_url, modelo: ((i.lectura || {}).meta || {}).modelo,\n  enlace: '/webhook/albaranes/revision/' + i.id, enlace_texto: i.estado === 'verificado' ? 'Ver detalle' : 'Revisar ahora',\n};\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' })) : json(datos);"
+      }
+    },
+    {
+      "id": "AlbIaIngesta0001-42",
       "name": "Datos del error",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -622,7 +1088,7 @@
       }
     },
     {
-      "id": "AlbIaIngesta0001-26",
+      "id": "AlbIaIngesta0001-43",
       "name": "Preparar error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -636,7 +1102,7 @@
       }
     },
     {
-      "id": "AlbIaIngesta0001-27",
+      "id": "AlbIaIngesta0001-44",
       "name": "Marcar error",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -657,7 +1123,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "AlbIaIngesta0001-28",
+      "id": "AlbIaIngesta0001-45",
       "name": "Respuesta error",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -667,11 +1133,11 @@
       ],
       "parameters": {
         "mode": "runOnceForAllItems",
-        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Por revisar</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Por revisar\\\", \\\"warn\\\"],\\n    verificado: [\\\"Por revisar\\\", \\\"warn\\\"], pendiente_revision: [\\\"Por revisar\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var MARCAS = { original: [\\\"Original\\\", \\\"neutral\\\"], modificado: [\\\"Modificado\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class=\\\"chip ' + x[1] + '\\\">' + x[0] + \\\"</span>\\\" : \\\"\\\"; };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.marca ? \\\" \\\" + marca(d.marca) : \\\"\\\") + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra el reconocimiento existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">ERP</th><th class=\\\"num\\\">IA</th><th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? \\\"?\\\" : fmt(r.ia)) + '</td><td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst e = $('Preparar error').first().json;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst datos = { titulo: 'No se ha podido leer el albarán', estado: 'error', marca: 'error', incidencia_id: e.incidencia_id, error: e.error,\n  mensaje: 'La foto queda guardada. Puedes reintentarla, eliminarla o subir otra mejor.',\n  enlace: e.incidencia_id ? '/webhook/albaranes/revision/' + e.incidencia_id : null, enlace_texto: 'Reintentar o eliminar' };\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' }), 422) : json(datos, 422);"
+        "jsCode": "\nconst incrustar = (plantilla, datos, extra = {}) => {\n  let h = plantilla.replace('__DATOS__', JSON.stringify(datos).replace(/</g, '\\\\u003c'));\n  for (const [k, v] of Object.entries(extra)) h = h.split(k).join(v);\n  return h;\n};\nconst html = (cuerpo, codigo = 200) => [{ json: { cuerpo, codigo, tipo: 'text/html; charset=utf-8' } }];\nconst json = (obj, codigo = 200) => [{ json: { cuerpo: JSON.stringify(obj), codigo, tipo: 'application/json; charset=utf-8' } }];\nconst detalle = (r) => {\n  if (!r) return 'Error desconocido';\n  const b = r.body ?? r;\n  if (b && typeof b === 'object') return typeof b.detail === 'string' ? b.detail : JSON.stringify(b.detail ?? b);\n  return String(b);\n};\nconst P = \"<!doctype html>\\n<html lang=\\\"es\\\">\\n<head>\\n<meta charset=\\\"utf-8\\\">\\n<meta name=\\\"viewport\\\" content=\\\"width=device-width, initial-scale=1\\\">\\n<title>Resultado</title>\\n<style>\\n\\n:root {\\n  --bg: #f4f5f7; --panel: #ffffff; --text: #1d2330; --muted: #667085; --border: #d9dde5;\\n  --accent: #2557d6; --accent-text: #ffffff; --ok: #1f8a4c; --ok-bg: #e5f5ec;\\n  --warn: #9a6200; --warn-bg: #fff4d6; --bad: #b42318; --bad-bg: #fde8e7;\\n  --hl: rgba(255, 196, 0, .35); --hl-border: #f0a500; --visor: #2b2f36;\\n}\\n@media (prefers-color-scheme: dark) {\\n  :root:not([data-theme=\\\"light\\\"]) {\\n    --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n    --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n    --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n  }\\n}\\n:root[data-theme=\\\"dark\\\"] {\\n  --bg: #14171c; --panel: #1d2128; --text: #e6e8ec; --muted: #9aa3b2; --border: #343a45;\\n  --accent: #6d95ff; --accent-text: #0d1220; --ok: #5fd08f; --ok-bg: #173826;\\n  --warn: #f3c25b; --warn-bg: #3a2f12; --bad: #ff8a80; --bad-bg: #3d1a18; --visor: #0c0e11;\\n}\\n* { box-sizing: border-box; }\\nhtml, body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.4 system-ui, -apple-system, \\\"Segoe UI\\\", Roboto, sans-serif; }\\nheader { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--border); }\\nheader h1 { font-size: 18px; margin: 0; } header a { color: var(--accent); text-decoration: none; font-size: 14px; }\\nmain { max-width: 1100px; margin: 0 auto; padding: 16px; }\\n.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }\\n.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }\\n.chip.ok { background: var(--ok-bg); color: var(--ok); } .chip.warn { background: var(--warn-bg); color: var(--warn); }\\n.chip.bad { background: var(--bad-bg); color: var(--bad); } .chip.neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }\\ntable { width: 100%; border-collapse: collapse; font-size: 14px; }\\nth { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }\\ntd { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }\\ntd.num, th.num { text-align: right; white-space: nowrap; }\\na { color: var(--accent); }\\nbutton, .boton { font: inherit; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-text); border-radius: 8px; padding: 9px 16px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }\\n.tabla-wrap { overflow-x: auto; }\\n.muted { color: var(--muted); font-size: 13px; }\\n.aviso { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--warn-bg); color: var(--warn); font-size: 13px; }\\n.error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }\\n.bloque { padding: 16px; display: grid; gap: 10px; }\\nh2 { margin: 0; font-size: 20px; }\\n.dif td.num:nth-child(3) { font-weight: 700; color: var(--accent); }\\ntr.revisar td:first-child { box-shadow: inset 4px 0 0 #f0a500; }\\n</style>\\n</head>\\n<body>\\n<script id=\\\"datos\\\" type=\\\"application/json\\\">__DATOS__</script>\\n<header><h1 id=\\\"titulo\\\">Resultado</h1><a href=\\\"__BASE__revision\\\">Por revisar</a><a href=\\\"__BASE__subir\\\">Subir otra foto</a></header>\\n<main><div class=\\\"panel\\\"><div class=\\\"bloque\\\" id=\\\"bloque\\\"></div></div></main>\\n<script>\\n(function () {\\n  \\\"use strict\\\";\\n  var $ = function (id) { return document.getElementById(id); };\\n  var esc = function (s) { return String(s == null ? \\\"\\\" : s).replace(/[&<>\\\"']/g, function (c) { return { \\\"&\\\": \\\"&amp;\\\", \\\"<\\\": \\\"&lt;\\\", \\\">\\\": \\\"&gt;\\\", '\\\"': \\\"&quot;\\\", \\\"'\\\": \\\"&#39;\\\" }[c]; }); };\\n  var fmt = function (n) { return n == null ? \\\"\\u2014\\\" : (Math.round(n * 1000) / 1000).toLocaleString(\\\"es-ES\\\"); };\\n  var ESTADOS = { recibida: [\\\"Recibida\\\", \\\"neutral\\\"], procesando: [\\\"Procesando\\\", \\\"neutral\\\"], error: [\\\"Por revisar\\\", \\\"warn\\\"],\\n    verificado: [\\\"Por revisar\\\", \\\"warn\\\"], pendiente_revision: [\\\"Por revisar\\\", \\\"warn\\\"], aprobada: [\\\"Aprobada\\\", \\\"ok\\\"],\\n    corregida: [\\\"Corregida\\\", \\\"ok\\\"], rechazada: [\\\"Rechazada\\\", \\\"bad\\\"], rectificada: [\\\"Rectificada en el ERP\\\", \\\"ok\\\"] };\\n  var chip = function (e) { var x = ESTADOS[e] || [e, \\\"neutral\\\"]; return '<span class=\\\"chip ' + x[1] + '\\\">' + esc(x[0]) + \\\"</span>\\\"; };\\n  var MARCAS = { original: [\\\"Original\\\", \\\"neutral\\\"], modificado: [\\\"Modificado\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var d = JSON.parse($(\\\"datos\\\").textContent || \\\"{}\\\");\\n  /* Terceros: no hay \\\"modificado\\\" sino diferencias con nuestros albaranes */\\n  var tercero = d.tipo === \\\"entrada\\\" || d.tipo === \\\"entrega\\\";\\n  if (tercero) MARCAS = { original: [\\\"Coincide\\\", \\\"ok\\\"], modificado: [\\\"Con diferencias\\\", \\\"warn\\\"], error: [\\\"Error\\\", \\\"bad\\\"] };\\n  var TIPOS = { propio: \\\"Albar\\u00e1n propio\\\", entrada: \\\"Terceros \\u00b7 entrada (proveedor)\\\", entrega: \\\"Terceros \\u00b7 entrega (cliente)\\\" };\\n  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class=\\\"chip ' + x[1] + '\\\">' + x[0] + \\\"</span>\\\" : \\\"\\\"; };\\n  var h = \\\"\\\";\\n  if (d.titulo) { $(\\\"titulo\\\").textContent = d.titulo; document.title = d.titulo; }\\n  if (d.estado) h += \\\"<div>\\\" + chip(d.estado) + (d.marca ? \\\" \\\" + marca(d.marca) : \\\"\\\") + (d.tipo ? ' <span class=\\\"chip neutral\\\">' + esc(TIPOS[d.tipo] || d.tipo) + \\\"</span>\\\" : \\\"\\\") + (d.duplicada ? ' <span class=\\\"muted\\\">Esta foto ya se hab\\u00eda subido: se muestra el reconocimiento existente.</span>' : \\\"\\\") + \\\"</div>\\\";\\n  if (tercero) {\\n    h += \\\"<h2>\\\" + esc(d.emisor || \\\"Emisor sin identificar\\\") + (d.documento ? \\\" \\u00b7 albar\\u00e1n \\\" + esc(d.documento) : \\\"\\\") + \\\"</h2>\\\";\\n    h += '<div class=\\\"muted\\\">' + (d.albaran ? \\\"Nuestro albar\\u00e1n: <b>\\\" + esc(d.albaran) + \\\"</b>\\\" + (d.cliente ? \\\" (\\\" + esc(d.cliente) + \\\")\\\" : \\\"\\\") +\\n      (d.origen_numero ? \\\" \\u00b7 \\\" + (d.origen_numero === \\\"manual\\\" ? \\\"indicado a mano\\\" : \\\"escrito en el documento\\\") : \\\"\\\")\\n      : \\\"Sin identificar nuestro albar\\u00e1n\\\") + (d.valorado ? \\\" \\u00b7 valorado\\\" : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  } else if (d.albaran) h += \\\"<h2>Albar\\u00e1n \\\" + esc(d.albaran) + \\\"</h2>\\\";\\n  if (d.cliente && !tercero) h += '<div class=\\\"muted\\\">' + esc(d.cliente) + (d.origen_numero ? \\\" \\u00b7 n\\u00famero le\\u00eddo por \\\" + (d.origen_numero === \\\"codigo_barras\\\" ? \\\"c\\u00f3digo de barras\\\" : \\\"visi\\u00f3n\\\") : \\\"\\\") + (d.paginas > 1 ? \\\" \\u00b7 \\\" + d.paginas + \\\" fotos\\\" : \\\"\\\") + \\\"</div>\\\";\\n  if (d.error) h += '<div class=\\\"error\\\">' + esc(d.error) + \\\"</div>\\\";\\n  (d.avisos || []).forEach(function (a) { h += '<div class=\\\"aviso\\\">' + esc(a) + \\\"</div>\\\"; });\\n  if (d.tabla && d.tabla.length) {\\n    var precios = tercero && d.valorado;\\n    h += '<div class=\\\"tabla-wrap\\\"><table><thead><tr><th>Art\\u00edculo</th><th class=\\\"num\\\">' + (tercero ? \\\"Nuestro\\\" : \\\"ERP\\\") + '</th><th class=\\\"num\\\">' + (tercero ? \\\"Su albar\\u00e1n\\\" : \\\"IA\\\") + \\\"</th>\\\" +\\n      (precios ? '<th class=\\\"num\\\">Precio nuestro</th><th class=\\\"num\\\">Su precio</th>' : \\\"\\\") + '<th class=\\\"num\\\">Confianza</th><th>Resultado</th></tr></thead><tbody>' +\\n      d.tabla.map(function (r) {\\n        return '<tr class=\\\"' + (r.estado !== \\\"verificado\\\" ? \\\"revisar \\\" : \\\"\\\") + (r.ia !== r.erp ? \\\"dif\\\" : \\\"\\\") + '\\\"><td>' + esc(r.articulo) + '</td><td class=\\\"num\\\">' + fmt(r.erp) +\\n          '</td><td class=\\\"num\\\">' + (r.ia == null ? (tercero ? \\\"\\u2014\\\" : \\\"?\\\") : fmt(r.ia)) + \\\"</td>\\\" +\\n          (precios ? '<td class=\\\"num\\\">' + fmt(r.precio_erp) + '</td><td class=\\\"num\\\">' + fmt(r.precio_doc) + \\\"</td>\\\" : \\\"\\\") +\\n          '<td class=\\\"num\\\">' + (r.confianza == null ? \\\"\\u2014\\\" : Math.round(r.confianza * 100) + \\\"%\\\") +\\n          \\\"</td><td>\\\" + (r.estado === \\\"verificado\\\" ? \\\"OK\\\" : esc(r.motivos || \\\"revisar\\\")) + \\\"</td></tr>\\\"; }).join(\\\"\\\") + \\\"</tbody></table></div>\\\";\\n  }\\n  if (tercero && d.extras && d.extras.length) h += '<div class=\\\"aviso\\\">L\\u00edneas de su albar\\u00e1n sin pareja en el nuestro: ' +\\n    d.extras.map(function (e) { return esc(e.articulo) + \\\" \\u2192 \\\" + fmt(e.cantidad_final); }).join(\\\"; \\\") + \\\"</div>\\\";\\n  if (d.pasos && d.pasos.length) h += \\\"<div><b>\\\" + (d.dry_run ? \\\"Simulaci\\u00f3n (DRY_RUN): se har\\u00eda\\\" : \\\"Hecho en el ERP\\\") + \\\"</b><ul>\\\" + d.pasos.map(function (p) { return \\\"<li>\\\" + esc(p) + \\\"</li>\\\"; }).join(\\\"\\\") + \\\"</ul></div>\\\";\\n  if (d.mensaje) h += \\\"<div>\\\" + esc(d.mensaje) + \\\"</div>\\\";\\n  if (d.enlace) h += '<div><a class=\\\"boton\\\" href=\\\"' + esc(d.enlace) + '\\\">' + esc(d.enlace_texto || \\\"Abrir\\\") + \\\"</a></div>\\\";\\n  $(\\\"bloque\\\").innerHTML = h;\\n})();\\n</script>\\n</body>\\n</html>\\n\";\nconst e = $('Preparar error').first().json;\nconst quiereHtml = String(($('Subir foto').first().json.query || {}).html || '') === '1';\nconst datos = { titulo: 'No se ha podido leer el albarán', estado: 'error', marca: 'error', incidencia_id: e.incidencia_id, error: e.error,\n  mensaje: 'Las fotos quedan guardadas. Puedes reintentarlo, eliminarlo o subir otras mejores.',\n  enlace: e.incidencia_id ? '/webhook/albaranes/revision/' + e.incidencia_id : null, enlace_texto: 'Reintentar o eliminar' };\nreturn quiereHtml ? html(incrustar(P, datos, { '__BASE__': '/webhook/albaranes/' }), 422) : json(datos, 422);"
       }
     },
     {
-      "id": "AlbIaIngesta0001-29",
+      "id": "AlbIaIngesta0001-46",
       "name": "Responder",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
@@ -763,7 +1229,7 @@
         ],
         [
           {
-            "node": "Foto normalizada",
+            "node": "¿Albarán propio?",
             "type": "main",
             "index": 0
           }
@@ -775,6 +1241,35 @@
         [
           {
             "node": "Respuesta duplicada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Albarán propio?": {
+      "main": [
+        [
+          {
+            "node": "Páginas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Petición lectura terceros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Páginas": {
+      "main": [
+        [
+          {
+            "node": "Foto normalizada",
             "type": "main",
             "index": 0
           }
@@ -793,6 +1288,17 @@
       ]
     },
     "Leer código de barras": {
+      "main": [
+        [
+          {
+            "node": "Elegir código",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Elegir código": {
       "main": [
         [
           {
@@ -858,6 +1364,78 @@
       ]
     },
     "Interpretar número": {
+      "main": [
+        [
+          {
+            "node": "¿Número leído?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Número leído?": {
+      "main": [
+        [
+          {
+            "node": "Número por visión",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Petición número 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Petición número 2": {
+      "main": [
+        [
+          {
+            "node": "IA: número de albarán 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA: número de albarán 2": {
+      "main": [
+        [
+          {
+            "node": "Interpretar número 2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar número 2": {
       "main": [
         [
           {
@@ -1020,6 +1598,168 @@
         ]
       ]
     },
+    "Petición lectura terceros": {
+      "main": [
+        [
+          {
+            "node": "IA: leer albarán de terceros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA: leer albarán de terceros": {
+      "main": [
+        [
+          {
+            "node": "Interpretar lectura terceros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Interpretar lectura terceros": {
+      "main": [
+        [
+          {
+            "node": "Guardar lectura terceros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar lectura terceros": {
+      "main": [
+        [
+          {
+            "node": "Buscar en el ERP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar en el ERP": {
+      "main": [
+        [
+          {
+            "node": "¿Emparejar con IA?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Emparejar con IA?": {
+      "main": [
+        [
+          {
+            "node": "IA: emparejar líneas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Comparar sin IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IA: emparejar líneas": {
+      "main": [
+        [
+          {
+            "node": "Comparar",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comparar": {
+      "main": [
+        [
+          {
+            "node": "Respuesta terceros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comparar sin IA": {
+      "main": [
+        [
+          {
+            "node": "Respuesta terceros",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Datos del error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Datos del error": {
       "main": [
         [
@@ -1076,6 +1816,17 @@
       ]
     },
     "Respuesta error": {
+      "main": [
+        [
+          {
+            "node": "Responder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respuesta terceros": {
       "main": [
         [
           {

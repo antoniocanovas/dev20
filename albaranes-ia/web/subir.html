@@ -46,27 +46,120 @@ button, .boton { font: inherit; border: 1px solid var(--accent); background: var
 form { display: grid; gap: 14px; padding: 16px; }
 input[type=file] { font: inherit; padding: 16px; border: 2px dashed var(--border); border-radius: 10px; background: var(--bg); color: var(--text); width: 100%; }
 label { display: flex; gap: 8px; align-items: center; font-size: 14px; color: var(--muted); }
-#vista { max-width: 100%; max-height: 50vh; border-radius: 8px; display: none; }
+.elegir { display: flex; flex-wrap: wrap; gap: 8px; }
+.elegir label { cursor: pointer; }
+.elegir input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.boton.secundario { background: var(--panel); color: var(--accent); }
+#fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+#fotos:empty { display: none; }
+.pag { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--bg); display: grid; }
+.pag img { width: 100%; height: 160px; object-fit: contain; background: var(--visor); }
+.pag div { display: flex; align-items: center; gap: 4px; padding: 4px 6px; font-size: 13px; }
+.pag div span { margin-right: auto; font-weight: 600; }
+.pag button { padding: 2px 8px; font-size: 13px; background: var(--panel); color: var(--text); border-color: var(--border); }
+#simple { display: none; }
+fieldset { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; margin: 0; display: grid; gap: 8px; }
+legend { font-size: 13px; color: var(--muted); padding: 0 4px; }
+.tipos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.tipos label { display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 2px 8px; padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--text); }
+.tipos label:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+.tipos input { margin: 3px 0 0; grid-row: span 2; }
+.tipos b { font-weight: 600; } .tipos small { color: var(--muted); font-size: 12px; }
+.campo { display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+.campo[hidden] { display: none; }
+.campo input { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
 </style>
 </head>
 <body>
-<header><h1>Subir foto de albarán</h1><a href="revision">Por revisar</a></header>
+<header><h1>Subir albarán</h1><a href="revision">Por revisar</a></header>
 <main>
   <div class="panel">
     <form method="post" action="ingesta?html=1" enctype="multipart/form-data" id="form">
-      <input type="file" name="foto" id="foto" accept="image/*" capture="environment" required>
-      <img id="vista" alt="Vista previa">
+      <fieldset>
+        <legend>Tipo de albarán</legend>
+        <div class="tipos">
+          <label><input type="radio" name="tipo" value="propio" checked><b>Propio</b><small>Nuestro albarán impreso, con los cambios a mano</small></label>
+          <label><input type="radio" name="tipo" value="entrada"><b>Terceros · entrada</b><small>Albarán del proveedor al recibir material (valorado o no)</small></label>
+          <label><input type="radio" name="tipo" value="entrega"><b>Terceros · entrega</b><small>Albarán que hace el cliente al recibir nuestra mercancía</small></label>
+        </div>
+        <label class="campo" id="campo-ref" hidden>Nuestro albarán en el ERP (opcional)
+          <input type="text" name="referencias" id="referencias" autocomplete="off" autocapitalize="characters" placeholder="Ej.: WH/IN/00016, P00014">
+          <small class="muted">Si lo dejas vacío se usa el que esté escrito a mano en el documento. Varios, separados por espacios o comas.</small>
+        </label>
+      </fieldset>
+      <!-- Con DataTransfer las fotos se van añadiendo (cámara o galería) a #foto; si el
+           navegador no lo admite, queda el selector simple con varias fotos a la vez. -->
+      <div class="elegir" id="elegir">
+        <label class="boton"><input type="file" id="camara" accept="image/*" capture="environment">Hacer foto</label>
+        <label class="boton secundario"><input type="file" id="galeria" accept="image/*" multiple>Elegir fotos</label>
+      </div>
+      <input type="file" name="foto" id="foto" accept="image/*" multiple hidden>
+      <input type="file" name="foto" id="simple" accept="image/*" multiple>
+      <div id="fotos"></div>
       <label><input type="checkbox" name="reprocesar" value="true"> Volver a procesar si ya se subió esta misma foto</label>
-      <div><button type="submit" id="enviar">Subir y leer</button></div>
-      <p class="muted">La lectura tarda unos 20-40 segundos. Una foto por albarán, con buena luz y todo el documento a la vista.</p>
+      <div><button type="submit" id="enviar" disabled>Subir y leer</button></div>
+      <p class="muted">Si el albarán tiene varias hojas, añade una foto por hoja, en orden (como mucho 10). La lectura tarda unos 20-40 segundos; algo más con varias fotos. Con buena luz y todo el documento a la vista.</p>
     </form>
   </div>
 </main>
 <script>
 (function () {
-  var f = document.getElementById("foto"), v = document.getElementById("vista");
-  f.addEventListener("change", function () { if (f.files[0]) { v.src = URL.createObjectURL(f.files[0]); v.style.display = "block"; } });
-  document.getElementById("form").addEventListener("submit", function () { var b = document.getElementById("enviar"); b.disabled = true; b.textContent = "Leyendo el albarán…"; });
+  "use strict";
+  var MAX = 10;
+  var $ = function (id) { return document.getElementById(id); };
+  var foto = $("foto"), enviar = $("enviar"), dt = null;
+  /* Tipo de albarán: se recuerda el último usado; el campo de referencias solo es de terceros */
+  var tipos = Array.prototype.slice.call(document.querySelectorAll("input[name=tipo]"));
+  var tipoGuardado = null;
+  try { tipoGuardado = localStorage.getItem("subir.tipo"); } catch (e) {}
+  tipos.forEach(function (r) { if (r.value === tipoGuardado) r.checked = true; });
+  var verTipo = function () {
+    var t = (tipos.filter(function (r) { return r.checked; })[0] || {}).value;
+    $("campo-ref").hidden = t === "propio";
+    $("referencias").disabled = t === "propio";
+    $("referencias").placeholder = t === "entrega" ? "Ej.: WH/OUT/00040, S00026" : "Ej.: WH/IN/00016, P00014";
+    try { localStorage.setItem("subir.tipo", t); } catch (e) {}
+  };
+  tipos.forEach(function (r) { r.addEventListener("change", verTipo); });
+  verTipo();
+  try { dt = new DataTransfer(); foto.files = dt.files; } catch (e) { dt = null; }
+  if (!dt) {
+    /* Navegador sin DataTransfer: selector simple (las fotos que se elijan de una vez) */
+    $("elegir").style.display = "none"; foto.disabled = true;
+    var simple = $("simple"); simple.style.display = "block"; simple.required = true;
+    simple.addEventListener("change", function () { enviar.disabled = !simple.files.length; });
+  } else {
+    $("simple").disabled = true;
+    var pintar = function () {
+      foto.files = dt.files;
+      var lista = $("fotos"); lista.innerHTML = "";
+      Array.prototype.forEach.call(dt.files, function (f, i) {
+        var d = document.createElement("div"); d.className = "pag";
+        var img = document.createElement("img"); img.src = URL.createObjectURL(f); img.alt = "Foto " + (i + 1);
+        var barra = document.createElement("div");
+        barra.innerHTML = "<span>Foto " + (i + 1) + "</span>";
+        var boton = function (txt, titulo, fn) { var b = document.createElement("button"); b.type = "button"; b.textContent = txt; b.title = titulo; b.onclick = fn; barra.appendChild(b); };
+        if (i > 0) boton("↑", "Subir de orden", function () { mover(i, i - 1); });
+        boton("✕", "Quitar", function () { quitar(i); });
+        d.appendChild(img); d.appendChild(barra); lista.appendChild(d);
+      });
+      var n = dt.files.length;
+      enviar.disabled = !n;
+      enviar.textContent = n > 1 ? "Subir " + n + " fotos y leer" : "Subir y leer";
+      $("elegir").style.display = n >= MAX ? "none" : "";
+    };
+    var rehacer = function (ficheros) { dt = new DataTransfer(); ficheros.forEach(function (f) { dt.items.add(f); }); pintar(); };
+    var mover = function (de, a) { var f = Array.prototype.slice.call(dt.files); f.splice(a, 0, f.splice(de, 1)[0]); rehacer(f); };
+    var quitar = function (i) { var f = Array.prototype.slice.call(dt.files); f.splice(i, 1); rehacer(f); };
+    var anadir = function (e) {
+      Array.prototype.slice.call(e.target.files).forEach(function (f) { if (dt.files.length < MAX) dt.items.add(f); });
+      e.target.value = ""; pintar();
+    };
+    $("camara").addEventListener("change", anadir);
+    $("galeria").addEventListener("change", anadir);
+  }
+  $("form").addEventListener("submit", function () { enviar.disabled = true; enviar.textContent = "Leyendo el albarán…"; });
 })();
 </script>
 </body>

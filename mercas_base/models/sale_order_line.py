@@ -78,6 +78,11 @@ class SaleOrderLine(models.Model):
             for role in ("quality", "size")
         }
 
+    def _mercas_net_price(self):
+        """Unit price of the line, with its discount."""
+        self.ensure_one()
+        return self.price_unit * (1.0 - self.discount / 100.0)
+
     def _mercas_classification_text(self):
         """'Quality · Size' of the line, empty without them."""
         self.ensure_one()
@@ -187,16 +192,11 @@ class SaleOrderLine(models.Model):
                 all_box_lines = self.env["sale.order.line"].search(
                     [("box_sale_line_id", "in", lines_to_check.ids)]
                 )
-                box_lines_by_parent = {}
-                for box_line in all_box_lines:
-                    box_lines_by_parent.setdefault(
-                        box_line.box_sale_line_id.id, self.env["sale.order.line"]
-                    )
-                    box_lines_by_parent[box_line.box_sale_line_id.id] |= box_line
+                box_lines_by_parent = all_box_lines.grouped("box_sale_line_id")
 
                 to_unlink = self.env["sale.order.line"]
                 for line in lines_to_check:
-                    box_lines = box_lines_by_parent.get(line.id)
+                    box_lines = box_lines_by_parent.get(line)
                     if not box_lines:
                         continue
                     if "box_qty" in vals and line.box_qty == 0:

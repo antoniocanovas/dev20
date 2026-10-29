@@ -26,6 +26,7 @@ msgstr ""
 
 #. module: mercas_base
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard__line_ids
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_company_form_mercas
 msgid "Deliveries"
 msgstr ""
 
@@ -1166,4 +1167,107 @@ msgstr ""
 #. module: mercas_base
 #: model:ir.model.fields,help:mercas_base.field_purchase_bill_union__mercas_receipts
 msgid "Receipts of the purchase order, with the supplier's delivery note."
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__mercas_default_carrier
+msgid "Default Carrier"
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,field_help:mercas_base.field_res_company__mercas_default_carrier
+msgid ""
+"Carrier proposed on the deliveries, for the transport document (DeCA):\n"
+"- Last carrier of the customer: the carrier and the licence plates of the last delivery of the customer that has them.\n"
+"- The customer: the customer picks up the goods with their own vehicle; the licence plates are left empty.\n"
+"- None: the carrier is filled in on each delivery."
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__res_company__mercas_default_carrier__last
+msgid "Last carrier of the customer"
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__res_company__mercas_default_carrier__customer
+msgid "The customer"
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields.selection,name:mercas_base.selection__res_company__mercas_default_carrier__none
+msgid "None"
+msgstr ""
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/purchase_order.py:0
+msgid ""
+"The lines with a lot of %s are invoiced from their lots: settlement, advance"
+" or firm invoice."
+msgstr ""
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/account_move.py:0
+msgid ""
+"%s doesn't have self-billing: its bills can't go to a self-billing journal."
+msgstr ""
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_self_billing
+msgid "<strong class=\"d-block\">Issuer</strong>"
+msgstr ""
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_self_billing
+msgid "<strong class=\"d-block\">Recipient</strong>"
+msgstr ""
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_self_billing
+msgid "<strong>Invoicing by the recipient</strong>"
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_res_partner__mercas_self_billing_date
+#: model:ir.model.fields,help:mercas_base.field_res_users__mercas_self_billing_date
+msgid "Date of the prior agreement with the supplier to issue its invoices."
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_res_company__mercas_self_billing_journal_id
+msgid ""
+"Purchase journal of the vendor bills of the suppliers with self-billing: we "
+"issue their invoices on their behalf."
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_partner__mercas_self_billing
+#: model:ir.model.fields,field_description:mercas_base.field_res_users__mercas_self_billing
+msgid "Self-Billing"
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_partner__mercas_self_billing_date
+#: model:ir.model.fields,field_description:mercas_base.field_res_users__mercas_self_billing_date
+msgid "Self-Billing Agreement"
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__mercas_self_billing_journal_id
+msgid "Self-Billing Journal"
+msgstr ""
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_self_billing
+msgid "Tax ID"
+msgstr ""
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_res_partner__mercas_self_billing
+#: model:ir.model.fields,help:mercas_base.field_res_users__mercas_self_billing
+msgid ""
+"We issue the invoices of this supplier on its behalf: its vendor bills go to"
+" the self-billing journal of the company, numbered with a series of its own,"
+" and are sent to it by email."
 msgstr ""

@@ -14,13 +14,18 @@ Albarán normalizado (lo que devuelve `obtener_albaran`):
   "cliente": {"id": 70, "nombre": "..."},
   "pedido": {"id": 26, "numero": "S00026"} | null,
   "fecha": "2026-10-16",
+  "tipo": "outgoing",             # outgoing (entrega a cliente) | incoming (recepción de proveedor)
+  "compra": {"id": 14, "numero": "P00014"} | null,   # pedido de compra (recepciones)
   "lineas": [{
       "id": 97,                   # identificador de la línea en el ERP
       "referencia": "E-COM07",
       "producto": "Gabinete grande",
       "cantidad_pedida": 12.0,    # columna "Pedido"
       "cantidad": 12.0,           # columna "Entregado": la que se compara con la foto
-      "unidad": "Unidades"
+      "unidad": "Unidades",
+      "precio": 320.0,            # precio unitario del pedido (venta o compra), null si no hay
+      "descuento": 0.0,           # % de descuento del pedido
+      "ean": "8412345678905" | null
   }],
   "facturas": [{"id": 10, "numero": "INV/2026/00010", "estado": "posted", "tipo": "out_invoice"}]
 }
@@ -47,8 +52,15 @@ class Erp(ABC):
     nombre = "erp"
 
     @abstractmethod
-    def obtener_albaran(self, numero: str) -> dict:
-        """Albarán normalizado por su número impreso. Lanza ErpNoEncontrado."""
+    def obtener_albaran(self, numero: str, tipo: str = "outgoing") -> dict:
+        """Albarán normalizado por su número impreso (si solo son dígitos, del tipo indicado).
+        Lanza ErpNoEncontrado."""
+
+    @abstractmethod
+    def buscar_albaranes(self, referencia: str, tipo: str) -> list[dict]:
+        """Albaranes normalizados para una referencia escrita por una persona en un documento de
+        terceros: el número del albarán (o solo sus dígitos) o el del pedido, cuyos albaranes se
+        devuelven. tipo: "incoming" (recepción) u "outgoing" (entrega). Lanza ErpNoEncontrado."""
 
     @abstractmethod
     def obtener_albaran_por_id(self, albaran_id: int) -> dict:

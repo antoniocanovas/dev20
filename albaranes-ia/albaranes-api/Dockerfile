@@ -6,7 +6,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY main.py store.py vision.py ./
+COPY main.py store.py terceros.py vision.py ./
 COPY erp ./erp
 
 EXPOSE 8000

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Self-billing journal of each company, selected in the company (on install and update) -->
+    <function model="res.company" name="_mercas_setup_self_billing_journal"/>
+</odoo>

@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools.sql import escape_psql
+from odoo.tools.sql import escape_like_value
 
 from odoo.addons.web.controllers.utils import clean_action
 
@@ -30,6 +30,11 @@ LOT_INVOICE_MODES = ('settle', 'advance', 'firm')
 def is_record_id(value):
     """ Whether `value`, sent by the screen, can be a record id. """
     return isinstance(value, int) and not isinstance(value, bool) and value > 0
+
+
+def are_record_ids(values):
+    """ A non-empty list of record ids sent by the screen. """
+    return isinstance(values, list) and bool(values) and all(is_record_id(value) for value in values)
 
 
 def is_number(value):
@@ -342,7 +347,7 @@ class MercasTouch(models.AbstractModel):
         lots = Lot.browse()
         domain = list(company_domain)
         if query:
-            lots = Lot.search([('name', '=ilike', escape_psql(query)), *company_domain], order='create_date desc, id desc')
+            lots = Lot.search([('name', '=ilike', escape_like_value(query)), *company_domain], order='create_date desc, id desc')
             domain += [('id', 'not in', lots.ids),
                        '|', '|', ('name', 'ilike', query), ('product_id', 'ilike', query), ('partner_id', 'ilike', query)]
         lots |= Lot.search(domain, limit=LABEL_LOT_LIMIT, order='create_date desc, id desc')
@@ -364,7 +369,7 @@ class MercasTouch(models.AbstractModel):
     def get_lot_label_action(self, lot_ids):
         """ The wizard of `mercas_base` to reprint the box labels of the lots, as many as boxes
         were bought of each one. """
-        if not isinstance(lot_ids, list) or not lot_ids or not all(is_record_id(lot_id) for lot_id in lot_ids):
+        if not are_record_ids(lot_ids):
             raise ValidationError(self.env._("Choose the lots whose labels to print."))
         lots = self.env['stock.lot'].browse(lot_ids).exists()
         if len(lots) != len(set(lot_ids)):
@@ -459,11 +464,7 @@ class MercasTouch(models.AbstractModel):
     def get_order_summary(self, kind, order_id):
         """ A confirmed sale or purchase to look up: its lines, its state and invoice status,
         its last invoice, and what can be printed. """
-        if not is_record_id(order_id):
-            raise ValidationError(self.env._("Invalid order."))
-        order = self.env[self._get_draft_model(kind)].browse(order_id).exists()
-        if not order:
-            raise ValidationError(self.env._("The order doesn't exist anymore."))
+        order = self._browse_order(self._get_draft_model(kind), order_id)
         order.check_access('read')
         result = self._get_sale_result(order) if kind == 'sale' else self._get_purchase_result(order)
         product_lines = order.order_line.filtered(lambda line: not line.display_type)
@@ -481,29 +482,136 @@ class MercasTouch(models.AbstractModel):
                 'uom': (line.product_uom_id if kind == 'sale' else line.uom_id).name,
                 'price': line.price_unit,
                 'subtotal': line.price_subtotal,
+                'lot_figures': kind == 'purchase' and self._get_lot_figures(line.lot_id),
             } for line in product_lines],
         )
         return result
 
+    def _get_lot_figures(self, lot):
+        """ Stock, sold and invoiced of the lot of a purchase line: invoiced in kg under firm
+        negotiation, in amount under sale settlement (invoiced by what is sold). """
+        if not lot:
+            return False
+        return {
+            'stock': lot.product_qty,
+            'sold': lot.sale_kg,
+            'firm': lot.mercas_firm_negotiation,
+            'invoiced': lot.net_invoiced_kg if lot.mercas_firm_negotiation else lot.net_invoiced_amount,
+        }
+
     def _get_last_invoice(self, order):
-        move_type = 'out_invoice' if order._name == 'sale.order' else 'in_invoice'
-        invoice = order.invoice_ids.filtered(
-            lambda move: move.state == 'posted' and move.move_type == move_type).sorted('id')[-1:]
+        if order._name == 'sale.order':
+            invoices = order.invoice_ids.filtered(lambda move: move.move_type == 'out_invoice')
+        else:
+            invoices = self._get_purchase_invoices(order).filtered(lambda move: move.move_type == 'in_invoice')
+        invoice = invoices.filtered(lambda move: move.state == 'posted').sorted('id')[-1:]
         return invoice and self._get_invoice_result(invoice)
 
-    @api.model
-    def invoice_purchase(self, order_id):
-        """ The standard bill of a received purchase, in draft, to review it in a dialog. """
+    def _get_purchase_invoices(self, order):
+        """ The bills and refunds of a purchase: the standard ones, made from its lines, and the
+        ones of its lots (settlements, advances and firm invoices), not linked to the lines. """
+        lots = order.order_line.lot_id
+        return self.env['account.move'].search([
+            ('move_type', 'in', ('in_invoice', 'in_refund')),
+            ('state', '!=', 'cancel'),
+            '|', ('id', 'in', order.invoice_ids.ids), ('invoice_line_ids.lot_id', 'in', lots.ids),
+        ], order='invoice_date desc, id desc')
+
+    def _get_purchase_order(self, order_id):
         if not is_record_id(order_id):
             raise ValidationError(self.env._("Invalid order."))
         order = self.env['purchase.order'].browse(order_id).exists()
         if not order or order.state != 'purchase':
             raise UserError(self.env._("Only a confirmed purchase can be invoiced."))
-        if order.invoice_status != 'to invoice':
+        return order
+
+    def _get_purchase_lots_to_invoice(self, order):
+        """ The lots of a purchase still to invoice from the lot, by the way to invoice them (see
+        invoice_lots): the firm ones, the completed ones and the ones still in stock. The firm
+        lots are usually billed with the standard bill of the purchase (invoice_purchase). """
+        lines = order.order_line.filtered(lambda line: line._mercas_is_invoiced_from_lot())
+        lots = lines.lot_id.filtered('invoiceable')
+        settlement = lots.filtered(lambda lot: not lot.mercas_firm_negotiation)
+        return {
+            'firm': lots - settlement,
+            'settle': settlement.filtered('completed'),
+            'advance': settlement.filtered(lambda lot: not lot.completed),
+        }
+
+    @api.model
+    def invoice_purchase(self, order_id):
+        """ The standard bill of a received purchase, in draft, to review it in a dialog. Its
+        lines with a lot under sale settlement are invoiced from their lots
+        (invoice_purchase_lots). """
+        order = self._get_purchase_order(order_id)
+        if not order._mercas_standard_bill_lines():
             raise UserError(self.env._("There is nothing to invoice in %s.", order.name))
         action = self._get_client_action(order.action_create_invoice())
         action['target'] = 'new'
         return action
+
+    @api.model
+    def invoice_purchase_lots(self, order_id, mode):
+        """ Invoice the lots of a received purchase in the given way (see invoice_lots), and
+        open the invoice made in a dialog. """
+        if mode not in LOT_INVOICE_MODES:
+            raise ValidationError(self.env._("Invalid way of invoicing."))
+        order = self._get_purchase_order(order_id)
+        lots = self._get_purchase_lots_to_invoice(order)[mode]
+        if not lots:
+            raise UserError(self.env._("There are no lots to invoice."))
+        action = self.invoice_lots(lots.ids, mode)
+        if action:
+            action['target'] = 'new'
+        return action
+
+    @api.model
+    def get_purchase_invoices(self, order_id):
+        """ The bills of a purchase, to look them up, print them again or delete the drafts. """
+        invoices = self._get_purchase_invoices(self._get_purchase_to_look_up(order_id))
+        fields_info = invoices.fields_get(['move_type', 'state', 'payment_state'], ['selection'])
+        labels = {name: dict(info['selection']) for name, info in fields_info.items()}
+        return [{
+            'id': invoice.id,
+            'name': invoice.name if invoice.name and invoice.name != '/' else self.env._("Draft"),
+            'date': fields.Date.to_string(invoice.invoice_date),
+            'type_label': labels['move_type'][invoice.move_type],
+            'state': invoice.state,
+            'state_label': labels['payment_state'][invoice.payment_state]
+            if invoice.state == 'posted' else labels['state'][invoice.state],
+            'amount_total': -invoice.amount_total if invoice.move_type == 'in_refund' else invoice.amount_total,
+        } for invoice in invoices]
+
+    @api.model
+    def delete_purchase_invoice(self, order_id, invoice_id):
+        """ Delete a bill in draft of a purchase, made by mistake, with the rights of the user.
+
+        :return: the bills left (see get_purchase_invoices)
+        """
+        order = self._get_purchase_to_look_up(order_id)
+        invoice = self._get_purchase_invoices(order).filtered(lambda move: move.id == invoice_id)
+        if not invoice:
+            raise ValidationError(self.env._("The bill doesn't belong to %s anymore.", order.name))
+        if invoice.state != 'draft':
+            raise UserError(self.env._("Only a bill in draft can be deleted."))
+        invoice.unlink()
+        return self.get_purchase_invoices(order_id)
+
+    @api.model
+    def get_purchase_invoice_print_action(self, order_id, invoice_id):
+        """ The PDF of a posted bill of a purchase, to print it again. """
+        order = self._get_purchase_to_look_up(order_id)
+        invoice = self._get_purchase_invoices(order).filtered(lambda move: move.id == invoice_id)
+        if not invoice:
+            raise ValidationError(self.env._("The bill doesn't belong to %s anymore.", order.name))
+        if invoice.state != 'posted':
+            raise UserError(self.env._("There is no invoice to print."))
+        return self._get_client_action(self.env.ref('account.account_invoices').report_action(invoice))
+
+    def _get_purchase_to_look_up(self, order_id):
+        order = self._browse_order('purchase.order', order_id)
+        order.check_access('read')
+        return order
 
     @api.model
     def get_draft(self, kind, order_id):
@@ -589,17 +697,22 @@ class MercasTouch(models.AbstractModel):
         self._notify_lots_changed(order.order_line.product_id)
         return {'order': self._get_purchase_result(order)}
 
+    def _browse_order(self, model, order_id):
+        """ An order sent by the screen, still there. """
+        if not is_record_id(order_id):
+            raise ValidationError(self.env._("Invalid order."))
+        order = self.env[model].browse(order_id).exists()
+        if not order:
+            raise ValidationError(self.env._("The order doesn't exist anymore."))
+        return order
+
     def _get_draft_model(self, kind):
         if kind not in ('sale', 'purchase'):
             raise ValidationError(self.env._("Invalid kind of order."))
         return 'sale.order' if kind == 'sale' else 'purchase.order'
 
     def _get_draft(self, kind, order_id):
-        if not is_record_id(order_id):
-            raise ValidationError(self.env._("Invalid order."))
-        order = self.env[self._get_draft_model(kind)].browse(order_id).exists()
-        if not order:
-            raise ValidationError(self.env._("The order doesn't exist anymore."))
+        order = self._browse_order(self._get_draft_model(kind), order_id)
         order.check_access('write')
         if order.state != 'draft':
             raise UserError(self.env._("%s is not in draft anymore.", order.name))
@@ -839,6 +952,11 @@ class MercasTouch(models.AbstractModel):
             'received': bool(order.picking_ids) and all(
                 picking.state in ('done', 'cancel') for picking in order.picking_ids),
             **self._get_order_states(order),
+            'bill_pending': order.state == 'purchase' and bool(order._mercas_standard_bill_lines()),
+            'lot_invoice_modes': [
+                mode for mode, lots in self._get_purchase_lots_to_invoice(order).items() if lots
+            ] if order.state == 'purchase' else [],
+            'invoice_count': len(self._get_purchase_invoices(order)),
             'lots': [{
                 'product': line.product_id.display_name,
                 'lot_id': line.lot_id.id,
@@ -944,7 +1062,7 @@ class MercasTouch(models.AbstractModel):
         """
         if mode not in LOT_INVOICE_MODES:
             raise ValidationError(self.env._("Invalid way of invoicing."))
-        if not isinstance(lot_ids, list) or not lot_ids or not all(is_record_id(lot_id) for lot_id in lot_ids):
+        if not are_record_ids(lot_ids):
             raise ValidationError(self.env._("Select the lots to invoice."))
         lots = self.env['stock.lot'].browse(lot_ids).exists()
         if mode == 'settle':
@@ -1030,16 +1148,37 @@ class MercasTouch(models.AbstractModel):
         return {'id': payment.id, 'name': payment.name, 'amount': payment.amount, 'state': payment.state}
 
     @api.model
+    def get_deca_action(self, order_id):
+        """ The dialog of the DeCA of the delivery of a sale: the carrier and the licence plates
+        proposed, what is still missing, and the button to print it. """
+        picking = self._get_deca_picking(order_id)
+        picking.check_access('write')
+        picking._mercas_prepare_deca()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': self.env._("DeCA of %s", picking.name),
+            'res_model': 'stock.picking',
+            'res_id': picking.id,
+            'views': [(self.env.ref('mercas_touch.view_picking_form_deca').id, 'form')],
+            'target': 'new',
+        }
+
+    def _get_deca_picking(self, order_id):
+        """ The last delivery made of a sale: the DeCA is printed for one delivery. """
+        order = self._browse_order('sale.order', order_id)
+        picking = order.picking_ids.filtered(
+            lambda picking: picking.state == 'done' and picking.picking_type_code == 'outgoing').sorted('id')[-1:]
+        if not picking:
+            raise UserError(self.env._("There is no delivery of %s.", order.name))
+        return picking
+
+    @api.model
     def get_print_action(self, model, order_id, kind):
         """ What to print after an operation: the delivery slip of a sale, or the box labels
         of a sale or a purchase (the wizard of `mercas_base`, to choose how many). """
         if model not in ('sale.order', 'purchase.order') or kind not in ('delivery', 'labels', 'invoice'):
             raise ValidationError(self.env._("Nothing to print."))
-        if not is_record_id(order_id):
-            raise ValidationError(self.env._("Invalid order."))
-        order = self.env[model].browse(order_id).exists()
-        if not order:
-            raise ValidationError(self.env._("The order doesn't exist anymore."))
+        order = self._browse_order(model, order_id)
         if kind == 'labels':
             return self._get_client_action(order.action_print_mercas_labels())
         if kind == 'invoice':

@@ -542,7 +542,8 @@ registry.category("web_tour.tours").add("mercas_touch_to_invoice_tour", {
             run: "click",
         },
         {
-            trigger: ".o_mercas_touch_invoice_purchase",
+            content: "Its lot, under sale settlement and with stock, takes an advance",
+            trigger: ".o_mercas_touch_purchase_advance",
             run: "click",
         },
         {

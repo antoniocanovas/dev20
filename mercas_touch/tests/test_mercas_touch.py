@@ -256,7 +256,7 @@ class TestMercasTouch(MercasTouchCommon):
             self.Touch.scrap_lot(lot.id, 0)
 
     def test_lots_and_invoicing(self):
-        self._buy(10.0, 1.0, lot_name='FIRM-1', firm=True)
+        firm_order = self._buy(10.0, 1.0, lot_name='FIRM-1', firm=True)['order']
         self._buy(10.0, 1.0, lot_name='SETTLE-1')
         firm = self.env['stock.lot'].search([('name', '=', 'FIRM-1')])
         settle = self.env['stock.lot'].search([('name', '=', 'SETTLE-1')])
@@ -273,6 +273,10 @@ class TestMercasTouch(MercasTouchCommon):
         invoice = self.env['account.move'].browse(action['res_id'])
         self.assertEqual(invoice.move_type, 'in_invoice')
         self.assertEqual(invoice.partner_id, self.supplier)
+        # Invoiced from the lot, the standard bill of its purchase leaves it out
+        self.assertEqual(self.Touch.get_order_summary('purchase', firm_order['id'])['bill_pending'], False)
+        with self.assertRaises(UserError):
+            self.Touch.invoice_purchase(firm_order['id'])
         with self.assertRaises(ValidationError):
             self.Touch.invoice_lots([firm.id], 'all')
 
@@ -314,6 +318,59 @@ class TestMercasTouch(MercasTouchCommon):
         self.assertEqual(action['res_model'], 'mercas.label.print.wizard')
         with self.assertRaises(ValidationError):
             self.Touch.get_print_action('res.partner', self.customer.id, 'labels')
+
+    def test_deca(self):
+        """ The DeCA of a sale opens a dialog with the carrier proposed, as the company says,
+        and what is still missing; it is printed from there. """
+        self.company.mercas_default_carrier = 'last'
+        self._buy(30.0, lot_name='DECA-1')
+        lot = self.env['stock.lot'].search([('name', '=', 'DECA-1')])
+
+        def sell(qty):
+            order = self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'lines': [
+                {'product_id': self.pear.id, 'lot_id': lot.id, 'qty': qty},
+            ]})['order']
+            return order, self.env['sale.order'].browse(order['id']).picking_ids
+
+        order, picking = sell(5.0)
+        self.assertFalse(picking.carrier_contact_id, "No delivery of the customer had a carrier yet")
+        action = self.Touch.get_deca_action(order['id'])
+        self.assertEqual((action['res_model'], action['res_id'], action['target']), ('stock.picking', picking.id, 'new'))
+        self.assertIn(self.env._("Main vehicle or tractor licence plate"), picking.mercas_deca_missing)
+        with self.assertRaises(UserError):
+            picking.with_user(self.user).action_mercas_print_deca()
+
+        carrier = self.env['res.partner'].create({'name': 'Touch Carrier', 'vat': 'ESA58818501'})
+        self.customer.vat = 'ESB12345674'
+        self.company.partner_id.vat = 'ESA12345674'
+        picking.with_user(self.user).write({'carrier_contact_id': carrier.id, 'tractor_license_plate': '1234BCD'})
+        self.assertFalse(picking.mercas_deca_missing)
+        action = picking.with_user(self.user).action_mercas_print_deca()
+        self.assertEqual(action['report_name'], 'l10n_es_deca_oca.report_deca')
+        self.assertTrue(action['close_on_report_download'])
+
+        _order, picking = sell(5.0)
+        self.assertEqual(picking.carrier_contact_id, carrier, "The last carrier of the customer")
+        self.assertEqual(picking.tractor_license_plate, '1234BCD')
+        self.company.mercas_default_carrier = 'customer'
+        _order, picking = sell(5.0)
+        self.assertEqual(picking.carrier_contact_id, self.customer)
+        self.assertFalse(picking.tractor_license_plate)
+        self.company.mercas_default_carrier = 'none'
+        order, picking = sell(5.0)
+        self.assertFalse(picking.carrier_contact_id)
+
+        # A delivery made before the setting, or before l10n_es_deca_oca was installed (whose
+        # weight isn't computed): the dialog proposes the carrier and computes the weight
+        self.company.mercas_default_carrier = 'last'
+        self.env.flush_all()
+        self.env.cr.execute("UPDATE stock_move SET deca_weight = NULL WHERE picking_id = %s", [picking.id])
+        self.env.cr.execute("UPDATE stock_picking SET deca_weight = NULL WHERE id = %s", [picking.id])
+        self.env.invalidate_all()
+        self.assertFalse(picking.deca_weight)
+        self.Touch.get_deca_action(order['id'])
+        self.assertEqual(picking.carrier_contact_id, self.customer, "The last carrier of the customer")
+        self.assertEqual(picking.deca_weight, 5.0)
 
     def test_sell_over_risk(self):
         """ With sale_financial_risk, a customer over their risk keeps the sale as a quotation
@@ -612,14 +669,101 @@ class TestMercasTouch(MercasTouchCommon):
         self.assertEqual(self.Touch.get_order_summary('sale', sold['id'])['invoice']['id'], invoice['id'])
 
     def test_invoice_purchase(self):
-        order = self._buy(10.0, 1.2, lot_name='BILL-1')['order']
+        """ The lots under firm negotiation are billed with the standard bill of the purchase,
+        sections and boxes included, and count as invoiced in the lot. All the bills can be
+        looked up from the purchase, and the drafts deleted. """
+        order = self.Touch.purchase({'uuid': str(uuid.uuid4()), 'partner_id': self.supplier.id, 'lines': [
+            {'product_id': self.pear.id, 'qty': 10.0, 'price_unit': 1.2, 'lot_name': 'BILL-1', 'firm': True,
+             'box_qty': 2, 'box_product_id': self.box.id},
+            {'product_id': self.lettuce.id, 'qty': 5.0, 'price_unit': 0.5},
+        ]})['order']
         self.assertIn(order['id'], [o['id'] for o in self.Touch.get_drafts('purchase', '', 'to_invoice')])
+        self.assertTrue(order['bill_pending'])
+        self.assertEqual(order['lot_invoice_modes'], [])
+        self.assertFalse(order['invoice_count'])
+
         action = self.Touch.invoice_purchase(order['id'])
         self.assertEqual((action['res_model'], action['target']), ('account.move', 'new'))
         bill = self.env['account.move'].browse(action['res_id'])
         self.assertEqual((bill.move_type, bill.state), ('in_invoice', 'draft'))
+        purchase = self.env['purchase.order'].browse(order['id'])
+        self.assertEqual(bill.invoice_line_ids.filtered('product_id').product_id, self.pear | self.lettuce | self.box)
+        self.assertEqual(bool(bill.invoice_line_ids.filtered(lambda l: l.display_type == 'line_section')),
+                         bool(purchase.order_line.filtered(lambda l: l.display_type == 'line_section')),
+                         "The sections of the purchase are kept")
+        lot = self.env['stock.lot'].search([('name', '=', 'BILL-1')])
+        self.assertTrue(bill.invoice_line_ids.filtered(lambda l: l.lot_id == lot).mercas_is_firm_line)
+
+        # A bill in draft made by mistake can be deleted; a posted one can't
+        with self.assertRaises(ValidationError):
+            self.Touch.delete_purchase_invoice(self._buy(1.0, lot_name='BILL-2')['order']['id'], bill.id)
+        with self.assertRaises(UserError):
+            self.Touch.get_purchase_invoice_print_action(order['id'], bill.id)
+        self.assertEqual(self.Touch.delete_purchase_invoice(order['id'], bill.id), [])
+        self.assertFalse(bill.exists())
+        bill = self.env['account.move'].browse(self.Touch.invoice_purchase(order['id'])['res_id'])
         bill.invoice_date = bill.date
         bill.action_post()
-        self.assertEqual(self.Touch.get_order_summary('purchase', order['id'])['invoice']['id'], bill.id)
+        with self.assertRaises(UserError):
+            self.Touch.delete_purchase_invoice(order['id'], bill.id)
+        action = self.Touch.get_purchase_invoice_print_action(order['id'], bill.id)
+        self.assertEqual(action['type'], 'ir.actions.report')
+        self.assertEqual(action['context']['active_ids'], [bill.id])
+        self.assertEqual(lot.net_invoiced_kg, 10.0)
+        self.assertTrue(lot.invoiced)
+        self.assertFalse(lot.invoiceable)
+
+        summary = self.Touch.get_order_summary('purchase', order['id'])
+        self.assertFalse(summary['bill_pending'])
+        self.assertEqual(summary['lot_invoice_modes'], [])
+        self.assertEqual(summary['invoice']['id'], bill.id)
+        figures = next(line['lot_figures'] for line in summary['lines'] if line['lot'] == 'BILL-1')
+        self.assertEqual(figures, {'stock': 10.0, 'sold': 0.0, 'firm': True, 'invoiced': 10.0},
+                         "A firm lot is invoiced in kg")
+        self.assertFalse(next(line['lot_figures'] for line in summary['lines'] if not line['lot']))
+        self.assertEqual([invoice['id'] for invoice in self.Touch.get_purchase_invoices(order['id'])], [bill.id])
+        with self.assertRaises(UserError):
+            self.Touch.invoice_purchase(order['id'])
+
+    def test_settlement_takes_the_boxes(self):
+        """ A lot under sale settlement is invoiced from the lot: its first invoice, an advance
+        or the settlement, also takes the boxes bought with it still to invoice, which aren't
+        invoiced again. """
+        order = self._buy(20.0, 1.0, lot_name='BOX-SETTLE', box_qty=4, box_product_id=self.box.id)['order']
+        lot = self.env['stock.lot'].search([('name', '=', 'BOX-SETTLE')])
+
+        def sell(qty):
+            self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id,
+                             'lines': [{'product_id': self.pear.id, 'lot_id': lot.id, 'qty': qty, 'price_unit': 2.0}]})
+
+        def invoice(mode):
+            action = self.Touch.invoice_purchase_lots(order['id'], mode)
+            self.assertEqual(action['target'], 'new')
+            move = self.env['account.move'].browse(action['res_id'])
+            if move.state == 'draft':
+                move.invoice_date = move.date
+                move.action_post()
+            self.assertTrue(move.invoice_line_ids.filtered(lambda line: line.lot_id == lot))
+            return move.invoice_line_ids.filtered(lambda line: line.product_id == self.box)
+
+        sell(5.0)
+        summary = self.Touch.get_order_summary('purchase', order['id'])
+        self.assertEqual(summary['lot_invoice_modes'], ['advance'])
+        self.assertTrue(summary['bill_pending'], "The boxes are still to invoice")
+        box_line = invoice('advance')
+        self.assertEqual(box_line.quantity, 4)
+        self.assertTrue(box_line.purchase_line_id)
+        self.assertFalse(self.Touch.get_order_summary('purchase', order['id'])['bill_pending'])
+
+        sell(15.0)
+        self.assertTrue(lot.completed)
+        self.assertEqual(self.Touch.get_order_summary('purchase', order['id'])['lot_invoice_modes'], ['settle'])
+        self.assertFalse(invoice('settle'), "The boxes were already invoiced with the advance")
+        summary = self.Touch.get_order_summary('purchase', order['id'])
+        figures = next(line['lot_figures'] for line in summary['lines'] if line['lot'] == 'BOX-SETTLE')
+        self.assertEqual((figures['stock'], figures['sold'], figures['firm']), (0.0, 20.0, False))
+        self.assertEqual(figures['invoiced'], lot.net_invoiced_amount, "Under sale settlement, in amount")
+        self.assertTrue(figures['invoiced'])
+        self.assertEqual(summary['invoice_count'], 2)
         with self.assertRaises(UserError):
             self.Touch.invoice_purchase(order['id'])

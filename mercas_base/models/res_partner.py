@@ -18,6 +18,18 @@ class ResPartner(models.Model):
             "each line."
         ),
     )
+    mercas_self_billing = fields.Boolean(
+        string="Self-Billing",
+        help=(
+            "We issue the invoices of this supplier on its behalf: its vendor "
+            "bills go to the self-billing journal of the company, numbered "
+            "with a series of its own, and are sent to it by email."
+        ),
+    )
+    mercas_self_billing_date = fields.Date(
+        string="Self-Billing Agreement",
+        help="Date of the prior agreement with the supplier to issue its invoices.",
+    )
     mercas_box_qty = fields.Float(
         string="Boxes",
         compute="_compute_mercas_box_qty",

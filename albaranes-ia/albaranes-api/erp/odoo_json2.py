@@ -62,20 +62,49 @@ class OdooJson2(Erp):
     # -- lectura -----------------------------------------------------------
     CAMPOS_PICKING = ["name", "state", "partner_id", "origin", "sale_id", "scheduled_date",
                       "date_done", "picking_type_code", "return_ids"]
+    _con_compras = None
 
-    def obtener_albaran(self, numero):
+    def _hay_compras(self):
+        """El enlace con el pedido de compra solo existe con el módulo de compras instalado."""
+        if self._con_compras is None:
+            campos = self._call("stock.move", "fields_get", attributes=["type"])
+            self._con_compras = "purchase_line_id" in campos
+        return self._con_compras
+
+    def obtener_albaran(self, numero, tipo="outgoing"):
         numero = (numero or "").strip()
         picks = self._sr("stock.picking", [["name", "=", numero]], self.CAMPOS_PICKING, limit=2)
         if not picks and numero.isdigit():
-            # Solo los dígitos (p. ej. "00040"): se acepta si identifica un único albarán de salida
+            # Solo los dígitos (p. ej. "00040"): se acepta si identifica un único albarán de ese tipo
             picks = self._sr("stock.picking", [["name", "=like", f"%/{numero}"],
-                                               ["picking_type_code", "=", "outgoing"]],
+                                               ["picking_type_code", "=", tipo]],
                              self.CAMPOS_PICKING, limit=2)
             if len(picks) > 1:
                 raise ErpNoEncontrado(f"El número {numero} coincide con varios albaranes")
         if not picks:
             raise ErpNoEncontrado(f"No existe el albarán {numero}")
         return self._normalizar(picks[0])
+
+    def buscar_albaranes(self, referencia, tipo):
+        ref = (referencia or "").strip().upper()
+        try:
+            return [self.obtener_albaran(ref, tipo)]
+        except ErpNoEncontrado as e:
+            if "varios" in e.mensaje:
+                raise
+        # Número del pedido (de compra en las recepciones, de venta en las entregas): sus albaranes
+        modelo, campo = ("purchase.order", "purchase_id") if tipo == "incoming" else ("sale.order", "sale_id")
+        try:
+            pedidos = self._sr(modelo, [["name", "=", ref]], ["id"], limit=1)
+        except ErpError:  # sin el módulo de compras
+            pedidos = []
+        if pedidos:
+            picks = self._sr("stock.picking", [[campo, "=", pedidos[0]["id"]], ["picking_type_code", "=", tipo],
+                                               ["state", "!=", "cancel"]], self.CAMPOS_PICKING, order="id")
+            if picks:
+                return [self._normalizar(p) for p in picks]
+            raise ErpNoEncontrado(f"El pedido {ref} no tiene albaranes")
+        raise ErpNoEncontrado(f"No existe el albarán ni el pedido {ref}")
 
     def obtener_albaran_por_id(self, albaran_id):
         picks = self._read("stock.picking", [albaran_id], self.CAMPOS_PICKING)
@@ -84,12 +113,30 @@ class OdooJson2(Erp):
         return self._normalizar(picks[0])
 
     def _normalizar(self, p):
+        compras = self._hay_compras()
         moves = self._sr("stock.move", [["picking_id", "=", p["id"]], ["state", "!=", "cancel"]],
-                         ["product_id", "product_uom_qty", "quantity", "uom_id", "state", "sale_line_id"],
-                         order="sequence, id")
+                         ["product_id", "product_uom_qty", "quantity", "uom_id", "state", "sale_line_id"]
+                         + (["purchase_line_id"] if compras else []), order="sequence, id")
         prods = {x["id"]: x for x in self._read("product.product",
                                                  sorted({m["product_id"][0] for m in moves}),
-                                                 ["default_code", "name", "invoice_policy"])}
+                                                 ["default_code", "name", "invoice_policy", "barcode"])}
+        # Precio y descuento del pedido: de la línea de venta o, en las recepciones, de la de compra
+        precios = {("venta", x["id"]): x for x in self._read(
+            "sale.order.line", sorted({m["sale_line_id"][0] for m in moves if m["sale_line_id"]}),
+            ["price_unit", "discount"])}
+        if compras:
+            precios |= {("compra", x["id"]): x for x in self._read(
+                "purchase.order.line", sorted({m["purchase_line_id"][0] for m in moves if m["purchase_line_id"]}),
+                ["price_unit", "discount", "order_id"])}
+
+        def precio(m):
+            if m["sale_line_id"]:
+                return precios.get(("venta", m["sale_line_id"][0]))
+            if compras and m["purchase_line_id"]:
+                return precios.get(("compra", m["purchase_line_id"][0]))
+            return None
+        compra = next((x["order_id"][0] for k, x in precios.items() if k[0] == "compra"), None)
+        compra = self._read("purchase.order", [compra], ["name"])[0] if compra else None
         pedido, facturas = None, []
         if p.get("sale_id"):
             so = self._read("sale.order", [p["sale_id"][0]], ["name", "invoice_ids", "invoice_status"])[0]
@@ -108,6 +155,7 @@ class OdooJson2(Erp):
             "tipo": p["picking_type_code"],
             "cliente": {"id": p["partner_id"][0], "nombre": p["partner_id"][1]} if p["partner_id"] else None,
             "pedido": pedido,
+            "compra": {"id": compra["id"], "numero": compra["name"]} if compra else None,
             "origen": p["origin"] or None,
             "fecha": fecha[:10] if fecha else None,
             "devoluciones": p.get("return_ids") or [],
@@ -120,6 +168,9 @@ class OdooJson2(Erp):
                 "unidad": m["uom_id"][1] if m["uom_id"] else None,
                 "politica_facturacion": prods[m["product_id"][0]]["invoice_policy"],
                 "linea_venta_id": m["sale_line_id"][0] if m["sale_line_id"] else None,
+                "precio": (precio(m) or {}).get("price_unit"),
+                "descuento": (precio(m) or {}).get("discount"),
+                "ean": prods[m["product_id"][0]]["barcode"] or None,
             } for m in moves],
             "facturas": facturas,
         }

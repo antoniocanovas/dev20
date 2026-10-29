@@ -46,4 +46,45 @@
         </field>
     </record>
 
+    <!-- DeCA of a delivery, opened as a dialog from the screen once the sale is delivered -->
+    <record id="view_picking_form_deca" model="ir.ui.view">
+        <field name="name">stock.picking.form.deca.mercas_touch</field>
+        <field name="model">stock.picking</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not mercas_deca_missing">
+                        <field name="mercas_deca_missing" class="text-break" style="white-space: pre-line;"/>
+                    </div>
+                    <group>
+                        <field name="carrier_contact_id" context="{'show_vat': True}"/>
+                        <field name="tractor_license_plate"/>
+                        <field name="trailer_license_plate"/>
+                        <field name="special_authorization"/>
+                        <field name="deca_weight"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Print DeCA" name="action_mercas_print_deca" type="object" class="btn-primary btn-lg"/>
+                    <button string="Save" special="save" class="btn-secondary btn-lg"/>
+                    <button string="Discard" special="cancel" class="btn-secondary btn-lg"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Sold &amp; Sent validates the delivery at once: the carrier is set afterwards, also in
+         the backend. A change makes a new version of the DeCA. -->
+    <record id="view_picking_form_inherit_mercas_touch" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.mercas_touch</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="l10n_es_deca_oca.view_picking_form_inherit_l10n_es_deca_oca"/>
+        <field name="arch" type="xml">
+            <field name="carrier_contact_id" position="attributes">
+                <attribute name="readonly">state == 'cancel'</attribute>
+            </field>
+        </field>
+    </record>
+
 </odoo>

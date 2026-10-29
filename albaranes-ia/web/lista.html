@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Albaranes a revisar</title>
+<title>Reconocimiento de albaranes</title>
 <style>
 
 :root {
@@ -45,6 +45,9 @@ button, .boton { font: inherit; border: 1px solid var(--accent); background: var
 .error { padding: 8px 12px; margin: 10px 0; border-radius: 8px; background: var(--bad-bg); color: var(--bad); font-size: 14px; }
 .filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .filtros a { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; text-decoration: none; font-size: 13px; background: var(--panel); }
+/* Tipo de albarán: franja con otro fondo, encima de los filtros de estado */
+.filtros.tipos { padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
 .filtros a.activo { border-color: var(--accent); background: var(--accent); color: var(--accent-text); }
 .barra { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin-bottom: 12px; }
 .barra label { display: grid; gap: 2px; font-size: 12px; color: var(--muted); }
@@ -72,11 +75,12 @@ tr.fila { cursor: pointer; } tr.fila:hover td { background: color-mix(in srgb, v
 </head>
 <body>
 <script id="datos" type="application/json">__DATOS__</script>
-<header><h1>Albaranes modificados a mano</h1><a href="subir">Subir foto</a></header>
+<header><h1>Reconocimiento de albaranes</h1><a href="subir">Subir foto</a></header>
 <main>
+  <nav class="filtros tipos" id="filtros-tipo" aria-label="Tipo de albarán"></nav>
   <nav class="filtros" id="filtros"></nav>
   <form class="barra" id="fechas" method="get">
-    <input type="hidden" name="estado" id="f-estado">
+    <input type="hidden" name="estado" id="f-estado"><input type="hidden" name="tipo" id="f-tipo">
     <label>Recibidos desde <input type="date" name="desde" id="f-desde"></label>
     <label>hasta <input type="date" name="hasta" id="f-hasta"></label>
     <button type="submit">Filtrar</button>
@@ -85,9 +89,9 @@ tr.fila { cursor: pointer; } tr.fila:hover td { background: color-mix(in srgb, v
     <button type="button" class="secundario" id="imprimir">Imprimir</button>
   </form>
   <div id="error-lista"></div>
-  <div class="solo-impresion"><h1>Albaranes modificados a mano</h1><div id="impresion-filtro"></div></div>
+  <div class="solo-impresion"><h1>Reconocimiento de albaranes</h1><div id="impresion-filtro"></div></div>
   <div class="panel tabla-wrap">
-    <table><thead><tr><th>#</th><th>Albarán</th><th class="ocultar-movil">Cliente</th><th>Estado</th><th>Tipo</th><th class="num">A revisar</th><th class="ocultar-movil">Recibida</th></tr></thead>
+    <table><thead><tr><th>#</th><th>Albarán</th><th class="ocultar-movil">Operación</th><th class="ocultar-movil">Cliente / proveedor</th><th>Estado</th><th>Resultado</th><th class="num">A revisar</th><th class="ocultar-movil">Recibida</th></tr></thead>
     <tbody id="filas"></tbody></table>
   </div>
   <p class="muted">Con la cámara del móvil: abre <a href="subir">Subir foto</a> y haz la foto al albarán.</p>
@@ -103,46 +107,55 @@ tr.fila { cursor: pointer; } tr.fila:hover td { background: color-mix(in srgb, v
     corregida: ["Corregida", "ok"], rechazada: ["Rechazada", "bad"], rectificada: ["Rectificada en el ERP", "ok"] };
   var chip = function (e) { var x = ESTADOS[e] || [e, "neutral"]; return '<span class="chip ' + x[1] + '">' + esc(x[0]) + "</span>"; };
   var MARCAS = { original: ["Original", "neutral"], modificado: ["Modificado", "warn"], error: ["Error", "bad"] };
-  var marca = function (m) { var x = MARCAS[m]; return x ? '<span class="chip ' + x[1] + '">' + x[0] + "</span>" : ""; };
+  /* En los de terceros no hay "modificado" sino diferencias con nuestros albaranes */
+  var MARCAS_TERCEROS = { original: ["Coincide", "ok"], modificado: ["Con diferencias", "warn"], error: ["Error", "bad"] };
+  var marcas = function (r) { return r.tipo && r.tipo !== "propio" ? MARCAS_TERCEROS : MARCAS; };
+  var marca = function (r) { var x = marcas(r)[r.marca]; return x ? '<span class="chip ' + x[1] + '">' + x[0] + "</span>" : ""; };
+  var TIPOS = { propio: "Propio", entrada: "Terceros · entrada", entrega: "Terceros · entrega" };
   var d = JSON.parse($("datos").textContent || "{}");
   var filtros = [["pendiente_revision,verificado,error", "Por revisar"],
     ["aprobada,corregida,rectificada", "Resueltos"], ["rechazada", "Rechazados"], ["", "Todos"]];
-  /* Los filtros de estado conservan las fechas y el de fechas conserva el estado */
+  var filtrosTipo = [["", "Todos los tipos"], ["propio", "Propios"], ["entrada", "Terceros · entrada"], ["entrega", "Terceros · entrega"]];
+  /* Cada filtro conserva los demás (estado, tipo y fechas) */
   var fechasQs = (d.desde ? "&desde=" + encodeURIComponent(d.desde) : "") + (d.hasta ? "&hasta=" + encodeURIComponent(d.hasta) : "");
-  $("f-estado").value = d.estado || ""; $("f-desde").value = d.desde || ""; $("f-hasta").value = d.hasta || "";
-  $("f-quitar").href = "?estado=" + encodeURIComponent(d.estado || "");
+  var tipoQs = d.tipo ? "&tipo=" + encodeURIComponent(d.tipo) : "";
+  $("f-estado").value = d.estado || ""; $("f-tipo").value = d.tipo || ""; $("f-desde").value = d.desde || ""; $("f-hasta").value = d.hasta || "";
+  $("f-quitar").href = "?estado=" + encodeURIComponent(d.estado || "") + tipoQs;
   $("f-quitar").style.display = d.desde || d.hasta ? "" : "none";
   if (d.error) $("error-lista").innerHTML = '<div class="error">' + esc(d.error) + "</div>";
   $("filtros").innerHTML = filtros.map(function (f) {
-    return '<a href="?estado=' + encodeURIComponent(f[0]) + fechasQs + '"' + (f[0] === (d.estado || "") ? ' class="activo"' : "") + ">" + f[1] + "</a>"; }).join("");
+    return '<a href="?estado=' + encodeURIComponent(f[0]) + tipoQs + fechasQs + '"' + (f[0] === (d.estado || "") ? ' class="activo"' : "") + ">" + f[1] + "</a>"; }).join("");
+  $("filtros-tipo").innerHTML = filtrosTipo.map(function (f) {
+    return '<a href="?estado=' + encodeURIComponent(d.estado || "") + (f[0] ? "&tipo=" + f[0] : "") + fechasQs + '"' + (f[0] === (d.tipo || "") ? ' class="activo"' : "") + ">" + f[1] + "</a>"; }).join("");
   var filas = d.resultados || [];
   $("filas").innerHTML = filas.map(function (r) {
-    return '<tr class="fila" data-id="' + r.id + '"><td>' + r.id + "</td><td><a href=\"revision/" + r.id + '">' + esc(r.albaran_numero || "sin identificar") + "</a>" +
-      (r.error ? '<div class="muted">' + esc(r.error) + "</div>" : "") + '</td><td class="ocultar-movil">' + esc(r.cliente || "") + "</td><td>" + chip(r.estado) + "</td><td>" + marca(r.marca) +
+    return '<tr class="fila" data-id="' + r.id + '"><td>' + r.id + "</td><td><a href=\"revision/" + r.id + '">' + esc(r.albaran_numero || "sin identificar") + "</a>" + (r.paginas > 1 ? ' <span class="muted">· ' + r.paginas + " fotos</span>" : "") +
+      (r.documento ? '<div class="muted">Su albarán ' + esc(r.documento) + "</div>" : "") +
+      (r.error ? '<div class="muted">' + esc(r.error) + "</div>" : "") + '</td><td class="ocultar-movil muted">' + esc(TIPOS[r.tipo] || r.tipo || "") + '</td><td class="ocultar-movil">' + esc(r.cliente || "") + "</td><td>" + chip(r.estado) + "</td><td>" + marca(r) +
       '</td><td class="num">' + (r.lineas ? r.revisar + " / " + r.lineas : "—") + '</td><td class="ocultar-movil muted">' + new Date(r.creada).toLocaleString("es-ES") + "</td></tr>";
-  }).join("") || '<tr><td colspan="7" class="muted">No hay albaranes con estos filtros.</td></tr>';
+  }).join("") || '<tr><td colspan="8" class="muted">No hay albaranes con estos filtros.</td></tr>';
   /* Exportar: CSV de la vista en curso para Excel en español (separador ";", coma decimal, BOM UTF-8) */
   var nombreFiltro = (filtros.filter(function (f) { return f[0] === (d.estado || ""); })[0] || [, "vista"])[1];
   var fecha = function (s) { return s ? new Date(s).toLocaleString("es-ES", { timeZone: "Europe/Madrid" }) : ""; };
   var celda = function (v) { v = v == null ? "" : String(v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
   $("exportar").disabled = !filas.length;
   $("exportar").onclick = function () {
-    var cab = ["Reconocimiento", "Albarán", "Cliente", "Estado", "Tipo", "Líneas", "Líneas a revisar", "Cambios aprobados",
+    var cab = ["Reconocimiento", "Albarán", "Operación", "Su albarán", "Fotos", "Cliente / proveedor", "Estado", "Resultado", "Líneas", "Líneas a revisar", "Cambios aprobados",
       "Recibido", "Revisado por", "Fecha de revisión", "Comentario", "Error"];
     var lineas = filas.map(function (r) {
-      return [r.id, r.albaran_numero, r.cliente, (ESTADOS[r.estado] || [r.estado])[0], (MARCAS[r.marca] || [""])[0],
+      return [r.id, r.albaran_numero, TIPOS[r.tipo] || r.tipo, r.documento, r.paginas, r.cliente, (ESTADOS[r.estado] || [r.estado])[0], (marcas(r)[r.marca] || [""])[0],
         r.lineas, r.lineas ? r.revisar : "", r.cambios, fecha(r.creada), r.revisado_por, fecha(r.revisado), r.comentario, r.error].map(celda).join(";");
     });
     var csv = "\ufeff" + [cab.join(";")].concat(lineas).join("\r\n");
     var a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    a.download = ["albaranes", nombreFiltro.toLowerCase().replace(/\s+/g, "-"), d.desde, d.hasta].filter(Boolean).join("_") + ".csv";
+    a.download = ["albaranes", nombreFiltro.toLowerCase().replace(/\s+/g, "-"), d.tipo, d.desde, d.hasta].filter(Boolean).join("_") + ".csv";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
   };
   /* Imprimir: la vista en curso, con el filtro y las fechas en el título */
   var dia = function (s) { return s ? s.split("-").reverse().join("/") : ""; };
-  $("impresion-filtro").textContent = nombreFiltro +
+  $("impresion-filtro").textContent = nombreFiltro + (d.tipo ? " · " + TIPOS[d.tipo] : "") +
     (d.desde || d.hasta ? " · recibidos " + (d.desde ? "desde el " + dia(d.desde) : "") + (d.desde && d.hasta ? " " : "") + (d.hasta ? "hasta el " + dia(d.hasta) : "") : "") +
     " · " + filas.length + " albarán" + (filas.length === 1 ? "" : "es") + " · impreso el " + new Date().toLocaleString("es-ES", { timeZone: "Europe/Madrid" });
   $("imprimir").disabled = !filas.length;

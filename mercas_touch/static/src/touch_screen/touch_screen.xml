@@ -489,7 +489,18 @@
                                 <div t-if="line.lot" class="small text-muted">Lot <t t-out="line.lot"/></div>
                                 <div t-if="line.attributes" class="small fw-semibold" t-out="line.attributes"/>
                             </td>
-                            <td class="text-end text-nowrap"><t t-out="this.formatQty(line.qty)"/> <t t-out="line.uom"/></td>
+                            <td class="text-end text-nowrap">
+                                <t t-out="this.formatQty(line.qty)"/> <t t-out="line.uom"/>
+                                <t t-set="figures" t-value="line.lot_figures"/>
+                                <div t-if="figures" class="small text-muted o_mercas_touch_lot_figures">
+                                    <div>Stock <t t-out="this.formatQty(figures.stock)"/> <t t-out="line.uom"/></div>
+                                    <div>Sold <t t-out="this.formatQty(figures.sold)"/> <t t-out="line.uom"/></div>
+                                    <div>Invoiced
+                                        <t t-if="figures.firm"><t t-out="this.formatQty(figures.invoiced)"/> <t t-out="line.uom"/></t>
+                                        <t t-else="" t-out="this.formatAmount(figures.invoiced)"/>
+                                    </div>
+                                </div>
+                            </td>
                             <td class="text-end text-nowrap" t-out="this.formatAmount(line.price)"/>
                             <td class="text-end text-nowrap fw-bold" t-out="this.formatAmount(line.subtotal)"/>
                         </tr>
@@ -517,6 +528,28 @@
                 <t t-if="done.invoice.payment_state === 'paid'"><span class="text-success">paid</span></t>
                 <t t-else=""><t t-out="this.formatAmount(done.invoice.residual)"/> to collect</t>
             </div>
+            <div t-if="done.invoiceList" class="list-group text-start mt-3 o_mercas_touch_purchase_invoice_list">
+                <div t-foreach="done.invoiceList" t-as="invoice" t-key="invoice.id"
+                     class="list-group-item d-flex align-items-center gap-2 p-0 o_mercas_touch_purchase_invoice">
+                    <button class="btn flex-grow-1 d-flex align-items-center gap-3 py-3 text-start o_mercas_touch_open_invoice"
+                            t-on-click="() => this.onOpenInvoice(invoice.id)">
+                        <div class="flex-grow-1">
+                            <div class="fw-bold fs-5" t-out="invoice.name"/>
+                            <div class="small text-muted"><t t-out="invoice.type_label"/><t t-if="invoice.date"> · <t t-out="this.formatDay(invoice.date)"/></t></div>
+                        </div>
+                        <span t-att-class="'badge fs-6 ' + (invoice.state === 'draft' ? 'text-bg-warning' : 'text-bg-secondary')" t-out="invoice.state_label"/>
+                        <span class="fw-bold text-nowrap" t-out="this.formatAmount(invoice.amount_total)"/>
+                    </button>
+                    <button t-if="invoice.state === 'posted'" class="btn btn-outline-secondary btn-lg me-2 o_mercas_touch_print_purchase_invoice"
+                            t-att-disabled="this.state.sending" t-on-click="() => this.onPrintPurchaseInvoice(invoice)">
+                        <i class="oi" data-icon="print"/><span class="visually-hidden">Print</span>
+                    </button>
+                    <button t-if="invoice.state === 'draft'" class="btn btn-outline-danger btn-lg me-2 o_mercas_touch_delete_invoice"
+                            t-att-disabled="this.state.sending" t-on-click="() => this.onDeleteInvoice(invoice)">
+                        <i class="oi" data-icon="delete"/><span class="visually-hidden">Delete</span>
+                    </button>
+                </div>
+            </div>
             <div t-if="done.lots and done.lots.length" class="mt-3 o_mercas_touch_done_lots">
                 <div class="fw-bold mb-1">Lots</div>
                 <div t-foreach="done.lots" t-as="lot" t-key="lot.lot_id">
@@ -529,15 +562,36 @@
                         t-on-click="() => this.onPrint('delivery')">
                     <i class="oi" data-icon="print"/> Delivery slip
                 </button>
+                <button t-if="done.kind === 'sale' and done.state === 'sale'" class="btn btn-secondary btn-lg o_mercas_touch_deca"
+                        t-on-click="this.onDeca">
+                    <i class="oi" data-icon="local_shipping"/> DeCA
+                </button>
                 <button t-if="(done.kind === 'sale' and done.state === 'sale') or done.kind === 'purchase'"
                         class="btn btn-secondary btn-lg o_mercas_touch_print_labels" t-on-click="() => this.onPrint('labels')">
                     <i class="oi" data-icon="label"/> Box labels
                 </button>
-                <button t-if="done.kind === 'purchase' and done.state === 'purchase' and done.invoice_status === 'to invoice'"
-                        class="btn btn-primary btn-lg o_mercas_touch_invoice_purchase"
-                        t-att-disabled="this.state.sending" t-on-click="this.onInvoicePurchase">
-                    <i class="oi" data-icon="receipt_long"/> Create bill
-                </button>
+                <t t-if="done.kind === 'purchase'">
+                    <button t-if="done.lot_invoice_modes.includes('settle')" class="btn btn-primary btn-lg o_mercas_touch_purchase_settle"
+                            t-att-disabled="this.state.sending" t-on-click="() => this.onInvoicePurchaseLots('settle')">
+                        <i class="oi" data-icon="receipt_long"/> Settle
+                    </button>
+                    <button t-if="done.lot_invoice_modes.includes('advance')" class="btn btn-primary btn-lg o_mercas_touch_purchase_advance"
+                            t-att-disabled="this.state.sending" t-on-click="() => this.onInvoicePurchaseLots('advance')">
+                        <i class="oi" data-icon="receipt_long"/> Invoice advance
+                    </button>
+                    <button t-if="done.lot_invoice_modes.includes('firm')" class="btn btn-primary btn-lg o_mercas_touch_purchase_firm"
+                            t-att-disabled="this.state.sending" t-on-click="() => this.onInvoicePurchaseLots('firm')">
+                        <i class="oi" data-icon="receipt_long"/> Firm invoice
+                    </button>
+                    <button t-if="done.bill_pending" class="btn btn-primary btn-lg o_mercas_touch_invoice_purchase"
+                            t-att-disabled="this.state.sending" t-on-click="this.onInvoicePurchase">
+                        <i class="oi" data-icon="receipt_long"/> Create bill
+                    </button>
+                    <button t-if="done.invoice_count" class="btn btn-secondary btn-lg o_mercas_touch_purchase_invoices"
+                            t-on-click="this.onShowPurchaseInvoices">
+                        <i class="oi" data-icon="description"/> Bills
+                    </button>
+                </t>
                 <button t-if="done.kind === 'sale' and done.state === 'sale' and (done.invoice_status === 'to invoice' or done.invoice_draft)" class="btn btn-primary btn-lg o_mercas_touch_invoice_sale"
                         t-att-disabled="this.state.sending" t-on-click="this.onInvoiceSale">
                     <i class="oi" data-icon="receipt_long"/> Create invoice

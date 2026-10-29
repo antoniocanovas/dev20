@@ -3,7 +3,11 @@ from odoo.exceptions import UserError
 
 
 class SaleOrder(models.Model):
-    _inherit = "sale.order"
+    _name = "sale.order"
+    _inherit = ["sale.order", "mercas.box.order.mixin"]
+
+    _mercas_box_link_field = "box_sale_line_id"
+    _mercas_box_qty_field = "product_uom_qty"
 
     box_delivery_purchase_id = fields.Many2one(
         comodel_name="purchase.order",
@@ -92,99 +96,6 @@ class SaleOrder(models.Model):
             "view_mode": "form",
             "target": "current",
         }
-
-    def _mercas_prepare_box_lines(self):
-        """Add PRODUCTOS/Envases sections, create/refresh one box line per
-        product line with box_qty > 0, and re-sequence every line so it
-        stays inside the section it belongs to. Runs again after confirm
-        (from line create/write) so lines added later are grouped too,
-        instead of trailing after Envases where the UI appends new rows."""
-        SaleLine = self.env["sale.order.line"]
-
-        product_lines = self.order_line.filtered(
-            lambda l: not l.display_type and not l.box_sale_line_id
-        )
-        has_productos = self.order_line.filtered(
-            lambda l: l.display_type == "line_section" and l.name == "PRODUCTOS"
-        )
-        box_lines_needed = product_lines.filtered(
-            lambda l: l.box_qty > 0 and l.box_product_id
-        )
-        if not product_lines or (not box_lines_needed and not has_productos):
-            return
-
-        # --- PRODUCTOS section ---
-        if has_productos:
-            productos_section = has_productos[0]
-        else:
-            productos_section = SaleLine.create({
-                "order_id": self.id,
-                "display_type": "line_section",
-                "name": "PRODUCTOS",
-                "sequence": 0,
-            })
-
-        # --- Envases section ---
-        has_envases = self.order_line.filtered(
-            lambda l: l.display_type == "line_section" and l.name == "Envases"
-        )
-        if has_envases:
-            envases_section = has_envases[0]
-        else:
-            envases_section = SaleLine.create({
-                "order_id": self.id,
-                "display_type": "line_section",
-                "name": "Envases",
-                "sequence": 0,
-            })
-
-        # --- Create / update box lines ---
-        existing_by_parent = {
-            bl.box_sale_line_id.id: bl
-            for bl in self.order_line.filtered(lambda l: l.box_sale_line_id)
-        }
-        for line in box_lines_needed:
-            if line.id in existing_by_parent:
-                existing_by_parent[line.id].write({
-                    "product_id": line.box_product_id.id,
-                    "product_uom_qty": line.box_qty,
-                })
-            else:
-                SaleLine.create({
-                    "order_id": self.id,
-                    "product_id": line.box_product_id.id,
-                    "product_uom_qty": line.box_qty,
-                    "box_sale_line_id": line.id,
-                })
-
-        self._mercas_reorder_box_sections(productos_section, envases_section)
-
-    def _mercas_reorder_box_sections(self, productos_section, envases_section):
-        """Renumber sequence so every line sits inside its section: PRODUCTOS,
-        then all product lines (keeping their current relative order), then
-        Envases, then all box lines (following their parent line's order)."""
-        product_lines = self.order_line.filtered(
-            lambda l: not l.display_type and not l.box_sale_line_id
-        ).sorted(key=lambda l: (l.sequence, l.id))
-        box_lines_by_parent = {
-            bl.box_sale_line_id.id: bl
-            for bl in self.order_line.filtered(lambda l: l.box_sale_line_id)
-        }
-
-        seq = 0
-        productos_section.sequence = seq
-        for line in product_lines:
-            seq += 10
-            line.sequence = seq
-
-        seq += 10
-        envases_section.sequence = seq
-
-        for line in product_lines:
-            box_line = box_lines_by_parent.get(line.id)
-            if box_line:
-                seq += 10
-                box_line.sequence = seq
 
     def button_sold_and_sent(self):
         """Confirm the sale and immediately validate the delivery if all lots are assigned."""

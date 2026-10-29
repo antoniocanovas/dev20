@@ -39,14 +39,16 @@ header a { color: var(--accent); text-decoration: none; font-size: 14px; }
 .banner { margin: 12px 16px 0; padding: 8px 12px; border-radius: 8px; background: var(--warn-bg);
   color: var(--warn); font-size: 13px; }
 main { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; padding: 16px; }
-@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+main.tercero { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); }
+@media (max-width: 900px) { main, main.tercero { grid-template-columns: minmax(0, 1fr); } }
 .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; min-width: 0; }
 /* Visor */
 .visor { position: relative; height: calc(100vh - 150px); min-height: 360px; overflow: hidden;
   background: var(--visor); border-radius: 10px 10px 0 0; touch-action: none; cursor: grab; }
 @media (max-width: 900px) { .visor { height: 55vh; } }
 .visor.arrastrando { cursor: grabbing; }
-.lienzo { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.lienzo { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; user-select: none; -webkit-user-select: none; }
+.lienzo img { -webkit-user-drag: none; }
 .lienzo img { display: block; user-select: none; -webkit-user-drag: none; }
 .caja { position: absolute; border: 2px solid transparent; border-radius: 3px; pointer-events: none; }
 .caja.dudosa { border-color: rgba(240, 165, 0, .55); }
@@ -93,14 +95,29 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
 .vacio { padding: 24px; color: var(--muted); }
 #imprimir { margin-left: auto; }
 .foto-impresion { display: none; }
+.paginas { display: flex; flex-wrap: wrap; gap: 6px; }
+.paginas button.activa { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.pag-linea { color: var(--muted); font-size: 12px; white-space: nowrap; }
+/* Terceros: búsqueda de nuestro albarán y cambio de tipo */
+.busqueda, .tipo-form { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.busqueda label, .tipo-form label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+.busqueda label { flex: 1 1 240px; } .busqueda input { width: 100%; }
+.busqueda .motivo { flex-basis: 100%; margin: 0; }
+select { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; min-height: 38px; }
+.su { color: var(--muted); font-size: 12px; margin-top: 3px; }
+td.articulo { min-width: 190px; }
+main.tercero input[type=number] { width: 70px; }
+.su b { color: var(--text); font-weight: 600; }
+h3 { font-size: 13px; margin: 14px 14px 4px; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
 @media print {
   :root:not(#_) { --bg: #fff; --panel: #fff; --text: #000; --muted: #444; --border: #bbb; --warn-bg: #fff; } /* gana al tema oscuro */
-  header > a, #imprimir, .visor, .controles, .pie, #banner { display: none !important; }
+  header > a, #imprimir, .visor, .controles, .pie, #banner, .busqueda, .tipo-form { display: none !important; }
   header { padding: 0 0 8px; border: none; }
   main { display: flex; flex-direction: column; padding: 0; gap: 10px; }
   main > .panel:first-child { order: 2; break-before: page; border: none; }
   .panel { border: none; border-radius: 0; } .tabla-wrap { overflow: visible; }
   .foto-impresion { display: block; max-width: 100%; max-height: 95vh; margin: 0 auto; }
+  .foto-impresion + .foto-impresion { break-before: page; }
   table { font-size: 11px; } th, td { padding: 4px 6px; }
   tr { break-inside: avoid; } thead { display: table-header-group; }
   tr.linea.revisar td { background: none; } tr.linea.revisar td:first-child { box-shadow: inset 3px 0 0 #000; }
@@ -123,27 +140,30 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
 <div id="banner"></div>
 <main>
   <section class="panel">
-    <div class="visor" id="visor"><div class="lienzo" id="lienzo"><img id="foto" alt="Foto del albarán"></div></div>
+    <div class="visor" id="visor"><div class="lienzo" id="lienzo"><img id="foto" alt="Foto del albarán" draggable="false"></div></div>
     <div class="controles">
       <button type="button" id="zmas" title="Acercar">＋</button>
       <button type="button" id="zmenos" title="Alejar">－</button>
       <button type="button" id="ajustar" title="Ver entera">Ajustar</button>
       <button type="button" id="rizq" title="Girar a la izquierda">⟲</button>
       <button type="button" id="rder" title="Girar a la derecha">⟳</button>
+      <span class="paginas" id="paginas"></span>
       <a id="original" href="#" target="_blank" rel="noopener" style="align-self:center;margin-left:auto;font-size:13px;color:var(--accent)">Abrir foto</a>
     </div>
-    <img class="foto-impresion" id="foto-impresion" alt="Foto del albarán">
+    <div id="fotos-impresion"></div>
   </section>
   <section class="panel">
     <div class="cab" id="cab"></div>
+    <div id="busqueda"></div>
     <div id="avisos"></div>
     <div class="tabla-wrap">
       <table>
-        <thead><tr><th>Artículo</th><th class="num">Cant. ERP</th><th class="num">Lee la IA</th><th class="num">Confianza</th><th class="num">Final</th></tr></thead>
+        <thead id="cabecera-tabla"><tr><th>Artículo</th><th class="num">Cant. ERP</th><th class="num">Lee la IA</th><th class="num">Confianza</th><th class="num">Final</th></tr></thead>
         <tbody id="lineas"></tbody>
       </table>
     </div>
     <div id="extras"></div>
+    <div id="cambiar-tipo"></div>
     <div id="zona-accion"></div>
   </section>
 </main>
@@ -170,24 +190,53 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
     rectificada: ["Rectificada en el ERP", "ok"]
   };
   var erp = inc.erp || {}, dec = inc.decision || {}, lect = inc.lectura || {};
+  /* Terceros (entrada de proveedor o entrega con el albarán del cliente): su albarán se compara
+     con los nuestros (erp.albaranes); no se escribe nada en el ERP. */
+  var tercero = inc.tipo === "entrada" || inc.tipo === "entrega";
+  var albaranes = erp.albaranes || [];
+  var TIPOS = { propio: "Propio", entrada: "Terceros · entrada (proveedor)", entrega: "Terceros · entrega (cliente)" };
+  if (tercero) document.querySelector("main").classList.add("tercero");
+  /* Fotos del albarán, una por página (los reconocimientos antiguos tienen una sola) */
+  var paginas = inc.paginas && inc.paginas.length ? inc.paginas : [{ pagina: 1, ancho: inc.foto_ancho, alto: inc.foto_alto, imagen: inc.imagen }];
+  var varias = paginas.length > 1;
+  var pag = function (l) { return l.pagina || 1; };
   var editable = inc.estado === "pendiente_revision" || inc.estado === "verificado";
   var est = ESTADOS[inc.estado] || [inc.estado, "neutral"];
   document.title = "Revisión " + (inc.albaran_numero || "#" + inc.id);
-  $("titulo").textContent = "Albarán " + (inc.albaran_numero || "sin identificar");
+  var emisor = (lect.emisor || {}).nombre;
+  $("titulo").textContent = tercero
+    ? (inc.tipo === "entrada" ? "Proveedor: " : "Cliente: ") + (emisor || "sin identificar") + (lect.numero_documento ? " · albarán " + lect.numero_documento : "")
+    : "Albarán " + (inc.albaran_numero || "sin identificar");
   $("estado").textContent = est[0]; $("estado").className = "chip " + est[1];
-  var MARCAS = { original: ["Original", "neutral"], modificado: ["Modificado", "warn"], error: ["Error", "bad"] };
+  var MARCAS = tercero ? { original: ["Coincide", "ok"], modificado: ["Con diferencias", "warn"], error: ["Error", "bad"] }
+    : { original: ["Original", "neutral"], modificado: ["Modificado", "warn"], error: ["Error", "bad"] };
   if (MARCAS[inc.marca]) { $("marca").style.display = ""; $("marca").textContent = MARCAS[inc.marca][0];
     $("marca").className = "chip " + MARCAS[inc.marca][1]; }
-  $("subtitulo").textContent = "Reconocimiento #" + inc.id + " · " + new Date(inc.creada).toLocaleString("es-ES");
-  if (inc.dry_run) $("banner").innerHTML = '<div class="banner">Modo simulación (DRY_RUN): al aprobar se registra qué se haría en el ERP, sin escribir nada.</div>';
+  $("subtitulo").textContent = "Reconocimiento #" + inc.id + " · " + (TIPOS[inc.tipo] || "Propio") + " · " + new Date(inc.creada).toLocaleString("es-ES");
+  if (tercero) $("banner").innerHTML = '<div class="banner">Albarán de terceros: solo se consulta el ERP. Al aprobar se guarda la revisión; no se escribe nada en el ERP.</div>';
+  else if (inc.dry_run) $("banner").innerHTML = '<div class="banner">Modo simulación (DRY_RUN): al aprobar se registra qué se haría en el ERP, sin escribir nada.</div>';
 
   var cab = [];
+  var DIA = function (f) { return f ? String(f).slice(0, 10).split("-").reverse().join("/") : ""; };
+  if (tercero) {
+    var em = lect.emisor || {};
+    if (em.cif) cab.push("CIF <b>" + esc(em.cif) + "</b>");
+    if (lect.fecha) cab.push("Fecha del documento <b>" + esc(DIA(lect.fecha)) + "</b>");
+    cab.push("Valorado <b>" + (lect.valorado ? "sí" : "no") + "</b>");
+    albaranes.forEach(function (a) {
+      var ped = a.compra || a.pedido;
+      cab.push("Nuestro <b>" + esc(a.numero) + "</b>" + (ped ? " (" + esc(ped.numero) + ")" : "") + (a.cliente ? " · " + esc(a.cliente.nombre) : "") +
+        " · " + (a.hecho ? "validado" : "sin validar"));
+    });
+    if (inc.origen_numero) cab.push("Referencia <b>" + (inc.origen_numero === "manual" ? "indicada a mano" : "escrita en el documento") + "</b>");
+  }
   if (erp.cliente) cab.push("Cliente <b>" + esc(erp.cliente.nombre) + "</b>");
   if (erp.pedido) cab.push("Pedido <b>" + esc(erp.pedido.numero) + "</b>");
   if (erp.fecha) cab.push("Fecha <b>" + esc(erp.fecha) + "</b>");
-  cab.push("ERP <b>" + (erp.hecho ? "validado" : "sin validar") + "</b>");
-  if (inc.origen_numero) cab.push("Número por <b>" + (inc.origen_numero === "codigo_barras" ? "código de barras" : "visión") + "</b>");
-  if (lect.calidad_imagen) cab.push("Foto <b>" + esc(lect.calidad_imagen) + "</b>");
+  if (!tercero) cab.push("ERP <b>" + (erp.hecho ? "validado" : "sin validar") + "</b>");
+  if (inc.origen_numero && !tercero) cab.push("Número por <b>" + (inc.origen_numero === "codigo_barras" ? "código de barras" : "visión") + "</b>");
+  if (varias) cab.push("<b>" + paginas.length + "</b> fotos");
+  if (lect.calidad_imagen) cab.push((varias ? "Calidad <b>" : "Foto <b>") + esc(lect.calidad_imagen) + "</b>");
   $("cab").innerHTML = cab.join(" · ");
 
   var avisos = (dec.avisos || []).slice();
@@ -195,18 +244,63 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
   if (lect.observaciones) avisos.push("Anotaciones: " + lect.observaciones);
   $("avisos").innerHTML = avisos.map(function (a) { return '<div class="aviso">' + esc(a) + "</div>"; }).join("");
 
-  /* ---------- tabla: en el orden en que aparecen en la foto (de arriba abajo);
-     las que no se ven en la foto, al final en el orden del ERP ---------- */
+  /* Terceros: nuestro albarán (detectado o escrito a mano), siempre editable mientras esté por revisar.
+     Formularios normales: la página va en sandbox y fetch no lleva la Basic Auth. */
+  var leidas = (lect.referencias_erp || []).map(function (r) { return r.texto; });
+  if (tercero && (inc.estado === "pendiente_revision" || inc.estado === "verificado")) {
+    var valor = inc.referencias || (erp.referencias || []).join(" ") || leidas.join(" ");
+    $("busqueda").innerHTML = '<form class="busqueda" method="post" action="../buscar/' + inc.id + '">' +
+      '<label>Nuestro albarán en el ERP <input type="text" name="referencias" id="referencias" autocomplete="off" autocapitalize="characters" value="' + esc(valor) + '" placeholder="' +
+      (inc.tipo === "entrada" ? "Ej.: WH/IN/00016, P00014" : "Ej.: WH/OUT/00040, S00026") + '"></label>' +
+      '<button type="submit" class="primario" id="buscar">Buscar en el ERP y comparar</button>' +
+      '<div class="motivo">' + (leidas.length ? "Escrito en el documento: <b>" + esc(leidas.join(", ")) + "</b>. " : "No se ha leído ninguna referencia en el documento. ") +
+      "Puedes cambiarla o poner varias, separadas por espacios o comas (albarán o pedido). Solo se consulta el ERP.</div></form>";
+    $("busqueda").querySelector("form").addEventListener("submit", function () { $("buscar").disabled = true; $("buscar").textContent = "Buscando y comparando…"; });
+  }
+
+  /* ---------- tabla: en el orden en que aparecen en las fotos (por foto y de arriba abajo);
+     las que no se ven en ninguna, al final en el orden del ERP ---------- */
   var lineas = (dec.lineas || []).map(function (l, i) { l._i = i; return l; });
-  var alto = function (l) { return l.bbox && l.bbox.length === 4 ? l.bbox[1] : Infinity; };
+  var alto = function (l) { return l.bbox && l.bbox.length === 4 ? pag(l) + l.bbox[1] : Infinity; };
   lineas.sort(function (a, b) { return alto(a) - alto(b) || a._i - b._i; });
   var resol = {};
   ((inc.resolucion || {}).lineas || []).forEach(function (l) { resol[l.linea_id] = l.final; });
   var MOTIVOS = { modificada: "cambiada a mano", tachon_ilegible: "tachón sin número legible", baja_confianza: "confianza baja",
     dudosa: "lectura dudosa", variacion_sospechosa: "variación grande", supera_pedido: "supera lo pedido",
     no_leida: "no se ha leído", tachado_sin_cambio: "tachado sin cambio" };
+  MOTIVOS.no_en_documento = "no está en su albarán"; MOTIVOS.cantidad_distinta = "cantidad distinta";
+  MOTIVOS.precio_distinto = "precio distinto"; MOTIVOS.emparejamiento_dudoso = "emparejamiento dudoso";
+  if (tercero) MOTIVOS.modificada = "cambiada a mano en su albarán";
   var colorConf = function (c) { return c >= (dec.umbral || .85) ? "var(--ok)" : c >= .6 ? "var(--warn)" : "var(--bad)"; };
-  $("lineas").innerHTML = lineas.map(function (l) {
+  var precios = tercero && dec.valorado;
+  var varios = albaranes.length > 1;
+  /* Valorado: los precios ocupan el sitio de la confianza (la baja ya sale en los motivos) */
+  if (tercero) $("cabecera-tabla").innerHTML = "<tr><th>Artículo</th><th class=\"num\">Nuestro</th><th class=\"num\">Su albarán</th>" +
+    (precios ? '<th class="num">Precio nuestro</th><th class="num">Su precio</th>' : '<th class="num">Confianza</th>') + '<th class="num">Final</th></tr>';
+  var cantidadSuya = function (s) {
+    return s.tachado ? '<span class="tachado">' + fmt(s.impreso) + "</span> " + '<span class="manus">' + (s.manuscrito != null ? fmt(s.manuscrito) : "?") + "</span>"
+      : s.manuscrito != null ? '<span class="manus">' + fmt(s.manuscrito) + "</span>" : fmt(s.cantidad);
+  };
+  var precio = function (p, d) { return fmt(p) + (d ? ' <span class="ref">−' + fmt(d) + "%</span>" : ""); };
+  var conf = function (c) { return c == null ? "—" : '<span class="conf"><span class="barra"><i style="width:' + Math.round(c * 100) + "%;background:" + colorConf(c) + '"></i></span>' + Math.round(c * 100) + "%</span>"; };
+  if (tercero) $("lineas").innerHTML = lineas.map(function (l) {
+    var inicial = resol[l.linea_id] != null ? resol[l.linea_id] : (l.cantidad_final != null ? l.cantidad_final : "");
+    var motivos = (l.motivos || []).map(function (m) { return MOTIVOS[m] || m; }).join(", ");
+    var final = '<td class="num"><input type="number" min="0" step="any" inputmode="decimal" data-id="' + l.linea_id + '" data-ia="' + (l.cantidad_final == null ? "" : l.cantidad_final) + '" value="' + inicial + '"' + (editable ? "" : " disabled") + ' aria-label="Cantidad final de ' + esc(l.producto) + '"></td></tr>';
+    var docs = l.documento || [];
+    var su = docs.map(function (s) {
+      return '<div class="su">Su línea: <b>' + esc([s.codigo, s.descripcion].filter(Boolean).join(" · ")) + "</b>" +
+        (s.motivo_emparejamiento ? " (" + (s.emparejado_por === "ia" ? Math.round(s.confianza_emparejamiento * 100) + "%: " : "") + esc(s.motivo_emparejamiento) + ")" : "") + "</div>"; }).join("");
+    return '<tr class="linea' + (l.estado !== "verificado" ? " revisar" : "") + '" data-id="' + l.linea_id + '">' +
+      '<td class="articulo"><div class="ref">' + esc(l.referencia || "") + (varios ? " · " + esc(l.albaran) : "") + (varias && l.bbox ? ' <span class="pag-linea">· foto ' + pag(l) + "</span>" : "") + "</div>" + esc(l.producto) + su +
+      (motivos ? '<div class="motivo">⚠ ' + esc(motivos) + "</div>" : "") +
+      (l.motivo_ia ? '<div class="motivo">IA: ' + esc(l.motivo_ia) + "</div>" : "") + "</td>" +
+      '<td class="num">' + fmt(l.erp) + "</td>" +
+      '<td class="num">' + (docs.length ? docs.map(cantidadSuya).join(" + ") : "—") + "</td>" +
+      (precios ? '<td class="num">' + precio(l.precio_erp, l.descuento_erp) + '</td><td class="num">' + (l.precio_doc == null ? "—" : precio(l.precio_doc, l.descuento_doc)) + "</td>"
+        : '<td class="num">' + conf(l.confianza) + "</td>") + final;
+  }).join("");
+  else $("lineas").innerHTML = lineas.map(function (l) {
     var ia = l.tachado
       ? '<span class="tachado">' + fmt(l.impreso) + "</span> " + (l.manuscrito != null ? '<span class="manus">' + fmt(l.manuscrito) + "</span>" : '<span class="manus">?</span>')
       : (l.manuscrito != null ? '<span class="manus">' + fmt(l.manuscrito) + "</span>" : fmt(l.cantidad_final));
@@ -214,17 +308,27 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
     var inicial = resol[l.linea_id] != null ? resol[l.linea_id] : (l.cantidad_final != null ? l.cantidad_final : "");
     var motivos = (l.motivos || []).map(function (m) { return MOTIVOS[m] || m; }).join(", ");
     return '<tr class="linea' + (l.estado !== "verificado" ? " revisar" : "") + '" data-id="' + l.linea_id + '">' +
-      "<td>" + (l.referencia ? '<div class="ref">' + esc(l.referencia) + "</div>" : "") + esc(l.producto) +
+      "<td>" + (l.referencia || varias ? '<div class="ref">' + esc(l.referencia || "") + (varias && l.bbox ? ' <span class="pag-linea">· foto ' + pag(l) + "</span>" : "") + "</div>" : "") + esc(l.producto) +
       (motivos ? '<div class="motivo">⚠ ' + esc(motivos) + "</div>" : "") +
       (l.motivo_ia ? '<div class="motivo">IA: ' + esc(l.motivo_ia) + "</div>" : "") + "</td>" +
       '<td class="num">' + fmt(l.erp) + "</td>" +
       '<td class="num">' + ia + "</td>" +
       '<td class="num">' + conf + "</td>" +
       '<td class="num"><input type="number" min="0" step="any" inputmode="decimal" data-id="' + l.linea_id + '" data-ia="' + (l.cantidad_final == null ? "" : l.cantidad_final) + '" value="' + inicial + '"' + (editable ? "" : " disabled") + ' aria-label="Cantidad final de ' + esc(l.producto) + '"></td></tr>';
-  }).join("") || '<tr><td colspan="5" class="vacio">Sin líneas leídas.</td></tr>';
+  }).join("");
+  if (!lineas.length) $("lineas").innerHTML = '<tr><td colspan="7" class="vacio">' + (tercero ? "Sin nuestro albarán: búscalo arriba para comparar." : "Sin líneas leídas.") + "</td></tr>";
 
   var extras = dec.extras || [];
-  if (extras.length) {
+  /* Elementos con caja en la foto: nuestras líneas y, en terceros, las suyas sin pareja ("x" + índice) */
+  var marcables = lineas.slice();
+  if (tercero && extras.length) {
+    extras.forEach(function (e) { marcables.push({ linea_id: "x" + e.indice, bbox: e.bbox, pagina: e.pagina, estado: "pendiente_revision" }); });
+    $("extras").innerHTML = "<h3>" + (albaranes.length ? "Líneas de su albarán sin pareja en el nuestro" : "Líneas leídas en su albarán") + '</h3><div class="tabla-wrap"><table><thead><tr><th>Su artículo</th><th class="num">Cantidad</th>' +
+      (lect.valorado ? '<th class="num">Precio</th>' : "") + "</tr></thead><tbody>" + extras.map(function (e) {
+        return '<tr class="linea revisar" data-id="x' + e.indice + '"><td>' + (e.codigo ? '<div class="ref">' + esc(e.codigo) + (varias && e.bbox ? ' <span class="pag-linea">· foto ' + (e.pagina || 1) + "</span>" : "") + "</div>" : "") + esc(e.descripcion) +
+          (e.motivo ? '<div class="motivo">IA: ' + esc(e.motivo) + "</div>" : "") + '</td><td class="num">' + fmt(e.cantidad_final) + "</td>" +
+          (lect.valorado ? '<td class="num">' + fmt(e.precio) + "</td>" : "") + "</tr>"; }).join("") + "</tbody></table></div>";
+  } else if (extras.length) {
     $("extras").innerHTML = '<div class="aviso">Líneas escritas a mano que no están en el ERP (revísalas en el ERP): ' +
       extras.map(function (e) { return esc(e.articulo) + " → " + fmt(e.cantidad_final); }).join("; ") + "</div>";
   }
@@ -247,8 +351,9 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
         var c = i.value !== i.dataset.ia; i.classList.toggle("cambiado", c); cambiado = cambiado || c;
         vacio = vacio || i.value === "";
       });
-      $("aprobar").disabled = vacio;
-      $("aprobar").title = vacio ? "Falta la cantidad final de alguna línea" : "Se aplican las cantidades de la columna Final";
+      $("aprobar").disabled = vacio || !inputs.length;
+      $("aprobar").title = !inputs.length ? "Busca antes nuestro albarán en el ERP" : vacio ? "Falta la cantidad final de alguna línea"
+        : tercero ? "Se guardan las cantidades de la columna Final (no se cambia nada en el ERP)" : "Se aplican las cantidades de la columna Final";
     };
     inputs.forEach(function (i) { i.addEventListener("input", refrescar); i.addEventListener("click", function (e) { e.stopPropagation(); }); });
     refrescar();
@@ -300,25 +405,50 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
     $("zona-accion").innerHTML = html + "</div>";
   }
 
+  /* Cambiar el tipo de albarán: vuelve a leer las mismas fotos (Reintentar con otro tipo) */
+  if (editable || inc.estado === "error") {
+    $("cambiar-tipo").innerHTML = '<form class="tipo-form" method="post" action="../reintentar/' + inc.id + '"><label>¿No es este tipo de albarán? <select name="tipo">' +
+      ["propio", "entrada", "entrega"].map(function (t) { return '<option value="' + t + '"' + (t === (inc.tipo || "propio") ? " selected" : "") + ">" + TIPOS[t] + "</option>"; }).join("") +
+      '</select></label><button type="submit" id="releer">Volver a leer</button></form>';
+    $("cambiar-tipo").querySelector("form").addEventListener("submit", function () {
+      document.querySelectorAll("button").forEach(function (b) { b.disabled = true; });
+      $("releer").textContent = "Leyendo… (puede tardar un minuto)";
+    });
+  }
+
   /* ---------- visor: zoom, giro, arrastre y salto a la línea ---------- */
   var visor = $("visor"), lienzo = $("lienzo"), img = $("foto");
-  var W = inc.foto_ancho || 1000, H = inc.foto_alto || 1400;
+  var W = 1000, H = 1400, actual = 0;
   var st = { s: 1, rot: 0, x: 0, y: 0 };
-  img.width = W; img.height = H;
-  img.src = inc.imagen || "";
-  $("foto-impresion").src = inc.imagen || "";
-  $("original").href = inc.imagen || "#";
-  lineas.forEach(function (l) {
-    if (!l.bbox) return;
-    var d = document.createElement("div");
-    d.className = "caja" + (l.estado !== "verificado" ? " dudosa" : "");
-    d.dataset.id = l.linea_id;
-    var m = 0.004;
-    d.style.left = (l.bbox[0] - m) * 100 + "%"; d.style.top = (l.bbox[1] - m) * 100 + "%";
-    d.style.width = (l.bbox[2] - l.bbox[0] + 2 * m) * 100 + "%"; d.style.height = (l.bbox[3] - l.bbox[1] + 2 * m) * 100 + "%";
-    lienzo.appendChild(d);
-  });
-  lienzo.style.width = W + "px"; lienzo.style.height = H + "px";
+  $("fotos-impresion").innerHTML = paginas.map(function (p) {
+    return '<img class="foto-impresion" alt="Foto ' + p.pagina + ' del albarán" src="' + esc(p.imagen || "") + '">'; }).join("");
+  if (varias) $("paginas").innerHTML = paginas.map(function (p) {
+    return '<button type="button" data-pagina="' + p.pagina + '">Foto ' + p.pagina + "</button>"; }).join("");
+  /* Muestra una foto con las cajas de sus líneas */
+  var mostrar = function (n) {
+    if (n === actual) return;
+    var p = paginas.filter(function (x) { return x.pagina === n; })[0] || paginas[0];
+    actual = p.pagina;
+    W = p.ancho || inc.foto_ancho || 1000; H = p.alto || inc.foto_alto || 1400;
+    img.width = W; img.height = H;
+    img.src = p.imagen || "";
+    $("original").href = p.imagen || "#";
+    $("original").textContent = varias ? "Abrir foto " + actual : "Abrir foto";
+    lienzo.querySelectorAll(".caja").forEach(function (c) { c.remove(); });
+    marcables.forEach(function (l) {
+      if (!l.bbox || pag(l) !== actual) return;
+      var d = document.createElement("div");
+      d.className = "caja" + (l.estado !== "verificado" ? " dudosa" : "");
+      d.dataset.id = l.linea_id;
+      var m = 0.004;
+      d.style.left = (l.bbox[0] - m) * 100 + "%"; d.style.top = (l.bbox[1] - m) * 100 + "%";
+      d.style.width = (l.bbox[2] - l.bbox[0] + 2 * m) * 100 + "%"; d.style.height = (l.bbox[3] - l.bbox[1] + 2 * m) * 100 + "%";
+      lienzo.appendChild(d);
+    });
+    lienzo.style.width = W + "px"; lienzo.style.height = H + "px";
+    document.querySelectorAll("#paginas button").forEach(function (b) { b.classList.toggle("activa", +b.dataset.pagina === actual); });
+    ajustar();
+  };
   var aplicar = function () {
     lienzo.style.transform = "translate(" + st.x + "px," + st.y + "px) rotate(" + st.rot + "deg) scale(" + st.s + ")";
   };
@@ -343,9 +473,10 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
     st.x = cx - (cx - st.x) * f; st.y = cy - (cy - st.y) * f; st.s = ns; aplicar();
   };
   var irA = function (id) {
+    var l = marcables.filter(function (x) { return x.linea_id == id; })[0];
+    if (l && l.bbox) mostrar(pag(l));  /* antes de marcar: cambiar de foto rehace las cajas */
     document.querySelectorAll(".caja").forEach(function (c) { c.classList.toggle("activa", c.dataset.id == id); });
     document.querySelectorAll("tr.linea").forEach(function (t) { t.classList.toggle("sel", t.dataset.id == id); });
-    var l = lineas.filter(function (x) { return x.linea_id == id; })[0];
     if (!l || !l.bbox) return;
     var bw = (l.bbox[2] - l.bbox[0]) * W, bh = (l.bbox[3] - l.bbox[1]) * H;
     var rotado = (Math.abs(st.rot) / 90) % 2 === 1;
@@ -357,6 +488,7 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
   $("zmas").onclick = function () { zoom(1.25); };
   $("zmenos").onclick = function () { zoom(0.8); };
   $("ajustar").onclick = ajustar;
+  document.querySelectorAll("#paginas button").forEach(function (b) { b.onclick = function () { mostrar(+b.dataset.pagina); }; });
   var girar = function (d) {
     var cx = visor.clientWidth / 2, cy = visor.clientHeight / 2;
     /* punto de imagen en el centro, para mantenerlo tras girar */
@@ -367,12 +499,24 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
   };
   $("rizq").onclick = function () { girar(-90); };
   $("rder").onclick = function () { girar(90); };
+  /* Rueda o dos dedos en el trackpad: desplaza. Pellizco en el trackpad (llega como Ctrl + rueda)
+     o Ctrl/⌘ + rueda: zoom en el puntero. */
   visor.addEventListener("wheel", function (e) {
-    e.preventDefault(); var b = visor.getBoundingClientRect();
-    zoom(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX - b.left, e.clientY - b.top);
+    e.preventDefault();
+    var k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? visor.clientHeight : 1;
+    var dx = e.deltaX * k, dy = e.deltaY * k;
+    if (e.shiftKey && !dx) { dx = dy; dy = 0; }
+    if (e.ctrlKey || e.metaKey) {
+      var b = visor.getBoundingClientRect();
+      zoom(Math.exp(-Math.max(-50, Math.min(50, dy)) / 100), e.clientX - b.left, e.clientY - b.top);
+    } else {
+      st.x -= dx; st.y -= dy; aplicar();
+    }
   }, { passive: false });
+  /* Sin el arrastre nativo de la imagen (se quedaba con el movimiento al pinchar en la foto) */
+  lienzo.addEventListener("dragstart", function (e) { e.preventDefault(); });
   var punteros = {}, ult = null, distIni = 0;
-  visor.addEventListener("pointerdown", function (e) { visor.setPointerCapture(e.pointerId); punteros[e.pointerId] = { x: e.clientX, y: e.clientY }; visor.classList.add("arrastrando"); });
+  visor.addEventListener("pointerdown", function (e) { if (e.pointerType === "mouse" && e.button !== 0) return; e.preventDefault(); visor.setPointerCapture(e.pointerId); punteros[e.pointerId] = { x: e.clientX, y: e.clientY }; visor.classList.add("arrastrando"); });
   visor.addEventListener("pointermove", function (e) {
     if (!punteros[e.pointerId]) return;
     var ids = Object.keys(punteros);
@@ -388,12 +532,9 @@ input.cambiado { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in
   });
   var soltar = function (e) { delete punteros[e.pointerId]; distIni = 0; if (!Object.keys(punteros).length) visor.classList.remove("arrastrando"); };
   visor.addEventListener("pointerup", soltar); visor.addEventListener("pointercancel", soltar);
-  var iniciar = function () {
-    ajustar();
-    var primera = lineas.filter(function (l) { return l.estado !== "verificado" && l.bbox; })[0];
-    if (primera && editable) irA(primera.linea_id);
-  };
-  if (img.complete) iniciar(); else img.onload = iniciar;
+  var primera = marcables.filter(function (l) { return l.estado !== "verificado" && l.bbox; })[0];
+  mostrar(primera && editable ? pag(primera) : paginas[0].pagina);
+  if (primera && editable) irA(primera.linea_id);
   window.addEventListener("resize", function () { ajustar(); });
 })();
 </script>

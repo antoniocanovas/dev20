@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Self-billing: the invoice is issued by us on behalf of the supplier -->
+    <template id="report_invoice_document_mercas_self_billing" inherit_id="account.report_invoice_document">
+        <div id="informations" position="before">
+            <!-- The legend out of the row: wkhtmltopdf doesn't wrap the columns of a row, more
+                 than 12 would make it wider than the page -->
+            <div t-if="o.journal_id.is_self_billing and o.move_type in ('in_invoice', 'in_refund')"
+                 class="mb-4" name="mercas_self_billing">
+                <div class="mb-2">
+                    <strong>Invoicing by the recipient</strong>
+                </div>
+                <div class="row">
+                    <div class="col-6" name="mercas_self_billing_issuer">
+                        <strong class="d-block">Issuer</strong>
+                        <div t-field="o.commercial_partner_id" t-options='{"widget": "contact", "fields": ["name", "address"], "no_marker": True}'/>
+                        <div t-if="o.commercial_partner_id.vat">
+                            <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-out="o.company_id.account_fiscal_country_id.vat_label"/>
+                            <t t-else="">Tax ID</t>: <span t-field="o.commercial_partner_id.vat"/>
+                        </div>
+                    </div>
+                    <div class="col-6" name="mercas_self_billing_recipient">
+                        <strong class="d-block">Recipient</strong>
+                        <div t-field="o.company_id.partner_id" t-options='{"widget": "contact", "fields": ["name", "address"], "no_marker": True}'/>
+                        <div t-if="o.company_id.vat">
+                            <t t-if="o.company_id.account_fiscal_country_id.vat_label" t-out="o.company_id.account_fiscal_country_id.vat_label"/>
+                            <t t-else="">Tax ID</t>: <span t-field="o.company_id.vat"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+</odoo>

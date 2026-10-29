@@ -2,7 +2,7 @@ from markupsafe import Markup
 
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools import format_amount, format_date, formatLang
+from odoo.tools import float_is_zero, format_amount, format_date, formatLang
 
 
 class StockLot(models.Model):
@@ -207,16 +207,9 @@ class StockLot(models.Model):
         `mercas_is_firm_line`). Sale advances/settlements don't count here:
         they don't represent received kg at the purchase price."""
         for lot in self:
-            posted = lot.supplier_invoice_line_ids.filtered(
-                lambda l: l.move_id.state == "posted" and l.mercas_is_firm_line
+            lot.net_invoiced_kg = lot._mercas_posted_net(
+                "quantity", lambda l: l.mercas_is_firm_line
             )
-            net = 0.0
-            for line in posted:
-                if line.move_id.move_type == "in_invoice":
-                    net += line.quantity
-                elif line.move_id.move_type == "in_refund":
-                    net -= line.quantity
-            lot.net_invoiced_kg = net
 
     @api.depends(
         "supplier_invoice_line_ids.price_subtotal",
@@ -225,16 +218,21 @@ class StockLot(models.Model):
     )
     def _compute_net_invoiced_amount(self):
         for lot in self:
-            posted = lot.supplier_invoice_line_ids.filtered(
-                lambda l: l.move_id.state == "posted"
-            )
-            net = 0.0
-            for line in posted:
-                if line.move_id.move_type == "in_invoice":
-                    net += line.price_subtotal
-                elif line.move_id.move_type == "in_refund":
-                    net -= line.price_subtotal
-            lot.net_invoiced_amount = net
+            lot.net_invoiced_amount = lot._mercas_posted_net("price_subtotal")
+
+    def _mercas_posted_net(self, field, line_filter=None):
+        """Sum of `field` over the posted supplier invoice lines of the lot
+        (optionally filtered): invoices add, credit notes subtract."""
+        self.ensure_one()
+        net = 0.0
+        for line in self.supplier_invoice_line_ids:
+            if line.move_id.state != "posted" or (line_filter and not line_filter(line)):
+                continue
+            if line.move_id.move_type == "in_invoice":
+                net += line[field]
+            elif line.move_id.move_type == "in_refund":
+                net -= line[field]
+        return net
 
     def _mercas_company(self):
         """`company_id` (compute='_compute_company_id', from product_id.company_id)
@@ -363,17 +361,7 @@ class StockLot(models.Model):
         settlements), pending to be deducted on the first firm invoice of
         this lot. Once deducted, the deduction line itself (not marked as
         firm) cancels it to zero forever."""
-        self.ensure_one()
-        non_firm = self.supplier_invoice_line_ids.filtered(
-            lambda l: l.move_id.state == "posted" and not l.mercas_is_firm_line
-        )
-        amount = 0.0
-        for line in non_firm:
-            if line.move_id.move_type == "in_invoice":
-                amount += line.price_subtotal
-            elif line.move_id.move_type == "in_refund":
-                amount -= line.price_subtotal
-        return amount
+        return self._mercas_posted_net("price_subtotal", lambda l: not l.mercas_is_firm_line)
 
     def write(self, vals):
         if "invoiced" in vals and not self.env.context.get("mercas_auto_invoiced"):
@@ -448,10 +436,37 @@ class StockLot(models.Model):
     @api.depends("purchase_line_ids.product_qty", "purchase_line_ids.order_id.state")
     def _compute_purchase_kg(self):
         for lot in self:
-            lines = lot.purchase_line_ids.filtered(
-                lambda l: l.order_id.state in ("purchase", "done")
-            )
-            lot.purchase_kg = sum(lines.mapped("product_qty"))
+            lot.purchase_kg = sum(lot._mercas_confirmed_purchase_lines().mapped("product_qty"))
+
+    def _mercas_confirmed_purchase_lines(self):
+        """Lines of confirmed purchases of the lot."""
+        self.ensure_one()
+        return self.purchase_line_ids.filtered(
+            lambda l: l.order_id.state in ("purchase", "done")
+        )
+
+    def _mercas_sale_move_lines(self):
+        """Done move lines of the lot delivered to a sale."""
+        self.ensure_one()
+        return self.stock_move_line_ids.filtered(
+            lambda ml: ml.state == "done" and ml.move_id.sale_line_id
+        )
+
+    def _mercas_scrap_move_lines(self):
+        """Done move lines of the lot (losses, gains) to scrap or inventory
+        adjustments: formal scraps and negative adjustments are losses,
+        positive adjustments are gains."""
+        self.ensure_one()
+        done = self.stock_move_line_ids.filtered(lambda ml: ml.state == "done")
+        losses = done.filtered(
+            lambda ml: ml.location_id.usage == "internal"
+            and ml.location_dest_id.usage in ("production", "inventory")
+        )
+        gains = done.filtered(
+            lambda ml: ml.location_id.usage == "inventory"
+            and ml.location_dest_id.usage == "internal"
+        )
+        return losses, gains
 
     @api.depends(
         "stock_move_line_ids.quantity",
@@ -462,15 +477,11 @@ class StockLot(models.Model):
     )
     def _compute_sale_fields(self):
         for lot in self:
-            sale_mls = lot.stock_move_line_ids.filtered(
-                lambda ml: ml.state == "done" and ml.move_id.sale_line_id
-            )
+            sale_mls = lot._mercas_sale_move_lines()
             lot.sale_kg = sum(sale_mls.mapped("quantity"))
-            amount = 0.0
-            for ml in sale_mls:
-                sl = ml.move_id.sale_line_id
-                amount += ml.quantity * sl.price_unit * (1.0 - sl.discount / 100.0)
-            lot.sale_amount = amount
+            lot.sale_amount = sum(
+                ml.quantity * ml.move_id.sale_line_id._mercas_net_price() for ml in sale_mls
+            )
 
     @api.depends(
         "stock_move_line_ids.quantity",
@@ -486,9 +497,9 @@ class StockLot(models.Model):
         were first sold: [{'quality', 'size', 'qty', 'amount'}]. The same
         moves and amounts as Sold Kg / Sold Amount."""
         self.ensure_one()
-        sale_mls = self.stock_move_line_ids.filtered(
-            lambda ml: ml.state == "done" and ml.move_id.sale_line_id
-        ).sorted(lambda ml: (ml.move_id.date or ml.create_date, ml.id))
+        sale_mls = self._mercas_sale_move_lines().sorted(
+            lambda ml: (ml.move_id.date or ml.create_date, ml.id)
+        )
         groups = {}
         for ml in sale_mls:
             sale_line = ml.move_id.sale_line_id
@@ -497,7 +508,7 @@ class StockLot(models.Model):
                 key, {"quality": key[0], "size": key[1], "qty": 0.0, "amount": 0.0}
             )
             group["qty"] += ml.quantity
-            group["amount"] += ml.quantity * sale_line.price_unit * (1.0 - sale_line.discount / 100.0)
+            group["amount"] += ml.quantity * sale_line._mercas_net_price()
         return list(groups.values())
 
     def _mercas_sale_classification_html(self):
@@ -551,16 +562,7 @@ class StockLot(models.Model):
     )
     def _compute_scrap_kg(self):
         for lot in self:
-            loss_mls = lot.stock_move_line_ids.filtered(
-                lambda ml: ml.state == "done"
-                and ml.location_id.usage == "internal"
-                and ml.location_dest_id.usage in ("production", "inventory")
-            )
-            gain_mls = lot.stock_move_line_ids.filtered(
-                lambda ml: ml.state == "done"
-                and ml.location_id.usage == "inventory"
-                and ml.location_dest_id.usage == "internal"
-            )
+            loss_mls, gain_mls = lot._mercas_scrap_move_lines()
             lot.scrap_kg = (
                 sum(loss_mls.mapped("quantity")) - sum(gain_mls.mapped("quantity"))
             )
@@ -618,9 +620,7 @@ class StockLot(models.Model):
         """Text '<date> | <order> | <supplier ref> | <lot>' to append to the
         name of a lot's main line."""
         self.ensure_one()
-        purchase_line = self.purchase_line_ids.filtered(
-            lambda l: l.order_id.state in ("purchase", "done")
-        )[:1]
+        purchase_line = self._mercas_confirmed_purchase_lines()[:1]
         parts = []
         if purchase_line and purchase_line.order_id.date_order:
             parts.append(purchase_line.order_id.date_order.strftime("%d/%m/%Y"))
@@ -640,13 +640,13 @@ class StockLot(models.Model):
         already appeared on a previous invoice. Informational text only, it
         does not affect any amount."""
         self.ensure_one()
-        sale_mls = self.stock_move_line_ids.filtered(
-            lambda ml: ml.state == "done" and ml.move_id.sale_line_id
-        ).sorted(lambda ml: ml.move_id.date or ml.create_date)
+        sale_mls = self._mercas_sale_move_lines().sorted(
+            lambda ml: ml.move_id.date or ml.create_date
+        )
         lines = []
         for ml in sale_mls:
             sale_line = ml.move_id.sale_line_id
-            price = sale_line.price_unit * (1.0 - sale_line.discount / 100.0)
+            price = sale_line._mercas_net_price()
             date_str = format_date(self.env, ml.move_id.date) if ml.move_id.date else ""
             uom = ml.uom_id.name or ""
             currency_symbol = sale_line.currency_id.symbol or ""
@@ -669,16 +669,7 @@ class StockLot(models.Model):
         reason as `_mercas_sale_breakdown_text`: no tracking is needed of
         which adjustment already appeared on a previous invoice."""
         self.ensure_one()
-        loss_mls = self.stock_move_line_ids.filtered(
-            lambda ml: ml.state == "done"
-            and ml.location_id.usage == "internal"
-            and ml.location_dest_id.usage in ("production", "inventory")
-        )
-        gain_mls = self.stock_move_line_ids.filtered(
-            lambda ml: ml.state == "done"
-            and ml.location_id.usage == "inventory"
-            and ml.location_dest_id.usage == "internal"
-        )
+        loss_mls, gain_mls = self._mercas_scrap_move_lines()
         entries = [(ml, ml.quantity) for ml in loss_mls]
         entries += [(ml, -ml.quantity) for ml in gain_mls]
         entries.sort(key=lambda entry: entry[0].move_id.date or entry[0].create_date)
@@ -688,6 +679,21 @@ class StockLot(models.Model):
             uom = ml.uom_id.name or ""
             lines.append("%s => %.2f %s" % (date_str, qty, uom))
         return "\n".join(lines)
+
+    def _mercas_pending_box_invoice_lines(self):
+        """The boxes bought with the lot still to invoice, for the invoices
+        of the lot (firm invoice, advance or settlement). They keep their
+        purchase line, as in the standard bill, so that they are invoiced
+        only once, whichever way comes first."""
+        precision = self.env["decimal.precision"].precision_get("Product Unit")
+        box_lines = self.env["purchase.order.line"].search([
+            ("box_purchase_line_id", "in", self.purchase_line_ids.ids),
+        ])
+        return [
+            Command.create(line._prepare_account_move_line())
+            for line in box_lines
+            if not float_is_zero(line.qty_to_invoice, precision_digits=precision)
+        ]
 
     def _mercas_prepare_invoice_lines(self):
         """Supplier invoice lines for this lot, depending on the regime. For
@@ -725,7 +731,7 @@ class StockLot(models.Model):
                     "lot_id": self.id,
                     "name": _("(-) Advances pending to deduct"),
                 }))
-            return lines
+            return lines + self._mercas_pending_box_invoice_lines()
 
         gross_qty, gross_price, gross_amount = self._mercas_liquidation_gross()
         if gross_amount - self.net_invoiced_amount <= 0.01:
@@ -788,7 +794,7 @@ class StockLot(models.Model):
                     "date": format_date(self.env, move.invoice_date) if move.invoice_date else "",
                 },
             }))
-        return lines
+        return lines + self._mercas_pending_box_invoice_lines()
 
     def action_create_supplier_invoices(self):
         lots = self.filtered(lambda l: l.invoiceable and l.partner_id)
@@ -815,13 +821,8 @@ class StockLot(models.Model):
                 % ", ".join(with_draft.mapped("name"))
             )
 
-        by_partner = {}
-        for lot in lots:
-            by_partner.setdefault(lot.partner_id.id, self.env["stock.lot"])
-            by_partner[lot.partner_id.id] |= lot
-
         invoices = self.env["account.move"]
-        for partner_id, partner_lots in by_partner.items():
+        for partner, partner_lots in lots.grouped("partner_id").items():
             lines = []
             for lot in partner_lots:
                 lines += lot._mercas_prepare_invoice_lines()
@@ -830,7 +831,7 @@ class StockLot(models.Model):
 
             invoice = self.env["account.move"].create({
                 "move_type": "in_invoice",
-                "partner_id": partner_id,
+                "partner_id": partner.id,
                 "invoice_date": fields.Date.context_today(self),
                 "invoice_line_ids": lines,
             })
@@ -875,9 +876,7 @@ class StockLot(models.Model):
         if "purchase_price" not in self.env["sale.order.line"]._fields:
             return
         for lot in self:
-            sale_lines = lot.stock_move_line_ids.filtered(
-                lambda ml: ml.state == "done" and ml.move_id.sale_line_id
-            ).mapped("move_id.sale_line_id")
+            sale_lines = lot._mercas_sale_move_lines().move_id.sale_line_id
             if sale_lines:
                 sale_lines.write({"purchase_price": lot.supplier_price_kg})
 
