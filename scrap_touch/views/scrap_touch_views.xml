@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="scrap_touch_action" model="ir.actions.client">
+        <field name="name">CAT</field>
+        <field name="tag">scrap_touch.screen</field>
+        <!-- Also the start of the Odoo app installed on the tablet -->
+        <field name="path">scrap-touch</field>
+    </record>
+
+    <!-- An app of its own, opened from the home screen -->
+    <!-- The purchases, for the purchase users; the decontamination, the dismantling and the
+         vehicles, for the inventory users -->
+    <menuitem id="scrap_touch_menu_root" name="CAT" action="scrap_touch_action"
+              web_icon="scrap_touch,static/description/icon.png"
+              groups="purchase.group_purchase_user,stock.group_stock_user" sequence="3"/>
+
+    <!-- New supplier from the touch screen: the few fields needed to buy, in a dialog -->
+    <record id="res_partner_view_form_scrap_touch" model="ir.ui.view">
+        <field name="name">res.partner.form.scrap_touch</field>
+        <field name="model">res.partner</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Supplier">
+                <sheet>
+                    <h1>
+                        <field name="name" class="o_scrap_touch_new_partner_name" required="1"
+                               placeholder="e.g. Scrap Yard Ltd or John Smith"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="vat"/>
+                            <field name="phone" widget="phone"/>
+                            <field name="email" widget="email"/>
+                        </group>
+                        <group>
+                            <field name="street"/>
+                            <field name="zip"/>
+                            <field name="city"/>
+                            <field name="state_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="country_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="purchase_order_form_inherit_scrap_touch" model="ir.ui.view">
+        <field name="name">purchase.order.form.inherit.scrap_touch</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <field name="partner_ref" position="after">
+                <field name="scrap_touch_uuid" groups="base.group_no_one" invisible="not scrap_touch_uuid"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,489 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* scrap_crm
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 14.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-11-01 08:02+0000\n"
+"PO-Revision-Date: 2023-11-01 09:16+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.4.1\n"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__brand_id
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__brand_id
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Brand"
+msgstr "Marca"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.scrap_crm_res_company_inh_form
+msgid "CRM"
+msgstr "CRM"
+
+#. module: scrap_crm
+#: model:ir.model,name:scrap_crm.model_crm_stage
+msgid "CRM Stages"
+msgstr "Etapas del CRM"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__categ_id
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__name
+msgid "Category"
+msgstr "Categoría"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__crm_stage_integer
+msgid "Code for colors"
+msgstr "Códigos de color"
+
+#. module: scrap_crm
+#: model:ir.model,name:scrap_crm.model_res_company
+msgid "Companies"
+msgstr "Compañías"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__display_name
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_stage__display_name
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__display_name
+#: model:ir.model.fields,field_description:scrap_crm.field_res_company__display_name
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_stock_tasks_search_inh_view
+msgid "Estado comercial"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields.selection,name:scrap_crm.selection__crm_stage__type__negativa
+msgid "Gestión negativa"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields.selection,name:scrap_crm.selection__crm_stage__type__positiva
+msgid "Gestión positiva"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__id
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_stage__id
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__id
+#: model:ir.model.fields,field_description:scrap_crm.field_res_company__id
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__id
+msgid "ID"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead____last_update
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_stage____last_update
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task____last_update
+#: model:ir.model.fields,field_description:scrap_crm.field_res_company____last_update
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category____last_update
+msgid "Last Modified on"
+msgstr "Última modificación el"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__lead_id
+msgid "Lead"
+msgstr "Iniciativa"
+
+#. module: scrap_crm
+#: model:ir.model,name:scrap_crm.model_crm_lead
+msgid "Lead/Opportunity"
+msgstr "Iniciativa/Oportunidad"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_stock_tasks_search_inh_view
+msgid "Marca"
+msgstr "Marca"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Customer or market price:"
+msgstr "Precio cliente o mercado:"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Quoted price:"
+msgstr "Precio ofertado:"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Customer or market price"
+msgstr "Precio cliente o mercado"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Quoted price"
+msgstr "Precio ofertado"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__market_value
+msgid "Market value"
+msgstr "Precio de mercado"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__parent_tag_ids
+msgid "Parent Tags"
+msgstr "Cargo empresa"
+
+#. module: scrap_crm
+#: model:ir.ui.menu,name:scrap_crm.menu_scrap_stock_tasks
+msgid "Parking"
+msgstr "Encargos taller"
+
+#. module: scrap_crm
+#: model:ir.actions.act_window,name:scrap_crm.action_scrap_stock_tasks
+msgid "Parking tasks"
+msgstr "Tareas de almacén"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__partner_tag_ids
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__partner_tag_ids
+msgid "Partner Tags"
+msgstr "Categoría cliente"
+
+#. module: scrap_crm
+#: model:ir.model.fields.selection,name:scrap_crm.selection__crm_stage__type__administracion
+msgid "Pendiente Gestión Administrativa"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields.selection,name:scrap_crm.selection__crm_stage__type__comercial
+msgid "Pendiente Gestión Comercial"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields.selection,name:scrap_crm.selection__crm_stage__type__taller
+msgid "Pendiente Taller"
+msgstr ""
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Procesos"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__product_id
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_stock_tasks_search_inh_view
+msgid "Producto"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__quotation_value
+msgid "Quotation"
+msgstr "Oferta"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__partner_ref
+msgid "Ref"
+msgstr "Código cliente"
+
+#. module: scrap_crm
+#: model:ir.ui.menu,name:scrap_crm.menu_scrap_category
+msgid "SCRAP Categories"
+msgstr "Categorías desguace"
+
+#. module: scrap_crm
+#: model:ir.actions.act_window,name:scrap_crm.action_scrap_category
+#: model:ir.model,name:scrap_crm.model_scrap_category
+msgid "SCRAP Category"
+msgstr "Categoría desguace"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__scrap_project_id
+#: model:ir.model.fields,field_description:scrap_crm.field_res_company__scrap_project_id
+msgid "SCRAP Project"
+msgstr "Proyecto de desguace"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__scrap_user_id
+#: model:ir.model.fields,field_description:scrap_crm.field_res_company__scrap_user_id
+msgid "SCRAP User"
+msgstr "Usuario desguace"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Sales notes:"
+msgstr "Asunto comercial:"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__smart_search
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_stage__smart_search
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__smart_search
+#: model:ir.model.fields,field_description:scrap_crm.field_res_company__smart_search
+#: model:ir.model.fields,field_description:scrap_crm.field_scrap_category__smart_search
+msgid "Smart Search"
+msgstr "Búsqueda fácil"
+
+#. module: scrap_crm
+#: model:ir.model,name:scrap_crm.model_project_task
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__task_ids
+msgid "Task"
+msgstr "Tarea"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_stock_tasks_tree_view
+msgid "Tasks"
+msgstr "Tareas"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__description_tech
+msgid "Technical notes"
+msgstr "Asunto taller"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Technical notes ..."
+msgstr "Asunto taller …"
+
+#. module: scrap_crm
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Technical notes:"
+msgstr "Asunto taller:"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_stage__type
+#: model:ir.model.fields,field_description:scrap_crm.field_project_task__crm_stage_type
+msgid "Tipo"
+msgstr ""
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__stage_type
+msgid "Type"
+msgstr "Tipo"
+
+#. module: scrap_crm
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+#: model_terms:ir.ui.view,arch_db:scrap_crm.crm_lead_scrap_inh
+msgid "Available"
+msgstr "Disponibles"
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__scrap_available_count
+msgid "Available Parts"
+msgstr "Piezas disponibles"
+
+#. module: scrap_crm
+#. odoo-python
+#: code:addons/scrap_crm/models/crm_lead.py:0
+msgid "Available: %s"
+msgstr "Disponibles: %s"
+
+#. module: scrap_crm
+#: model:ir.model.fields,help:scrap_crm.field_crm_lead__brand_id
+msgid ""
+"Brand (manufacturer) of the vehicle the customer asks parts for, as the "
+"vehicles and their parts: the ones available are found by it."
+msgstr ""
+"Marca (fabricante) del vehículo para el que el cliente pide piezas, la misma"
+" que la de los vehículos y sus piezas: por ella se encuentran las "
+"disponibles."
+
+#. module: scrap_crm
+#: model:ir.model.fields,help:scrap_crm.field_crm_lead__scrap_available_count
+msgid "Vehicles and parts of the brand in stock."
+msgstr "Vehículos y piezas de la marca en stock."
+
+#. module: scrap_crm
+#: model:ir.model.fields,field_description:scrap_crm.field_crm_lead__scrap_template_id
+msgid "Scrap Template"
+msgstr "Plantilla desguace"
+
+#. module: scrap_crm
+#: model:ir.model.fields,help:scrap_crm.field_crm_lead__scrap_template_id
+msgid ""
+"Scrap template of what the customer asks for, as a vehicle or a used engine."
+msgstr ""
+"Plantilla desguace de lo que pide el cliente, como un vehículo o un motor "
+"usado."
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "All brands"
+msgstr "Todos los fabricantes"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.js:0
+msgid "Assembled"
+msgstr "Ensamblados"
+
+#. module: scrap_crm
+#: model:ir.model,name:scrap_crm.model_scrap_crm_available
+msgid "Available for an Opportunity"
+msgstr "Disponibles para una oportunidad"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Back"
+msgstr "Atrás"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid ""
+"Choose the scrap template asked for: the products in stock with it still to "
+"dismantle are shown."
+msgstr ""
+"Elige la plantilla desguace que se pide: se muestran los productos en stock "
+"que aún la tienen por desguazar."
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.js:0
+msgid "In stock"
+msgstr "En stock"
+
+#. module: scrap_crm
+#. odoo-python
+#: code:addons/scrap_crm/models/scrap_crm_available.py:0
+msgid "Invalid filter."
+msgstr "Filtro no válido."
+
+#. module: scrap_crm
+#. odoo-python
+#: code:addons/scrap_crm/models/scrap_crm_available.py:0
+msgid "Invalid opportunity."
+msgstr "Oportunidad no válida."
+
+#. module: scrap_crm
+#. odoo-python
+#: code:addons/scrap_crm/models/scrap_crm_available.py:0
+msgid "Invalid option."
+msgstr "Opción no válida."
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Name, barcode or any reference"
+msgstr "Nombre, código de barras o cualquier referencia"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid ""
+"Name, barcode, internal reference, visible or OEM reference, references, "
+"chassis or plate"
+msgstr ""
+"Nombre, código de barras, referencia interna, Ref. visible u OEM, "
+"referencias, bastidor o placa"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Nothing available."
+msgstr "No hay nada disponible."
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "OEM"
+msgstr "OEM"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Scrap template"
+msgstr "Plantilla desguace"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "to dismantle"
+msgstr "por desguazar"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "All templates"
+msgstr "Todas las plantillas"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid ""
+"Scrap template: in stock, the products made of it; assembled, the ones with "
+"it still to dismantle"
+msgstr ""
+"Plantilla desguace: en stock, los productos hechos de ella; en ensamblados, "
+"los que aún la tienen por desguazar"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Open in a new tab"
+msgstr "Abrir en una pestaña nueva"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "See the photos"
+msgstr "Ver las fotos"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Product"
+msgstr "Producto"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Previous"
+msgstr "Anterior"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Next"
+msgstr "Siguiente"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "Close"
+msgstr "Cerrar"
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "No photos."
+msgstr "No hay fotos."

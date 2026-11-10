@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+
+    <record id="action_scrap_category" model="ir.actions.act_window">
+        <field name="binding_model_id" eval="False"/>
+        <field name="binding_type">action</field>
+        <field name="filter" eval="False"/>
+        <field name="limit">80</field>
+        <field name="name">SCRAP Category</field>
+        <field name="res_model">scrap.category</field>
+        <field name="search_view_id" eval="False"/>
+        <field name="target">current</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="menu_scrap_category" model="ir.ui.menu">
+        <field name="action" ref="action_scrap_category"/>
+        <field name="active" eval="True"/>
+        <field name="name">SCRAP Categories</field>
+        <field name="parent_id" ref="crm.crm_menu_config"/>
+        <field name="sequence">50</field>
+    </record>
+
+    <!-- Acción de ventana y Menú de tareas en CRM para seguimiento de similares: -->
+    <record id="action_scrap_stock_tasks" model="ir.actions.act_window">
+        <field name="binding_model_id" eval="False"/>
+        <field name="binding_type">action</field>
+        <field name="filter" eval="False"/>
+        <field name="limit">80</field>
+        <field name="name">Parking tasks</field>
+        <field name="res_model">project.task</field>
+        <field name="domain">[('lead_id', '!=', False)]</field>
+        <field name="search_view_id" eval="False"/>
+        <field name="target">current</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('crm_stock_tasks_tree_view')}),]"/>
+    </record>
+    <record id="menu_scrap_stock_tasks" model="ir.ui.menu">
+        <field name="action" ref="action_scrap_stock_tasks"/>
+        <field name="active" eval="True"/>
+        <field name="name">Parking</field>
+        <field name="parent_id" ref="crm.crm_menu_root"/>
+        <field name="sequence">15</field>
+    </record>
+
+
+</odoo>

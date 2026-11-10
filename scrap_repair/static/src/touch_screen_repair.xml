@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Repair a vehicle to repair and sell, before going back to the list -->
+    <t t-inherit="scrap_touch.TouchScreenVehicle" t-inherit-mode="extension">
+        <xpath expr="//button[hasclass('o_scrap_touch_back_to_vehicles')]" position="before">
+            <button t-if="vehicle.can_repair" class="btn btn-primary btn-lg o_scrap_touch_repair"
+                    t-att-disabled="this.state.sending" t-on-click="this.onRepairVehicle">
+                <i class="oi" data-icon="build"/> Repair
+                <span t-if="vehicle.open_repair" class="badge text-bg-light ms-1 o_scrap_touch_open_repair" t-out="vehicle.open_repair"/>
+            </button>
+        </xpath>
+    </t>
+
+</templates>

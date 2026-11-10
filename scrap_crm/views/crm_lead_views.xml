@@ -1,0 +1,188 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<odoo>
+
+    <record id="crm_lead_scrap_inh" model="ir.ui.view">
+        <field name="name">SCRAP CRM Inherit Form View</field>
+        <field name="model">crm.lead</field>
+        <field name="type">form</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+
+            <div name="button_box" position="inside">
+                <!-- The touch screen of what is available: in stock, of its brand by default, and
+                     assembled, with its scrap template still to dismantle -->
+                <button name="action_scrap_available_parts" type="object" class="oe_stat_button"
+                        icon="fa-cubes">
+                    <field name="scrap_available_count" widget="statinfo" string="Available"/>
+                </button>
+            </div>
+            <xpath expr="//div[hasclass('oe_title')]" position="before">
+                <h2>
+                    <field name="brand_id" placeholder="Brand" required="1" options="{'no_quick_create':True, 'no_create_edit':True}"/>
+                </h2>
+            </xpath>
+
+            <!-- no permitir crear etiquetas: -->
+
+            <xpath expr="//sheet//field[@name='tag_ids']" position="attributes">
+                <attribute name="options">{'color_field': 'color', 'no_quick_create':True, 'no_create_edit':True}</attribute>
+            </xpath>
+
+            <xpath expr="//group[@name='lead_partner']/field[@name='partner_id'][2]" position="before">
+                <field name="price_note" placeholder="Horquilla negociación" invisible="type == 'lead'"/>
+                <field name="partner_ref" invisible="type == 'lead'"/>
+            </xpath>
+            <field name="tag_ids" position="after">
+                <field name="partner_tag_ids" widget="many2many_tags"
+                       options="{'color_field': 'color', 'no_create':True}"/>
+                <field name="parent_tag_ids" widget="many2many_tags"
+                       options="{'color_field': 'color', 'no_create':True}"/>
+                <field name="scrap_template_id" options="{'no_create': True}"/>
+            </field>
+            <xpath expr="//h2/span[1]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//h2/span[2]" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//h2//div[@id='probability']/.." position="replace">
+                <div id="other_prices" class="col-auto d-flex flex-wrap align-items-end">
+                    <field name="probability" invisible="1"/>
+                    <div class="col-auto d-flex flex-column ms-4">
+                        <label for="market_value" string="Customer or market price:" class="oe_edit_only mb-2"/>
+                        <field name="market_value" widget="monetary" options="{'currency_field': 'company_currency'}" class="o_input_16ch"/>
+                    </div>
+                    <div class="col-auto d-flex flex-column ms-4">
+                        <label for="quotation_value" string="Quoted price:" class="oe_edit_only mb-2"/>
+                        <field name="quotation_value" widget="monetary" options="{'currency_field': 'company_currency'}" class="o_input_16ch"/>
+                    </div>
+                </div>
+            </xpath>
+            <!-- móvil y tablet táctil: el h2 anterior está oculto, Odoo muestra este grupo -->
+            <xpath expr="//group[hasclass('d-sm-none')]//field[@name='expected_revenue']" position="after">
+                <field name="market_value" string="Customer or market price" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+                <field name="quotation_value" string="Quoted price" widget="monetary" options="{'currency_field': 'company_currency'}"/>
+            </xpath>
+            <xpath expr="//group[@name='lead_partner']/field[@name='partner_id'][2]" position="after">
+                <field name="city" invisible="type == 'lead'"/>
+            </xpath>
+            <field name="description" position="before">
+                <h4>Sales notes:</h4>
+            </field>
+            <field name="description" position="after">
+                <h4>Technical notes:</h4>
+                <field name="description_tech" placeholder="Technical notes ..."/>
+                <field name="task_ids" context="{'default_partner_id':partner_id,
+                                                'default_project_id':scrap_project_id,
+                                                'default_user_ids':scrap_user_id and [scrap_user_id] or [],
+                                                'default_name':name,
+                                                'default_brand_id':brand_id}">
+                    <list editable="bottom">
+                        <field name="name"/>
+                        <!-- Para borrar 25/01/25 :
+                        <field name="product_id" optional="show"/>
+                        -->
+                        <field name="product_tmpl_id" optional="show"/>
+                        <field name="brand_id"/>
+                        <field name="categ_id" options="{'no_quick_create':True, 'no_create_edit':True}"/>
+                        <field name="user_ids" widget="many2many_tags"/>
+                        <field name="project_id" options="{'no_quick_create':True, 'no_create_edit':True}"/>
+                        <field name="tag_ids" widget="many2many_tags" string="Procesos" options="{'no_quick_create':True, 'no_create_edit':True}"/>
+                        <field name="datetime_deadline" optional="show"/>
+                        <field name="stage_id" readonly="1"/>
+                        <field name="company_id" column_invisible="True"/>
+                        <button name="action_open_in_new_tab" type="object" icon="fa-external-link" title="Abrir en pestaña nueva"/>
+                    </list>
+                </field>
+                <group>
+                    <field name="create_date"/>
+                    <field name="scrap_project_id" invisible="1"/>
+                    <field name="scrap_user_id" invisible="1"/>
+                </group>
+            </field>
+
+        </field>
+    </record>
+
+    <record id="crm_lead_scrap_kanban_inh" model="ir.ui.view">
+        <field name="name">SCRAP CRM Inherit Kanban View</field>
+        <field name="model">crm.lead</field>
+        <field name="type">kanban</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <data>
+                <xpath expr="//kanban[1]" position="attributes">
+                    <attribute name="quick_create">false</attribute>
+                </xpath>
+                <xpath expr="//t[@t-name='card']/field[@name='name']" position="before">
+                    <div>
+                        <h3>
+                            <field name="partner_ref"/>
+                            <t> </t>
+                            <field name="brand_id"/>
+                        </h3>
+                    </div>
+                </xpath>
+                <xpath expr="//t[@t-name='card']/field[@name='tag_ids']" position="after">
+                    <div>
+                        <field name="partner_tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <field name="parent_tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                        <field name="phone" widget="phone"/>
+                        <field name="city"/>
+                        <field name="state_id"/>
+                    </div>
+                </xpath>
+            </data>
+        </field>
+    </record>
+
+
+    <record id="crm_lead_scrap_tree_inh" model="ir.ui.view">
+        <field name="name">SCRAP CRM Inherit Tree View</field>
+        <field name="model">crm.lead</field>
+        <field name="type">list</field>
+        <field name="inherit_id" ref="crm.crm_case_tree_view_oppor"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <data>
+                <field name="name" position="before">
+                    <field name="partner_ref"/>
+                    <field name="brand_id"/>
+                    <field name="stage_type" column_invisible="True"/>
+                </field>
+                <field name="phone" position="attributes">
+                    <attribute name="optional">hide</attribute>
+                </field>
+                <field name="email_from" position="attributes">
+                    <attribute name="optional">hide</attribute>
+                </field>
+                <xpath expr="//list" position="attributes">
+                    <attribute name="decoration-info">stage_type == 'cliente'</attribute>
+                    <attribute name="decoration-primary">stage_type == 'comercial'</attribute>
+                    <attribute name="decoration-danger">stage_type == 'taller'</attribute>
+                    <attribute name="decoration-success">stage_type == 'positiva'</attribute>
+                    <attribute name="decoration-muted">stage_type == 'negativa'</attribute>
+                    <attribute name="decoration-warning">stage_type == 'administracion'</attribute>
+                </xpath>
+            </data>
+        </field>
+    </record>
+
+
+</odoo>
+
+        <!--
+        decoration-bf - shows the line in BOLD => comercial (querían naranja)
+        decoration-it - shows the line in ITALICS
+        decoration-warning - shows the line in LIGHT BROWN => administración (tendría que ser amarillo)
+        decoration-info - shows the line in LIGHT BLUE => cliente (azul)
+        decoration-danger - shows the line in LIGHT RED => taller (rosa)
+        decoration-primary - shows the line in LIGHT PURPLE
+        decoration-success - shows the line in LIGHT GREEN => positivo (verde)
+        decoration-muted - shows the line in LIGHT GRAY => negativo (gris)
+        -->
+
+
+

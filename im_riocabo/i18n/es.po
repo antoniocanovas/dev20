@@ -1,0 +1,66 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* im_riocabo
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/project_task.py:0
+msgid "New task assigned to you: %s"
+msgstr "Nueva tarea asignada: %s"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/project_task.py:0
+msgid "Project: %s"
+msgstr "Proyecto: %s"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/project_task.py:0
+msgid "Customer: %s"
+msgstr "Cliente: %s"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/project_task.py:0
+msgid "Deadline: %s"
+msgstr "Fecha límite: %s"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/mail_activity.py:0
+msgid "New activity assigned to you on %s"
+msgstr "Nueva actividad asignada en %s"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/mail_activity.py:0
+msgid "Type: %s"
+msgstr "Tipo: %s"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/mail_activity.py:0
+msgid "To-Do"
+msgstr "Por hacer"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/mail_activity.py:0
+msgid "Summary: %s"
+msgstr "Resumen: %s"
+
+#. module: im_riocabo
+#. odoo-python
+#: code:addons/im_riocabo/models/mail_activity.py:0
+msgid "Due date: %s"
+msgstr "Fecha de vencimiento: %s"

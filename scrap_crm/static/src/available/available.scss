@@ -1,0 +1,43 @@
+.o_scrap_crm_available {
+    // Room for the link to open the product in a new tab, in the corner of its tile
+    .o_scrap_crm_available_product {
+        padding-bottom: 2.75rem;
+    }
+}
+
+.o_scrap_crm_available_photo {
+    cursor: zoom-in;
+
+    .o_scrap_crm_available_photo_count {
+        font-size: 0.7rem;
+        transform: translate(25%, 25%);
+    }
+}
+
+.o_scrap_crm_available_gallery {
+    z-index: $zindex-modal;
+    background: rgba(0, 0, 0, 0.92);
+    outline: none;
+
+    .o_scrap_crm_available_gallery_image {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        user-select: none;
+    }
+
+    .o_scrap_crm_available_gallery_thumb {
+        width: 4rem;
+        height: 4rem;
+        flex-shrink: 0;
+        object-fit: cover;
+        cursor: pointer;
+        opacity: 0.6;
+        border: 2px solid transparent;
+
+        &.o_active {
+            opacity: 1;
+            border-color: $white;
+        }
+    }
+}

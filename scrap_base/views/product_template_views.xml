@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="product_template_form_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.scrap_base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <span name="purchase_option" position="after">
+                <span name="scrap_template_option" class="d-inline-flex" invisible="type == 'combo'">
+                    <field name="is_template" widget="boolean_checkbox" class="w-auto"/>
+                    <label for="is_template"/>
+                </span>
+            </span>
+            <!-- Out of the CAT tab, which is shown only when it is set: on every product -->
+            <field name="categ_id" position="after">
+                <field name="scrap_unbuild_type"/>
+            </field>
+            <page name="general_information" position="before">
+                <page string="CAT" name="scrap_vehicle" invisible="type == 'combo' or not scrap_unbuild_type">
+                    <!-- As the CAT tab of scrap_unbuild (Odoo 17): the fields on the left, the
+                         main image of the product, large, on the right -->
+                    <group name="scrap_header">
+                        <group name="scrap_fields">
+                            <field name="vehicle_model_id"/>
+                            <field name="scrap_vehicle_brand_id" invisible="not vehicle_model_id"/>
+                            <field name="plate"/>
+                            <field name="chassis" invisible="product_variant_count > 1"/>
+                            <field name="ref_market"/>
+                            <field name="ref_oem"/>
+                            <!-- A vehicle created by hand becomes one with its template, and gets
+                                 the rest of its CAT data with the button -->
+                            <field name="scrap_template_id" options="{'no_create': True}" invisible="is_template"/>
+                            <field name="scrap_origin_id" readonly="1" invisible="not scrap_origin_id"/>
+                            <field name="scrap_lot_name" invisible="is_template or not scrap_template_id"/>
+                            <field name="scrap_analytic_account_id" invisible="is_template or not scrap_template_id"
+                                   groups="analytic.group_analytic_accounting"/>
+                            <field name="scrap_location_id" invisible="is_template or not scrap_template_id"
+                                   groups="stock.group_stock_multi_locations"/>
+                            <div colspan="2" invisible="is_template or not scrap_template_id or scrap_unbuild_type not in ('main', 'refurbish') or scrap_analytic_account_id and scrap_location_id">
+                                <button name="action_scrap_complete_vehicle" type="object"
+                                        string="Complete CAT Data" class="btn-secondary"
+                                        groups="product.group_product_manager"
+                                        help="Creates the analytic account and the location of the vehicle, named after its license plate, as its purchase does."/>
+                            </div>
+                            <!-- A subproduct is only dismantled -->
+                            <field name="scrap_date" invisible="is_template or scrap_unbuild_type != 'subproduct'"/>
+                            <separator string="Legal deadlines" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
+                            <field name="discharge_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
+                            <field name="decontamination_limit_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
+                            <field name="decontamination_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
+                            <field name="scrap_limit_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
+                            <field name="scrap_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
+                        </group>
+                        <group name="scrap_image">
+                            <field name="image_1920" widget="image" nolabel="1" colspan="2"
+                                   options="{'preview_image': 'image_1024', 'size': [0, 768]}"/>
+                        </group>
+                    </group>
+                    <!-- Marked on the touch screen while decontaminating and dismantling a
+                         subproduct; a vehicle shows them with the ones of its subproducts -->
+                    <field name="scrap_dismantle_line_ids" readonly="1" groups="stock.group_stock_user"
+                           invisible="is_template or not scrap_origin_id or not scrap_dismantle_line_ids">
+                        <list>
+                            <field name="date"/>
+                            <field name="stage"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="uom_id" groups="uom.group_uom"/>
+                            <field name="result" widget="badge" decoration-success="result == 'dismantled'"
+                                   decoration-warning="result == 'missing'" decoration-danger="result == 'discarded'"/>
+                            <field name="condition"/>
+                            <field name="location_dest_id" groups="stock.group_stock_multi_locations"/>
+                            <field name="user_id" widget="many2one_avatar_user" optional="hide"/>
+                            <field name="move_id" optional="hide"/>
+                        </list>
+                    </field>
+                    <!-- Marked on the touch screen while decontaminating and dismantling the
+                         vehicle, and its subproducts later -->
+                    <field name="scrap_origin_line_ids" readonly="1" groups="stock.group_stock_user"
+                           invisible="is_template or scrap_origin_id or not scrap_origin_line_ids">
+                        <list>
+                            <field name="date"/>
+                            <field name="vehicle_id" string="Dismantled From"/>
+                            <field name="stage"/>
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="uom_id" groups="uom.group_uom"/>
+                            <field name="result" widget="badge" decoration-success="result == 'dismantled'"
+                                   decoration-warning="result == 'missing'" decoration-danger="result == 'discarded'"/>
+                            <field name="condition"/>
+                            <field name="location_dest_id" groups="stock.group_stock_multi_locations"/>
+                            <field name="user_id" widget="many2one_avatar_user" optional="hide"/>
+                        </list>
+                    </field>
+                    <group name="scrap_product_texts">
+                        <field name="uses"/>
+                        <field name="references"/>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
+    <!-- The scrap type, as an optional column of the lists of products and variants -->
+    <record id="product_template_tree_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.template.list.inherit.scrap_base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="categ_id" position="after">
+                <field name="scrap_unbuild_type" optional="show"/>
+                <field name="scrap_vehicle_brand_id" optional="show"/>
+            </field>
+        </field>
+    </record>
+    <record id="product_product_tree_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.product.list.inherit.scrap_base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="barcode" position="after">
+                <field name="scrap_unbuild_type" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- The scrap templates, with a ribbon on their card -->
+    <record id="product_template_kanban_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.template.kanban.inherit.scrap_base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <field name="categ_id" position="after">
+                <field name="is_template"/>
+            </field>
+            <xpath expr="//t[@t-name='card']/main" position="before">
+                <widget name="web_ribbon" title="Template" bg_color="text-bg-info" invisible="not is_template"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_kanban_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.product.kanban.inherit.scrap_base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_kanban_view"/>
+        <field name="arch" type="xml">
+            <field name="color" position="after">
+                <field name="is_template"/>
+            </field>
+            <xpath expr="//t[@t-name='card']/main" position="before">
+                <widget name="web_ribbon" title="Template" bg_color="text-bg-info" invisible="not is_template"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- A variant shows its own chassis, also with several variants -->
+    <record id="product_normal_form_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.product.form.inherit.scrap_base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <field name="chassis" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </field>
+        </field>
+    </record>
+
+    <record id="product_template_search_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.template.search.inherit.scrap_base</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <!-- Also by the CAT data -->
+            <field name="name" position="attributes">
+                <attribute name="filter_domain">['|', '|', '|', '|', '|', '|', '|', '|', '|', ('default_code', 'ilike', self), ('product_variant_ids.default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('display_name', '=', self), ('product_variant_ids.chassis', 'ilike', self), ('plate', 'ilike', self), ('ref_oem', 'ilike', self), ('ref_market', 'ilike', self), ('references', 'ilike', self)]</attribute>
+            </field>
+            <filter name="filter_to_purchase" position="after">
+                <filter string="Scrap Templates" name="filter_scrap_template" domain="[('is_template', '=', True)]"/>
+                <filter string="Vehicles" name="filter_scrap_vehicle" domain="[('scrap_template_id', '!=', False)]"/>
+                <filter string="In Stock" name="filter_scrap_in_stock" domain="[('qty_available', '>', 0)]"/>
+                <filter string="Subproducts" name="filter_scrap_subproduct" domain="[('scrap_unbuild_type', '=', 'subproduct'), ('scrap_template_id', '!=', False)]"/>
+            </filter>
+            <!-- The vehicles of a scrap template: also in the search of the variants, made from this one -->
+            <field name="categ_id" position="after">
+                <field name="scrap_template_id" domain="[('is_template', '=', True)]"/>
+                <field name="scrap_origin_id"/>
+                <field name="scrap_vehicle_brand_id"/>
+            </field>
+            <filter name="group_by_categ_id" position="after">
+                <filter string="Vehicle Template" name="group_by_scrap_template_id" context="{'group_by': 'scrap_template_id'}"/>
+                <filter string="Scrap Type" name="group_by_scrap_unbuild_type" context="{'group_by': 'scrap_unbuild_type'}"/>
+                <filter string="Vehicle Brand" name="group_by_scrap_vehicle_brand_id" context="{'group_by': 'scrap_vehicle_brand_id'}"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="product_search_form_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">product.product.search.inherit.scrap_base</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_search_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Also by the CAT data -->
+            <field name="name" position="attributes">
+                <attribute name="filter_domain">['|', '|', '|', '|', '|', '|', '|', '|', ('default_code', 'ilike', self), ('name', 'ilike', self), ('barcode', 'ilike', self), ('display_name', '=', self), ('chassis', 'ilike', self), ('plate', 'ilike', self), ('ref_oem', 'ilike', self), ('ref_market', 'ilike', self), ('references', 'ilike', self)]</attribute>
+            </field>
+        </field>
+    </record>
+
+</odoo>

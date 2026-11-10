@@ -1,0 +1,1473 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* scrap_touch
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-09 07:38+0000\n"
+"PO-Revision-Date: 2026-11-09 07:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: scrap_touch
+#: model:ir.module.module,description:base.module_scrap_touch
+msgid ""
+"# Pantalla táctil de desguace (`scrap_touch`)\n"
+"\n"
+"Pantalla para el reciclaje de vehículos, pensada para tablet o pantalla táctil. Reúne en una aplicación las tareas del desguace, cada una con su tecla de función:\n"
+"\n"
+"- **F1 · Entrada para desguace:** compra de los vehículos de un proveedor para desmontarlos, cada uno con su matrícula, y su recepción en el mismo paso o más tarde.\n"
+"- **F2 · Entrada Compra/Venta:** lo mismo, para los vehículos que se reparan y se venden completos como usados.\n"
+"- **F3 · Descontaminación:** los vehículos para desguazar recibidos y por descontaminar, el límite legal más cercano primero, para marcarlos como descontaminados.\n"
+"- **F4 · Desguace:** los vehículos descontaminados por desguazar, igual, y su desmontaje pieza a pieza.\n"
+"- **F5 · Vehículos:** consulta de todos los vehículos comprados, con sus plazos, ubicación y listas de materiales.\n"
+"\n"
+"La aplicación se llama *CAT* (centro autorizado de tratamiento) y aparece en la pantalla de inicio de Odoo. Su dirección es `/odoo/scrap-touch`. Sustituye al antiguo menú CAT del backend de `scrap_base`.\n"
+"\n"
+"Depende de `purchase_stock` y de `scrap_base`. Funciona en Odoo 20 Community y Enterprise.\n"
+"\n"
+"## Criterio\n"
+"\n"
+"Sigue el mismo criterio que *Mostrador* (`mercas_touch`), aunque no depende de él:\n"
+"\n"
+"- **Tarjetas grandes y teclado numérico en pantalla**, sin formularios ni listas del backend.\n"
+"- **Se guarda mientras se trabaja.** La compra en curso se guarda como petición de presupuesto en borrador con cada cambio, en segundo plano. Se puede dejar a medias y retomarla después, en el mismo puesto, en otro o desde el backend.\n"
+"- **Una llamada por operación.** *Comprar* y *Comprar y recibir* son un único método del servidor que guarda las últimas líneas, valida y confirma la compra (y, en el segundo caso, valida la recepción).\n"
+"- **Sin duplicados.** La compra lleva un identificador (`scrap_touch_uuid`). Si se pulsa dos veces o se reintenta tras un corte, el servidor devuelve la compra ya creada.\n"
+"- **Los permisos del usuario se aplican como en el backend.** El menú lo ven los usuarios de compras y los de inventario. Las entradas (F1 y F2) salen a los usuarios de compras; descontaminación, desguace y vehículos (F3 a F5), a los de inventario, que pueden marcar los vehículos como hechos aunque no puedan modificar productos.\n"
+"\n"
+"## Configuración\n"
+"\n"
+"Los vehículos son productos con:\n"
+"\n"
+"- **Plantilla desguace** marcada (campo `is_template` de `scrap_base`).\n"
+"- **Se puede comprar** marcado.\n"
+"- **Seguimiento por número de serie.** El número de serie de cada vehículo es su **matrícula**, porque el bastidor no se conoce hasta recibirlo.\n"
+"\n"
+"Solo esos productos salen en la pantalla. `scrap_base` activa *Números de serie y lote* al instalarse.\n"
+"\n"
+"## Uso\n"
+"\n"
+"### Inicio\n"
+"\n"
+"Un botón por opción, con su tecla de función. Descontaminación y Desguace muestran cuántos vehículos hay **fuera de plazo** (en rojo) y **pendientes**; se actualiza al volver al inicio. Arriba, la **cuadrícula de puntos** vuelve a Odoo y el botón de descarga **instala Odoo como aplicación** en la tablet. Dentro de cada opción, la flecha (o **Esc**) vuelve atrás.\n"
+"\n"
+"### F1 · Entrada para desguace y F2 · Entrada Compra/Venta\n"
+"\n"
+"Las dos funcionan igual y usan los mismos productos. Cada una pone su tipo en la compra (campo *Tipo desguace* de `scrap_base`): la entrada para desguace, *Vehículo o Parte para desguace* (`main`); la de compra/venta, *Para compra/venta* (`refurbish`). Cada opción lista solo las compras de su tipo, y una compra no cambia de tipo desde la pantalla.\n"
+"\n"
+"**1. Lista de compras.** Al entrar se ven las compras, la última modificada primero, con su proveedor, número de vehículos, importe, fecha y usuario. Se buscan por número de compra, proveedor o matrícula. Hay cuatro filtros:\n"
+"\n"
+"- **En curso** (por defecto): las compras en borrador hechas desde la pantalla.\n"
+"- **Para recibir:** las confirmadas con la recepción pendiente.\n"
+"- **Para facturar:** las confirmadas que aún no están facturadas del todo.\n"
+"- **Todos:** cualquier compra salvo las canceladas, con su estado.\n"
+"\n"
+"Las compras hechas en el backend salen en la opción de su *Tipo desguace*; sin tipo no salen en ninguna.\n"
+"\n"
+"Al tocar una compra en borrador se sigue con ella (paso 3). Al tocar una confirmada se abre su **resumen**: estado, recepción y facturación, vehículos con su matrícula, albarán y facturas. Desde ahí:\n"
+"\n"
+"- **Recibir**, si falta recibir: valida la recepción, cada vehículo con su matrícula como número de serie.\n"
+"- **Crear factura**, si falta facturar: crea la factura del proveedor en borrador y la abre en un diálogo para revisarla.\n"
+"- Tocando una factura se abre para consultarla o terminarla.\n"
+"- **Abrir** muestra la compra y **Volver a la lista** (o la flecha atrás) vuelve a la lista con el mismo filtro.\n"
+"\n"
+"**Nueva compra** empieza una compra nueva: pide el proveedor (paso 2).\n"
+"\n"
+"**2. Proveedor** (en una compra nueva). Se busca por nombre, referencia, NIF o teléfono; salen primero los proveedores con más compras. **Nuevo**, junto al buscador, da de alta un proveedor en un formulario corto (nombre, NIF, teléfono, correo y dirección), con el nombre ya escrito en el buscador; al guardar, la compra sigue con él. Se ve solo si el usuario puede crear contactos (*Creación de contactos*, que Odoo da por defecto a los usuarios internos). Empresa o persona lo decide Odoo según el NIF.\n"
+"\n"
+"**3. Vehículos.** A la izquierda, los productos en tarjetas (por categoría si hay varias, o buscando por nombre o referencia). A la derecha, el **ticket** con los vehículos de la compra y el total.\n"
+"\n"
+"Al tocar un producto se abre la línea, con la **matrícula** y el **precio** (con el teclado numérico, el del dispositivo o un teclado físico; puede ser 0). **Añadir** la pasa al ticket. La matrícula se guarda en mayúsculas y sin espacios ni guiones: «1234 abc», «1234-ABC» y «1234ABC» son la misma.\n"
+"\n"
+"Tocando un vehículo del ticket se modifica, con **Actualizar línea**; la papelera de la línea lo quita. Arriba del ticket se ve si la compra está guardada.\n"
+"\n"
+"La flecha atrás vuelve a la lista de borradores sin perder nada. La papelera del ticket **cancela la compra**, tras confirmarlo.\n"
+"\n"
+"**4. Comprar o Comprar y recibir.** Al confirmar, `scrap_base` convierte cada línea en un vehículo: un producto propio copiado de la plantilla, con su matrícula, su cuenta analítica y su ubicación con el nombre de la matrícula (ver su README).\n"
+"\n"
+"- **Comprar** confirma la compra. La recepción queda pendiente para cuando lleguen los vehículos, con la matrícula de cada uno ya puesta como número de serie: al recibirlos en el backend no hay que teclearla.\n"
+"- **Comprar y recibir** confirma la compra y valida la recepción en el mismo paso, cada vehículo con su matrícula como número de serie y en su ubicación.\n"
+"\n"
+"Al terminar se ven la compra, el albarán y los vehículos con su matrícula, su referencia interna (si ya se recibieron y hay secuencia en la pestaña CAT de la compañía) y su ubicación, con **Recibir** si se compró sin recibir y **Crear factura** cuando ya se puede facturar. **Abrir** muestra la compra y **Nueva compra** empieza otra del mismo proveedor.\n"
+"\n"
+"### F3 · Descontaminación, F4 · Desguace y F5 · Vehículos\n"
+"\n"
+"Funcionan como las listas de compras: buscador, filtros, tarjetas y, al tocar una, su resumen. Los plazos y fechas son los de `scrap_base` (días de la pestaña CAT de la compañía, contados desde la fecha de baja, que es la de recepción).\n"
+"\n"
+"**1. Lista.** Se busca por matrícula, nombre, referencia interna, bastidor o marca/modelo.\n"
+"\n"
+"- **Descontaminación:** los vehículos para desguazar ya recibidos. Filtros **Pendientes** (por defecto, el límite más cercano primero), **Fuera de plazo**, **Descontaminados** (el último primero) y **Todos**.\n"
+"- **Desguace:** igual, con los ya descontaminados: **Pendientes**, **Fuera de plazo**, **Desguazados** y **Todos**.\n"
+"- **Vehículos:** todos los vehículos creados desde plantillas, el último primero. Filtros **En stock** (por defecto), **Para desguazar**, **Compra/Venta** y **Todos**.\n"
+"\n"
+"Cada tarjeta muestra el vehículo, su referencia, matrícula y marca/modelo, y su plazo: en rojo los días de retraso, en naranja si vence en 3 días o menos, en verde con la fecha si ya está hecho. En Vehículos, su estado (por recibir, recibido, descontaminado, desguazado o en stock) y su tipo.\n"
+"\n"
+"**2. Resumen del vehículo:** matrícula, referencia, marca/modelo, plantilla, tipo, bastidor, ubicación, compra y proveedor, fecha de baja y sus listas de materiales (componentes y operaciones). En los vehículos para desguazar recibidos, una tarjeta por etapa (la de la opción abierta, resaltada) con su límite legal y:\n"
+"\n"
+"- Descontaminación: **Descontaminar**, que abre la pantalla de descontaminación (debajo, cuántos residuos se han marcado). Ya descontaminado, **Residuos** muestra lo marcado.\n"
+"- Desguace: **Desguazar**, que abre la pantalla de desmontaje (debajo, cuántas piezas quedan y cuántas se han marcado). Ya desguazado, **Piezas** muestra lo marcado.\n"
+"- **Deshacer**, si se marcó por error, tras confirmarlo. La descontaminación no se deshace si ya está desguazado. Deshacer el desguace no deshace las piezas marcadas ni su stock.\n"
+"\n"
+"Solo se desguaza un vehículo ya descontaminado. **Abrir** muestra la ficha del producto y **Volver a la lista** (o la flecha atrás) vuelve con el mismo filtro.\n"
+"\n"
+"**3. Descontaminación.** Con el mismo estilo que el desmontaje, pero las tarjetas son los **productos de desecho** de la compañía (pestaña CAT de la compañía), siempre disponibles. Al tocar uno:\n"
+"\n"
+"- **Cantidad**, la que se retire (admite decimales, por ejemplo litros de aceite): se escribe con el teclado del equipo (el campo queda listo para escribir al elegir el residuo; Intro confirma) o con el teclado numérico de la pantalla.\n"
+"- **Desechado** o **No existe**.\n"
+"- **Ubicación de destino** de lo desechado, por defecto la *Zona de desecho* de la compañía; **Cambiar** abre el buscador de ubicaciones internas.\n"
+"- **Confirmar.** Lo desechado entra en stock en su destino (es un producto normal: solo se incrementa su stock); lo que no existe no mueve stock.\n"
+"\n"
+"Se puede repetir tantas veces como haga falta. Debajo, **Residuos marcados**, con **Deshacer**. Se termina con **Descontaminado hoy** o con una fecha y **En esta fecha** (no posterior a hoy ni anterior a la baja); a partir de ahí no se puede marcar más.\n"
+"\n"
+"**4. Desmontaje.** Las tarjetas son los componentes que quedan por desmontar de las listas de materiales del vehículo, con la cantidad pendiente y su operación. Al tocar una, a la derecha:\n"
+"\n"
+"- **Cantidad**, con − y +, si queda más de una (por defecto, 1).\n"
+"- **Una sola fila de opciones**, de un toque: el estado de la pieza desmontada (**Excelente**, **Buen estado**, **Media vida** o **Funcional**), **No existe** o **Desechado**.\n"
+"- **Ubicación de destino** de la pieza desmontada, por defecto la del vehículo; **Cambiar** abre un buscador de las ubicaciones internas de la compañía.\n"
+"- **Confirmar.** La cantidad se descuenta de la lista de materiales del vehículo, que así guarda lo que queda por desmontar (la línea se queda a 0). Lo desmontado entra en stock en su destino, desde la ubicación de producción; lo desechado va a la ubicación de desecho; lo que no existe no mueve stock. Si el componente es una **plantilla desguace** (por ejemplo, un motor que se despiezará después), cada unidad desmontada se convierte en un producto propio, copia de la plantilla, como los vehículos comprados: con el nombre de la plantilla y la referencia del vehículo, su marca/modelo y las listas de materiales de la plantilla. Si no lo es, se incrementa el stock del propio componente. Los componentes con lote o número de serie reciben uno nuevo, a partir de la referencia del vehículo.\n"
+"\n"
+"Debajo, **Piezas marcadas**: cantidad, pieza, resultado, estado, destino, fecha y operario, con **Deshacer** para una pieza marcada por error (tras confirmarlo): su stock vuelve a donde estaba (lo desmontado tiene que seguir en su destino, con su lote; si ya se movió, no se puede deshacer), el producto creado de una plantilla se archiva, la cantidad vuelve a estar por desmontar y, si el vehículo estaba desguazado, deja de estarlo. El desguace se **termina solo** cuando no queda nada por desmontar, con la fecha de hoy; también se puede terminar antes con **Desguazado hoy** o con una fecha y **En esta fecha**. **Volver al vehículo** (o la flecha atrás) vuelve al resumen.\n"
+"\n"
+"### Comprobaciones\n"
+"\n"
+"- Una matrícula pertenece a un solo vehículo: no se puede usar si ya la tiene otro vehículo comprado (aunque sea de otra plantilla) o recibido, ni estar en dos líneas de la misma compra. Se comprueba al guardar cada cambio y otra vez al comprar, por si otra compra la usó mientras tanto. Si se cancela la compra de un vehículo sin recibir, su matrícula queda libre.\n"
+"- Solo se admiten productos marcados como *Plantilla desguace* y con seguimiento por número de serie (aunque no estén marcados como *Se puede comprar*).\n"
+"- El proveedor y el tipo de una compra no se pueden cambiar desde la pantalla.\n"
+"\n"
+"En el backend, las líneas de la compra muestran la columna **Matrícula** (de `scrap_base`). La factura del proveedor se crea desde el resumen de la compra en la pantalla, o desde la compra en el backend, como cualquier otra.\n"
+"\n"
+"## Actualización\n"
+"\n"
+"- **20.0.1.1.0:** las compras hechas antes desde la pantalla, que no tenían tipo, pasan a *Vehículo o Parte para desguace*.\n"
+"- **20.0.1.2.0:** la matrícula de las líneas pasa al campo de `scrap_base`; las ya guardadas se copian. Las compras confirmadas antes siguen con el producto plantilla: solo las nuevas crean un producto por vehículo.\n"
+"\n"
+"## Pruebas\n"
+"\n"
+"```\n"
+"odoo-bin -c odoo20.conf -d <bd> -i scrap_touch --test-tags /scrap_touch --stop-after-init\n"
+"```\n"
+"\n"
+"El recorrido de la pantalla (`test_ui`) necesita Chrome y la librería `websocket-client`. Sin ella, Odoo lo salta con un aviso.\n"
+msgstr ""
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s days late"
+msgstr "%s días de retraso"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s days left"
+msgstr "Quedan %s días"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s decontaminated."
+msgstr "%s descontaminado."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s deleted."
+msgstr "%s eliminado."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s dismantled."
+msgstr "%s desguazado."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "%s is already done."
+msgstr "%s ya está hecho."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "%s is dismantled: undo the dismantling first."
+msgstr "%s está desguazado: deshaga primero el desguace."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "%s is not a confirmed purchase."
+msgstr "%s no es una compra confirmada."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid ""
+"%s is not a scrap template that can be bought tracked by serial number."
+msgstr ""
+"%s no es una plantilla desguace que se pueda comprar con seguimiento por "
+"número de serie."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "%s is not in draft anymore."
+msgstr "%s ya no está en borrador."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "%s is of another kind of entry."
+msgstr "%s es de otro tipo de entrada."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "%s isn't a vehicle to dismantle received."
+msgstr "%s no es un vehículo para desguazar recibido."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "%s must be decontaminated before it is dismantled."
+msgstr "%s se tiene que descontaminar antes de desguazarlo."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s received."
+msgstr "%s recibida."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s undone."
+msgstr "%s deshecho."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s will be cancelled."
+msgstr "Se cancelará %s."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s will be pending decontamination again."
+msgstr "%s volverá a estar pendiente de descontaminar."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s will be pending dismantling again."
+msgstr "%s volverá a estar pendiente de desguazar."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s will be removed; its stock goes back."
+msgstr "%s se quitará y se devolverá su stock."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s will be to dismantle again; its stock goes back."
+msgstr "%s volverá a estar por desmontar y se devolverá su stock."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "1 day late"
+msgstr "1 día de retraso"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "1 day left"
+msgstr "Queda 1 día"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "1 vehicle"
+msgstr "1 vehículo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Add"
+msgstr "Añadir"
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Add between 1 and %s lines."
+msgstr "Añade entre 1 y %s líneas."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "All"
+msgstr "Todos"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Back (Esc)"
+msgstr "Atrás (Esc)"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Back to the list"
+msgstr "Volver a la lista"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Back to the vehicle"
+msgstr "Volver al vehículo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Buy"
+msgstr "Comprar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Buy and receive the vehicles to dismantle"
+msgstr "Comprar y recibir los vehículos para desmontar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Buy and receive the vehicles to repair and sell whole"
+msgstr "Comprar y recibir los vehículos para reparar y vender completos"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+#: model:ir.actions.client,name:scrap_touch.scrap_touch_action
+#: model:ir.ui.menu,name:scrap_touch.scrap_touch_menu_root
+msgid "CAT"
+msgstr "CAT"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Cancel the purchase"
+msgstr "Cancelar la compra"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Change"
+msgstr "Cambiar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Change the line"
+msgstr "Modificar la línea"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Chassis"
+msgstr "Bastidor"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Choose a part to mark it as dismantled, missing or discarded."
+msgstr "Elige una pieza para marcarla como desmontada, no existe o desechada."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Choose a product to add a vehicle to the purchase."
+msgstr "Elige un producto para añadir un vehículo a la compra."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid ""
+"Choose a waste to mark how much is taken out, or that it is missing. It can "
+"be done as many times as needed."
+msgstr ""
+"Elige un residuo para indicar cuánto se retira o que no existe. Se puede "
+"hacer tantas veces como haga falta."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Choose the date."
+msgstr "Elija la fecha."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Clear"
+msgstr "Borrar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Confirm"
+msgstr "Confirmar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Confirm the purchase: the vehicles are received later"
+msgstr "Confirmar la compra: los vehículos se reciben después"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Create bill"
+msgstr "Crear factura"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Decontaminate"
+msgstr "Descontaminar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Decontaminated"
+msgstr "Descontaminados"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Decontaminated on %s"
+msgstr "Descontaminado el %s"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Decontaminated today"
+msgstr "Descontaminado hoy"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Decontamination"
+msgstr "Descontaminación"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Delete"
+msgstr "Eliminar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Delete the waste"
+msgstr "Eliminar el residuo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Destination of"
+msgstr "Destino de"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Discarded"
+msgstr "Desechado"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Discharge date"
+msgstr "Fecha de baja"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Dismantle"
+msgstr "Desguazar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Dismantled"
+msgstr "Desguazados"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Dismantled on %s"
+msgstr "Desguazado el %s"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Dismantled today"
+msgstr "Desguazado hoy"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Dismantling"
+msgstr "Desguace"
+
+#. module: scrap_touch
+#: model:ir.model.fields,field_description:scrap_touch.field_purchase_order__display_name
+#: model:ir.model.fields,field_description:scrap_touch.field_scrap_touch__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Draft bill"
+msgstr "Factura en borrador"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Due today"
+msgstr "Vence hoy"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Edit"
+msgstr "Editar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Edit ·"
+msgstr "Editar ·"
+
+#. module: scrap_touch
+#. odoo-javascript
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Enter a price of 0 or more."
+msgstr "Indica un precio de 0 o más."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Enter the license plate of %s."
+msgstr "Indica la matrícula de %s."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Enter the license plate."
+msgstr "Indica la matrícula."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Enter the price (0 if it is free)."
+msgstr "Indica el precio (0 si es gratis)."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Excellent"
+msgstr "Excelente"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Finish the decontamination"
+msgstr "Terminar la descontaminación"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Finish the dismantling"
+msgstr "Terminar el desguace"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Functional"
+msgstr "Funcional"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Good"
+msgstr "Buen estado"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Half Life"
+msgstr "Media vida"
+
+#. module: scrap_touch
+#: model:ir.model.fields,field_description:scrap_touch.field_purchase_order__id
+#: model:ir.model.fields,field_description:scrap_touch.field_scrap_touch__id
+msgid "ID"
+msgstr "ID"
+
+#. module: scrap_touch
+#: model:ir.model.fields,help:scrap_touch.field_purchase_order__scrap_touch_uuid
+msgid ""
+"Identifier given by the touch screen that made this purchase, so that "
+"sending it twice doesn't duplicate it."
+msgstr ""
+"Identificador que da la pantalla táctil que hizo esta compra, para que "
+"enviarla dos veces no la duplique."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "In progress"
+msgstr "En curso"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "In stock"
+msgstr "En stock"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Install the app on this device"
+msgstr "Instalar la aplicación en este dispositivo"
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "Invalid date."
+msgstr "Fecha no válida."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "Invalid filter."
+msgstr "Filtro no válido."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Invalid identifier of the operation."
+msgstr "Identificador de la operación no válido."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Invalid kind of entry."
+msgstr "Tipo de entrada no válido."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Invalid line."
+msgstr "Línea no válida."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Invalid operation."
+msgstr "Operación no válida."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "Invalid part."
+msgstr "Pieza no válida."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Invalid product."
+msgstr "Producto no válido."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Invalid purchase."
+msgstr "Compra no válida."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "Invalid quantity."
+msgstr "Cantidad no válida."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "Invalid stage."
+msgstr "Etapa no válida."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "Invalid supplier."
+msgstr "Proveedor no válido."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "Invalid vehicle."
+msgstr "Vehículo no válido."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "It is dismantled once decontaminated."
+msgstr "Se desguaza una vez descontaminado."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "It is finished by itself when nothing is left."
+msgstr "Se termina solo cuando no queda nada."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "It is saved in draft with the first line"
+msgstr "Se guarda en borrador con la primera línea"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Keep it"
+msgstr "Mantenerla"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Late"
+msgstr "Fuera de plazo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Legal limit:"
+msgstr "Límite legal:"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "License plate"
+msgstr "Matrícula"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Limit"
+msgstr "Límite"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Location"
+msgstr "Ubicación"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Look up the vehicles bought, their deadlines and their location"
+msgstr "Consultar los vehículos comprados, sus plazos y su ubicación"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Make/Model"
+msgstr "Marca/Modelo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Missing"
+msgstr "No existe"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "New"
+msgstr "Nuevo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "New purchase"
+msgstr "Nueva compra"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "New supplier"
+msgstr "Nuevo proveedor"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "No limit"
+msgstr "Sin límite"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No product found."
+msgstr "No se ha encontrado ningún producto."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No purchase found."
+msgstr "No se ha encontrado ninguna compra."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No supplier found."
+msgstr "No se ha encontrado ningún proveedor."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No vehicle found."
+msgstr "No se ha encontrado ningún vehículo."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Not saved"
+msgstr "No guardado"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Not saved: it will be tried again with the next change"
+msgstr "No guardado: se volverá a intentar con el próximo cambio"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Nothing left to dismantle."
+msgstr "No queda nada por desmontar."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Odoo"
+msgstr "Odoo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "On this date"
+msgstr "En esta fecha"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Open"
+msgstr "Abrir"
+
+#. module: scrap_touch
+#: model:ir.module.module,summary:base.module_scrap_touch
+msgid "Pantalla táctil para el reciclaje de vehículos: entrada para desguace"
+msgstr "Pantalla táctil para el reciclaje de vehículos: entrada para desguace"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Parts"
+msgstr "Piezas"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Parts marked"
+msgstr "Piezas marcadas"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Pending"
+msgstr "Pendientes"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Price"
+msgstr "Precio"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Purchase"
+msgstr "Compra"
+
+#. module: scrap_touch
+#: model:ir.model,name:scrap_touch.model_purchase_order
+msgid "Purchase Order"
+msgstr "Pedido de compra"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Purchase and receive"
+msgstr "Comprar y recibir"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Purchase/Sale"
+msgstr "Compra/Venta"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Purchase/Sale entry"
+msgstr "Entrada Compra/Venta"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Quantity"
+msgstr "Cantidad"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Receive"
+msgstr "Recibir"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Received"
+msgstr "Recibida"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Received on %s"
+msgstr "Recibido el %s"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Remove"
+msgstr "Quitar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Saved in"
+msgstr "Guardado en"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Saving…"
+msgstr "Guardando…"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Scrap Template"
+msgstr "Plantilla desguace"
+
+#. module: scrap_touch
+#: model:ir.module.module,shortdesc:base.module_scrap_touch
+msgid "Scrap Touch"
+msgstr "Desguace táctil"
+
+#. module: scrap_touch
+#: model:ir.model,name:scrap_touch.model_scrap_touch
+msgid "Scrap Touch Screen"
+msgstr "Pantalla táctil de desguace"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Scrap entry"
+msgstr "Entrada para desguace"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Scrap type"
+msgstr "Tipo desguace"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Search a license plate, reference, chassis or make/model"
+msgstr "Buscar matrícula, referencia, bastidor o marca/modelo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Search a location"
+msgstr "Buscar una ubicación"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Search a product"
+msgstr "Buscar un producto"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Search a purchase, a supplier or a license plate"
+msgstr "Buscar una compra, un proveedor o una matrícula"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Search a supplier"
+msgstr "Buscar un proveedor"
+
+#. module: scrap_touch
+#: model_terms:ir.ui.view,arch_db:scrap_touch.res_partner_view_form_scrap_touch
+msgid "Supplier"
+msgstr "Proveedor"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Template"
+msgstr "Plantilla"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "The changes couldn't be saved."
+msgstr "No se han podido guardar los cambios."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "The date can't be later than today."
+msgstr "La fecha no puede ser posterior a hoy."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The license plate %(lot)s is already used by %(product)s."
+msgstr "La matrícula %(lot)s ya la tiene %(product)s."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The license plate %(lot)s of %(product)s was already received."
+msgstr "La matrícula %(lot)s de %(product)s ya se recibió."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "The license plate %s is already in the purchase."
+msgstr "La matrícula %s ya está en la compra."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The license plate %s is in more than one line."
+msgstr "La matrícula %s está en más de una línea."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The number can't be longer than %s characters."
+msgstr "El número no puede tener más de %s caracteres."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "The part isn't in the bill of materials of %s anymore."
+msgstr "La pieza ya no está en la lista de materiales de %s."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "The part was already undone."
+msgstr "La pieza ya se deshizo."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "The product doesn't exist anymore."
+msgstr "El producto ya no existe."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The purchase doesn't exist anymore."
+msgstr "La compra ya no existe."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The receipt of %s couldn't be validated: check it in the backend."
+msgstr "No se ha podido validar la recepción de %s: revísala en el backend."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The supplier doesn't exist anymore."
+msgstr "El proveedor ya no existe."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "The supplier of a purchase can't be changed."
+msgstr "No se puede cambiar el proveedor de una compra."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "The vehicle doesn't exist anymore."
+msgstr "El vehículo ya no existe."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "The vehicle will be pending dismantling again."
+msgstr "El vehículo volverá a estar pendiente de desguace."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid ""
+"The vehicles are received later, with their license plates already set in "
+"the receipt."
+msgstr ""
+"Los vehículos se reciben después, con sus matrículas ya puestas en la "
+"recepción."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid ""
+"The vehicles decontaminated to dismantle, the nearest legal limit first"
+msgstr ""
+"Los vehículos descontaminados por desguazar, el límite legal más cercano "
+"primero"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "The vehicles to decontaminate, the nearest legal limit first"
+msgstr "Los vehículos por descontaminar, el límite legal más cercano primero"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There are no waste products: set them in the CAT tab of the company."
+msgstr ""
+"No hay productos de desecho: indícalos en la pestaña CAT de la compañía."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no product to choose: mark the vehicles as"
+msgstr "No hay productos para elegir: marca los vehículos como"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no purchase in draft."
+msgstr "No hay ninguna compra en borrador."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no vehicle late."
+msgstr "No hay ningún vehículo fuera de plazo."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no vehicle pending."
+msgstr "No hay ningún vehículo pendiente."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "There is nothing to invoice in %s."
+msgstr "No hay nada para facturar en %s."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is nothing to invoice."
+msgstr "No hay nada para facturar."
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch.py:0
+msgid "There is nothing to receive in %s."
+msgstr "No hay nada para recibir en %s."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is nothing to receive."
+msgstr "No hay nada para recibir."
+
+#. module: scrap_touch
+#: model:ir.model.constraint,message:scrap_touch.constraint_purchase_order_scrap_touch_uuid_unique
+msgid "This purchase was already received from the touch screen."
+msgstr "Esta compra ya se recibió desde la pantalla táctil."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "To dismantle"
+msgstr "Para desguazar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "To invoice"
+msgstr "Para facturar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "To receive"
+msgstr "Para recibir"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Total"
+msgstr "Total"
+
+#. module: scrap_touch
+#: model:ir.model.fields,field_description:scrap_touch.field_purchase_order__scrap_touch_uuid
+msgid "Touch Screen Identifier"
+msgstr "Identificador de la pantalla táctil"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Undo"
+msgstr "Deshacer"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Undo the decontamination"
+msgstr "Deshacer la descontaminación"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Undo the dismantling"
+msgstr "Deshacer el desguace"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Undo the part"
+msgstr "Deshacer la pieza"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Update"
+msgstr "Actualizar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Update line"
+msgstr "Actualizar línea"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Vehicles"
+msgstr "Vehículos"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Waste"
+msgstr "Residuos"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Waste marked"
+msgstr "Residuos marcados"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Without taxes. The purchase computes the final amounts."
+msgstr "Sin impuestos. La compra calcula los importes finales."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "components ·"
+msgstr "componentes ·"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "confirmed"
+msgstr "confirmada"
+
+#. module: scrap_touch
+#: model_terms:ir.ui.view,arch_db:scrap_touch.res_partner_view_form_scrap_touch
+msgid "e.g. Scrap Yard Ltd or John Smith"
+msgstr "p. ej. Desguaces del Sur S.L. o Juan García"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "in their product form, with tracking by serial number."
+msgstr "en su ficha de producto, con seguimiento por número de serie."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "late"
+msgstr "fuera de plazo"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "marked"
+msgstr "marcadas"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "of"
+msgstr "de"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "operations"
+msgstr "operaciones"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "parts to dismantle"
+msgstr "piezas por desmontar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "pending"
+msgstr "pendientes"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "received"
+msgstr "recibida"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "to dismantle"
+msgstr "por desmontar"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "vehicles"
+msgstr "vehículos"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "waste marked"
+msgstr "residuos marcados"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "· 1 vehicle"
+msgstr "· 1 vehículo"
+
+#. module: scrap_touch
+#. odoo-python
+#: code:addons/scrap_touch/models/scrap_touch_cat.py:0
+msgid "%s is a subproduct: it is only dismantled."
+msgstr "%s es un subproducto: solo se desguaza."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Subproducts"
+msgstr "Subproductos"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no subproduct to dismantle."
+msgstr "No hay ningún subproducto por desguazar."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "It is dismantled once received."
+msgstr "Se desguaza una vez recibido."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Origin"
+msgstr "Origen"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "On sale"
+msgstr "En venta"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no vehicle on sale."
+msgstr "No hay ningún vehículo en venta."

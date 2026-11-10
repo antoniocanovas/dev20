@@ -1,0 +1,726 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="scrap_touch.TouchScreen">
+        <div class="o_action o_scrap_touch d-flex flex-column h-100 bg-view">
+            <t t-if="!this.state.mode" t-call="scrap_touch.TouchScreenHome"/>
+            <t t-else="">
+                <div class="o_scrap_touch_header d-flex align-items-center gap-2 px-3 py-2 border-bottom">
+                    <button class="btn btn-light btn-lg o_scrap_touch_back" title="Back (Esc)"
+                            t-att-disabled="this.state.sending" t-on-click="this.onBack">
+                        <i class="oi fs-2" data-icon="arrow_back"/>
+                    </button>
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fs-4 fw-bold text-truncate">
+                            <t t-out="this.currentMode.name"/>
+                            <t t-if="this.state.vehicle"> · <span class="o_scrap_touch_vehicle_title" t-out="this.state.vehicle.name"/></t>
+                            <t t-if="this.state.partner"> · <span class="o_scrap_touch_partner_name" t-out="this.state.partner.name"/></t>
+                            <t t-if="this.state.order and !this.state.done"> · <span class="o_scrap_touch_order_name" t-out="this.state.order.name"/></t>
+                            <t t-elif="this.state.choosingPartner"> · <span class="text-muted">New purchase</span></t>
+                        </div>
+                        <div t-if="this.state.partner and (this.state.partner.city or this.state.partner.vat)" class="small text-muted text-truncate">
+                            <t t-out="this.state.partner.city"/><t t-if="this.state.partner.city and this.state.partner.vat"> · </t><t t-out="this.state.partner.vat"/>
+                        </div>
+                    </div>
+                    <div class="d-none d-md-flex gap-1 o_scrap_touch_tabs">
+                        <button t-foreach="this.visibleModes" t-as="mode" t-key="mode.key"
+                                t-att-class="'btn ' + (mode.key === this.state.mode ? 'btn-primary' : 'btn-secondary')"
+                                t-att-title="mode.name" t-att-disabled="this.state.sending"
+                                t-on-click="() => this.openMode(mode.key)">
+                            <span class="small fw-bold" t-out="mode.fkey"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-grow-1 overflow-auto p-3 o_scrap_touch_body">
+                    <t t-if="this.currentMode.stage">
+                        <t t-if="this.state.vehicle and this.state.dismantle" t-call="scrap_touch.TouchScreenDismantle"/>
+                        <t t-elif="this.state.vehicle" t-call="scrap_touch.TouchScreenVehicle"/>
+                        <t t-else="" t-call="scrap_touch.TouchScreenVehicles"/>
+                    </t>
+                    <!-- A vehicle on sale, opened from the list of the purchase/sale entry -->
+                    <t t-elif="this.state.vehicle" t-call="scrap_touch.TouchScreenVehicle"/>
+                    <t t-elif="!this.state.partner and !this.state.choosingPartner" t-call="scrap_touch.TouchScreenDrafts"/>
+                    <t t-elif="!this.state.partner" t-call="scrap_touch.TouchScreenPartners"/>
+                    <t t-elif="this.state.done" t-call="scrap_touch.TouchScreenDone"/>
+                    <div t-else="" class="d-flex flex-column flex-lg-row gap-3 h-100">
+                        <div class="flex-grow-1 min-w-0">
+                            <t t-if="this.state.entry" t-call="scrap_touch.TouchScreenEntry"/>
+                            <t t-else="" t-call="scrap_touch.TouchScreenCatalog"/>
+                        </div>
+                        <div class="o_scrap_touch_ticket d-flex flex-column border rounded p-2">
+                            <t t-call="scrap_touch.TouchScreenTicket"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </div>
+    </t>
+
+    <!-- Main menu: one big button per task, also opened with its function key -->
+    <t t-name="scrap_touch.TouchScreenHome">
+        <div class="flex-grow-1 overflow-auto w-100 pt-sm-3 bg-body-tertiary o_scrap_touch_home">
+            <div class="container d-flex flex-column bg-view shadow o_scrap_touch_home_menu">
+                <header class="d-flex align-items-center justify-content-between my-3 column-gap-2">
+                    <a href="#" title="Odoo" aria-label="Odoo" class="oi fs-2 me-3 text-body o_scrap_touch_odoo_home"
+                       data-icon="apps" t-on-click.prevent="this.onOdooHome"/>
+                    <span class="fs-2 me-auto">CAT</span>
+                    <a t-if="this.canInstall()" href="#" role="button"
+                       title="Install the app on this device" aria-label="Install the app on this device"
+                       class="btn btn-secondary d-flex align-items-center justify-content-center oi o_scrap_touch_pwa_install"
+                       data-icon="download" t-on-click.prevent="this.onInstall"/>
+                </header>
+                <footer class="d-grid gap-2 mb-3">
+                    <button t-foreach="this.visibleModes" t-as="mode" t-key="mode.key"
+                            t-attf-class="btn btn-primary d-flex align-items-center gap-3 text-start p-3 o_scrap_touch_mode o_scrap_touch_mode_{{ mode.key }}"
+                            t-on-click="() => this.openMode(mode.key)">
+                        <i class="oi fs-2" t-att-data-icon="mode.icon"/>
+                        <span class="d-flex flex-column me-auto">
+                            <span class="fs-5 fw-bold" t-out="mode.name"/>
+                            <span class="small" t-out="mode.help"/>
+                        </span>
+                        <t t-set="counts" t-value="this.catCounts(mode)"/>
+                        <span t-if="counts and counts.late" class="badge text-bg-danger fs-6 o_scrap_touch_mode_late"
+                              title="Late"><t t-out="counts.late"/> late</span>
+                        <span t-if="counts and counts.pending" class="badge text-bg-light fs-6 o_scrap_touch_mode_pending"
+                              title="Pending"><t t-out="counts.pending"/> pending</span>
+                        <span class="badge text-bg-secondary fs-6" t-out="mode.fkey"/>
+                    </button>
+                </footer>
+            </div>
+        </div>
+    </t>
+
+    <!-- Purchases in draft to go on with, confirmed ones to look up, or a new one -->
+    <t t-name="scrap_touch.TouchScreenDrafts">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="input-group input-group-lg flex-grow-1 o_scrap_touch_search">
+                <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                <input type="search" class="form-control o_scrap_touch_draft_search" autocomplete="off"
+                       placeholder="Search a purchase, a supplier or a license plate"
+                       t-att-value="this.state.draftSearch" t-on-input="this.onDraftSearchInput"/>
+            </div>
+            <button class="btn btn-primary btn-lg o_scrap_touch_new_draft" t-on-click="this.onNewDraft">
+                <i class="oi" data-icon="add"/> New purchase
+            </button>
+        </div>
+        <div class="btn-group flex-wrap mb-3 o_scrap_touch_draft_filters" role="group">
+            <button t-foreach="this.draftFilters" t-as="filter" t-key="filter.key"
+                    t-attf-class="btn btn-lg o_scrap_touch_draft_filter_{{ filter.key }} {{ this.filterClass(filter, this.state.draftFilter) }}"
+                    t-on-click="() => this.onDraftFilter(filter.key)" t-out="filter.name"/>
+        </div>
+        <!-- On sale: the vehicles to repair and sell in stock, as in the list of the vehicles -->
+        <t t-if="this.state.draftFilter === 'on_sale'">
+            <div t-if="!this.state.vehicles.length" class="alert alert-info o_scrap_touch_none_on_sale">There is no vehicle on sale.</div>
+            <div class="o_scrap_touch_grid o_scrap_touch_on_sale">
+                <t t-set="stage" t-value="'vehicles'"/>
+                <t t-foreach="this.state.vehicles" t-as="vehicle" t-key="vehicle.id">
+                    <t t-call="scrap_touch.TouchScreenVehicleTile"/>
+                </t>
+            </div>
+        </t>
+        <t t-elif="!this.state.drafts.length">
+            <div t-if="this.state.draftFilter === 'draft'" class="alert alert-info">There is no purchase in draft.</div>
+            <div t-elif="this.state.draftFilter === 'to_receive'" class="alert alert-info">There is nothing to receive.</div>
+            <div t-elif="this.state.draftFilter === 'to_invoice'" class="alert alert-info">There is nothing to invoice.</div>
+            <div t-else="" class="alert alert-info">No purchase found.</div>
+        </t>
+        <div t-if="this.state.draftFilter !== 'on_sale'" class="o_scrap_touch_grid">
+            <button t-foreach="this.state.drafts" t-as="draft" t-key="draft.id"
+                    class="btn btn-outline-secondary o_scrap_touch_tile o_scrap_touch_draft"
+                    t-on-click="() => this.onResumeDraft(draft)">
+                <div class="d-flex align-items-start gap-2">
+                    <span class="fs-5 fw-bold text-truncate me-auto" t-out="draft.partner"/>
+                    <span class="badge text-bg-secondary" t-out="draft.name"/>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span t-if="draft.line_count === 1">1 vehicle</span>
+                    <span t-else=""><t t-out="draft.line_count"/> vehicles</span>
+                    <strong t-out="this.formatAmount(draft.amount_untaxed)"/>
+                </div>
+                <div class="small text-muted text-truncate">
+                    <t t-out="this.formatDateTimeShort(draft.date)"/><t t-if="draft.user"> · <t t-out="draft.user"/></t>
+                </div>
+                <t t-if="draft.state !== 'draft'" t-call="scrap_touch.TouchScreenStates" order="draft"/>
+            </button>
+        </div>
+    </t>
+
+    <!-- State, receipt and invoice status of a confirmed purchase -->
+    <t t-name="scrap_touch.TouchScreenStates">
+        <div class="d-flex flex-wrap gap-1 mt-1 o_scrap_touch_states">
+            <span class="badge text-bg-info" t-out="order.state_label"/>
+            <span t-if="order.to_receive" class="badge text-bg-warning o_scrap_touch_badge_to_receive">To receive</span>
+            <span t-elif="order.received" class="badge text-bg-success">Received</span>
+            <span t-if="order.invoice_status_label"
+                  t-att-class="'badge ' + (order.invoice_status === 'to invoice' ? 'text-bg-warning' : order.invoice_status === 'invoiced' ? 'text-bg-success' : 'text-bg-secondary')"
+                  t-out="order.invoice_status_label"/>
+        </div>
+    </t>
+
+    <t t-name="scrap_touch.TouchScreenPartners">
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="input-group input-group-lg flex-grow-1 o_scrap_touch_search">
+                <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                <input type="search" class="form-control o_scrap_touch_partner_search" autocomplete="off"
+                       placeholder="Search a supplier"
+                       t-att-value="this.state.partnerSearch" t-on-input="this.onPartnerSearchInput"/>
+            </div>
+            <button t-if="this.state.data.can_create_partner" class="btn btn-primary btn-lg o_scrap_touch_new_partner"
+                    title="New supplier" t-on-click="this.onNewPartner">
+                <i class="oi" data-icon="add"/> New
+            </button>
+        </div>
+        <div t-if="!this.state.partners.length" class="alert alert-info">No supplier found.</div>
+        <div class="o_scrap_touch_grid">
+            <button t-foreach="this.state.partners" t-as="partner" t-key="partner.id"
+                    class="btn btn-outline-secondary o_scrap_touch_tile o_scrap_touch_partner"
+                    t-on-click="() => this.onSelectPartner(partner)">
+                <div class="fs-5 fw-bold text-truncate" t-out="partner.name"/>
+                <div class="small text-muted text-truncate">
+                    <t t-out="partner.city"/><t t-if="partner.city and partner.vat"> · </t><t t-out="partner.vat"/>
+                </div>
+            </button>
+        </div>
+    </t>
+
+    <!-- Vehicles that can be bought, in tiles by category -->
+    <t t-name="scrap_touch.TouchScreenCatalog">
+        <div class="input-group input-group-lg mb-2 o_scrap_touch_search">
+            <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+            <input type="search" class="form-control o_scrap_touch_product_search" autocomplete="off"
+                   placeholder="Search a product"
+                   t-att-value="this.state.productSearch" t-on-input="this.onProductSearchInput"/>
+        </div>
+        <div t-if="this.categories().length > 1" class="d-flex flex-wrap gap-2 mb-3 o_scrap_touch_categories">
+            <button t-att-class="'btn ' + (!this.state.categoryId ? 'btn-primary' : 'btn-secondary')"
+                    t-on-click="() => this.onSelectCategory(false)">All</button>
+            <button t-foreach="this.categories()" t-as="category" t-key="category.id"
+                    t-att-class="'btn o_scrap_touch_category ' + (category.id === this.state.categoryId ? 'btn-primary' : 'btn-secondary')"
+                    t-on-click="() => this.onSelectCategory(category.id)" t-out="category.name"/>
+        </div>
+        <div t-if="!this.state.data.products.length" class="alert alert-warning o_scrap_touch_no_products">
+            There is no product to choose: mark the vehicles as <strong>Scrap Template</strong> in their product form, with tracking by serial number.
+        </div>
+        <div t-elif="!this.visibleProducts().length" class="alert alert-info">No product found.</div>
+        <div class="o_scrap_touch_product_grid">
+            <button t-foreach="this.visibleProducts()" t-as="product" t-key="product.id"
+                    class="btn btn-outline-secondary d-flex align-items-center gap-2 text-start p-2 o_scrap_touch_product"
+                    t-on-click="() => this.onSelectProduct(product)">
+                <img t-if="product.image_unique" class="o_scrap_touch_product_image rounded" alt=""
+                     t-att-src="this.productImage(product)"/>
+                <span t-else="" class="o_scrap_touch_product_image d-flex align-items-center justify-content-center rounded bg-body-secondary">
+                    <i class="oi fs-2 text-muted" data-icon="recycling"/>
+                </span>
+                <span class="d-flex flex-column min-w-0">
+                    <span class="fw-bold text-truncate" t-out="product.name"/>
+                    <span t-if="product.default_code" class="small text-muted text-truncate" t-out="product.default_code"/>
+                </span>
+            </button>
+        </div>
+    </t>
+
+    <!-- The vehicle being added or changed: license plate and price -->
+    <t t-name="scrap_touch.TouchScreenEntry">
+        <t t-set="entry" t-value="this.state.entry"/>
+        <div class="d-flex flex-column flex-md-row gap-3 o_scrap_touch_entry">
+            <div class="flex-grow-1 min-w-0 d-flex flex-column gap-2">
+                <div class="fs-4 fw-bold" t-out="entry.product.name"/>
+                <label class="form-label mb-0">License plate</label>
+                <input type="text" class="form-control form-control-lg o_scrap_touch_lot_name" autocomplete="off"
+                       maxlength="64" t-att-value="entry.lotName" t-on-input="this.onLotNameInput"/>
+                <label class="form-label mb-0">Price</label>
+                <input type="text" inputmode="decimal" autocomplete="off"
+                       class="form-control form-control-lg fs-3 border-primary border-2 o_scrap_touch_price"
+                       t-att-value="entry.price" t-on-input="this.onPriceInput"/>
+                <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-secondary btn-lg o_scrap_touch_cancel_entry" t-att-disabled="this.state.sending" t-on-click="this.onBack">Cancel</button>
+                    <button class="btn btn-primary btn-lg flex-grow-1 o_scrap_touch_add"
+                            t-att-disabled="this.state.sending" t-on-click="this.onAddEntry">
+                        <t t-if="entry.line">Update line</t><t t-else="">Add</t>
+                    </button>
+                </div>
+            </div>
+            <TouchNumpad onKey="(key) => this.onNumpadKey(key)"/>
+        </div>
+    </t>
+
+    <!-- Lines of the purchase, on the right -->
+    <t t-name="scrap_touch.TouchScreenTicket">
+        <div class="small mb-1 o_scrap_touch_save_state">
+            <span t-if="this.state.saveState === 'saving'" class="text-muted"><i class="spinner-border spinner-border-sm me-1"/>Saving…</span>
+            <span t-elif="this.state.saveState === 'saved'" class="text-success"><i class="oi me-1" data-icon="check"/>Saved in <t t-out="this.state.order.name"/></span>
+            <span t-elif="this.state.saveState === 'error'" class="text-danger"><i class="oi me-1" data-icon="warning"/>Not saved: it will be tried again with the next change</span>
+            <span t-else="" class="text-muted">It is saved in draft with the first line</span>
+        </div>
+        <div class="fw-bold mb-2">
+            Purchase
+            <span class="text-muted fw-normal" t-if="this.state.lines.length === 1"> · 1 vehicle</span>
+            <span class="text-muted fw-normal" t-elif="this.state.lines.length"> · <t t-out="this.state.lines.length"/> vehicles</span>
+        </div>
+        <div class="flex-grow-1 overflow-auto">
+            <div t-if="!this.state.lines.length" class="text-muted small">Choose a product to add a vehicle to the purchase.</div>
+            <div t-foreach="this.state.lines" t-as="line" t-key="line.key"
+                 t-att-class="'d-flex align-items-start gap-2 border-bottom py-2 o_scrap_touch_line' + (this.state.entry?.line === line ? ' bg-primary-subtle' : '')">
+                <div class="flex-grow-1 min-w-0" role="button" title="Change the line" t-on-click="() => this.onEditLine(line)">
+                    <div class="fw-bold text-truncate" t-out="line.product.name"/>
+                    <div class="small fw-semibold o_scrap_touch_line_lot" t-out="line.lotName"/>
+                </div>
+                <div class="text-nowrap fw-bold o_scrap_touch_line_price" t-out="this.formatAmount(line.price)"/>
+                <button class="btn btn-sm btn-link text-danger o_scrap_touch_remove_line" title="Remove"
+                        t-att-disabled="this.state.sending" t-on-click="() => this.onRemoveLine(line)">
+                    <i class="oi" data-icon="delete"/>
+                </button>
+            </div>
+        </div>
+        <div class="border-top pt-2 mt-2">
+            <div class="d-flex justify-content-between fs-4 fw-bold">
+                <span>Total</span><span class="o_scrap_touch_total" t-out="this.formatAmount(this.linesTotal())"/>
+            </div>
+            <div class="small text-muted mb-2">Without taxes. The purchase computes the final amounts.</div>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-secondary btn-lg o_scrap_touch_cancel_draft" title="Cancel the purchase"
+                        t-att-disabled="this.state.sending or !this.state.order" t-on-click="this.onCancelDraft">
+                    <i class="oi" data-icon="delete"/>
+                </button>
+                <button class="btn btn-outline-primary btn-lg flex-grow-1 o_scrap_touch_purchase_only"
+                        title="Confirm the purchase: the vehicles are received later"
+                        t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
+                        t-on-click="() => this.onPurchase(false)">
+                    Buy
+                </button>
+                <button class="btn btn-primary btn-lg flex-grow-1 o_scrap_touch_purchase"
+                        t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
+                        t-on-click="() => this.onPurchase(true)">
+                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Purchase and receive
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Result of the last purchase, or a confirmed purchase looked up from the list -->
+    <t t-name="scrap_touch.TouchScreenDone">
+        <t t-set="done" t-value="this.state.done"/>
+        <div class="o_scrap_touch_done mx-auto text-center py-4">
+            <t t-if="done.reviewing">
+                <div class="fs-3 fw-bold o_scrap_touch_summary_title">Purchase <t t-out="done.name"/></div>
+                <div class="d-flex justify-content-center my-2">
+                    <t t-call="scrap_touch.TouchScreenStates" order="done"/>
+                </div>
+            </t>
+            <t t-else="">
+                <i class="oi display-3 text-success" data-icon="check_circle"/>
+                <div t-if="done.received" class="fs-3 fw-bold mt-2">Purchase <t t-out="done.name"/> received</div>
+                <t t-else="">
+                    <div class="fs-3 fw-bold mt-2">Purchase <t t-out="done.name"/> confirmed</div>
+                    <div class="text-muted o_scrap_touch_done_to_receive">The vehicles are received later, with their license plates already set in the receipt.</div>
+                </t>
+            </t>
+            <div t-if="done.pickings.length" class="text-muted" t-out="done.pickings.join(', ')"/>
+            <table class="table table-sm text-start mt-3 o_scrap_touch_done_lines">
+                <tbody>
+                    <tr t-foreach="done.lines" t-as="line" t-key="line_index">
+                        <td>
+                            <div class="fw-bold" t-out="line.product"/>
+                            <div t-if="line.lots.length" class="small o_scrap_touch_done_lot">
+                                <t t-out="line.lots.join(', ')"/>
+                                <span t-if="line.refs.length" class="badge text-bg-secondary ms-1 o_scrap_touch_done_ref" t-out="line.refs.join(', ')"/>
+                            </div>
+                            <div t-elif="line.plate" class="small o_scrap_touch_done_lot" t-out="line.plate"/>
+                            <div t-if="line.location" class="small text-muted o_scrap_touch_done_location">
+                                <i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-out="line.location"/>
+                            </div>
+                        </td>
+                        <td class="text-end text-nowrap fw-bold" t-out="this.formatAmount(line.subtotal)"/>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="fs-4 fw-bold" t-out="this.formatAmount(done.amount_total)"/>
+            <div t-if="done.bills.length" class="list-group text-start mt-3 o_scrap_touch_bills">
+                <button t-foreach="done.bills" t-as="bill" t-key="bill.id"
+                        class="list-group-item list-group-item-action d-flex align-items-center gap-3 py-3 o_scrap_touch_bill"
+                        t-on-click="() => this.onOpenBill(bill)">
+                    <i class="oi" data-icon="receipt_long"/>
+                    <span class="fw-bold flex-grow-1" t-out="bill.name"/>
+                    <span t-att-class="'badge ' + (bill.state === 'draft' ? 'text-bg-warning' : 'text-bg-secondary')" t-out="bill.state_label"/>
+                    <span class="fw-bold text-nowrap" t-out="this.formatAmount(bill.amount_total)"/>
+                </button>
+            </div>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                <button t-if="done.to_receive" class="btn btn-primary btn-lg o_scrap_touch_receive"
+                        t-att-disabled="this.state.sending" t-on-click="this.onReceive">
+                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/><i t-else="" class="oi" data-icon="local_shipping"/> Receive
+                </button>
+                <button t-if="done.state === 'purchase' and done.invoice_status === 'to invoice'" class="btn btn-primary btn-lg o_scrap_touch_invoice"
+                        t-att-disabled="this.state.sending" t-on-click="this.onInvoice">
+                    <i class="oi" data-icon="receipt_long"/> Create bill
+                </button>
+                <button class="btn btn-secondary btn-lg o_scrap_touch_open_document" t-on-click="this.onOpenDocument">
+                    <i class="oi" data-icon="open_in_new"/> Open
+                </button>
+                <button t-if="done.reviewing" class="btn btn-secondary btn-lg o_scrap_touch_back_to_list" t-on-click="this.onBackToList">
+                    <i class="oi" data-icon="arrow_back"/> Back to the list
+                </button>
+                <button t-else="" class="btn btn-primary btn-lg o_scrap_touch_new" t-on-click="this.onNewEntry">
+                    <i class="oi" data-icon="add"/> New purchase
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Vehicles of a stage, or all of them, as the purchases: a search, filters and tiles -->
+    <t t-name="scrap_touch.TouchScreenVehicles">
+        <t t-set="stage" t-value="this.currentMode.stage"/>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="input-group input-group-lg flex-grow-1 o_scrap_touch_search">
+                <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                <input type="search" class="form-control o_scrap_touch_vehicle_search" autocomplete="off"
+                       placeholder="Search a license plate, reference, chassis or make/model"
+                       t-att-value="this.state.vehicleSearch" t-on-input="this.onVehicleSearchInput"/>
+            </div>
+        </div>
+        <div class="btn-group flex-wrap mb-3 o_scrap_touch_vehicle_filters" role="group">
+            <button t-foreach="this.vehicleFilters" t-as="filter" t-key="filter.key"
+                    t-attf-class="btn btn-lg o_scrap_touch_vehicle_filter_{{ filter.key }} {{ this.vehicleFilterClass(filter) }}"
+                    t-on-click="() => this.onVehicleFilter(filter.key)" t-out="filter.name"/>
+        </div>
+        <t t-if="!this.state.vehicles.length">
+            <div t-if="this.state.vehicleFilter === 'pending'" class="alert alert-info">There is no vehicle pending.</div>
+            <div t-elif="this.state.vehicleFilter === 'late'" class="alert alert-info">There is no vehicle late.</div>
+            <div t-elif="this.state.vehicleFilter === 'subproduct'" class="alert alert-info o_scrap_touch_no_subproduct">There is no subproduct to dismantle.</div>
+            <div t-else="" class="alert alert-info">No vehicle found.</div>
+        </t>
+        <div class="o_scrap_touch_grid">
+            <t t-foreach="this.state.vehicles" t-as="vehicle" t-key="vehicle.id">
+                <t t-call="scrap_touch.TouchScreenVehicleTile"/>
+            </t>
+        </div>
+    </t>
+
+    <!-- A vehicle of a list (`stage`: the one of the list, or 'vehicles'), opened on tapping it -->
+    <t t-name="scrap_touch.TouchScreenVehicleTile">
+        <button class="btn btn-outline-secondary o_scrap_touch_tile o_scrap_touch_vehicle"
+                t-on-click="() => this.onOpenVehicle(vehicle)">
+            <div class="d-flex align-items-start gap-2">
+                <span class="fs-5 fw-bold text-truncate me-auto" t-out="vehicle.name"/>
+                <span t-if="vehicle.ref" class="badge text-bg-secondary" t-out="vehicle.ref"/>
+            </div>
+            <div class="d-flex justify-content-between gap-2 small">
+                <span t-if="vehicle.origin" class="fw-semibold o_scrap_touch_vehicle_origin">
+                    <i class="oi" data-icon="subdirectory_arrow_right"/> <t t-out="vehicle.origin_plate or vehicle.origin"/>
+                </span>
+                <span t-else="" class="fw-semibold o_scrap_touch_vehicle_plate" t-out="vehicle.plate"/>
+                <span class="text-muted text-truncate" t-out="vehicle.model"/>
+            </div>
+            <div class="d-flex flex-wrap gap-1 mt-1">
+                <t t-if="stage === 'vehicles' or vehicle.is_subproduct">
+                    <t t-set="status" t-value="this.vehicleStatus(vehicle)"/>
+                    <span t-att-class="'badge ' + status.cls" t-out="status.label"/>
+                    <span class="badge text-bg-light" t-out="vehicle.unbuild_type_label"/>
+                </t>
+                <t t-else="">
+                    <t t-set="deadline" t-value="this.deadline(vehicle, stage)"/>
+                    <span t-att-class="'badge o_scrap_touch_deadline ' + this.deadlineClass(deadline)" t-out="this.deadlineLabel(deadline)"/>
+                    <span t-if="deadline.limit and !deadline.date" class="small text-muted">Limit <t t-out="this.formatDateShort(deadline.limit)"/></span>
+                </t>
+            </div>
+        </button>
+    </t>
+
+    <!-- Summary of a vehicle: its data, its legal deadlines, marked here, and its bills of materials -->
+    <t t-name="scrap_touch.TouchScreenVehicle">
+        <t t-set="vehicle" t-value="this.state.vehicle"/>
+        <div class="o_scrap_touch_done o_scrap_touch_vehicle_summary mx-auto py-3">
+            <div class="d-flex align-items-center gap-3">
+                <img t-if="vehicle.image_unique" class="o_scrap_touch_product_image rounded" alt=""
+                     t-att-src="this.vehicleImage(vehicle)"/>
+                <span t-else="" class="o_scrap_touch_product_image d-flex align-items-center justify-content-center rounded bg-body-secondary">
+                    <i class="oi fs-2 text-muted" data-icon="inventory_2"/>
+                </span>
+                <div class="min-w-0">
+                    <div class="fs-3 fw-bold text-truncate" t-out="vehicle.name"/>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span t-if="vehicle.plate" class="badge text-bg-dark fs-6 o_scrap_touch_vehicle_plate" t-out="vehicle.plate"/>
+                        <span t-if="vehicle.ref" class="badge text-bg-secondary fs-6" t-out="vehicle.ref"/>
+                        <t t-set="status" t-value="this.vehicleStatus(vehicle)"/>
+                        <span t-att-class="'badge fs-6 o_scrap_touch_vehicle_status ' + status.cls" t-out="status.label"/>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-sm mt-3 o_scrap_touch_vehicle_data">
+                <tbody>
+                    <tr t-if="vehicle.model"><th>Make/Model</th><td t-out="vehicle.model"/></tr>
+                    <tr t-if="vehicle.origin"><th>Origin</th><td class="o_scrap_touch_vehicle_origin" t-out="vehicle.origin"/></tr>
+                    <tr><th>Template</th><td t-out="vehicle.template"/></tr>
+                    <tr t-if="vehicle.unbuild_type_label"><th>Scrap type</th><td t-out="vehicle.unbuild_type_label"/></tr>
+                    <tr t-if="vehicle.chassis"><th>Chassis</th><td t-out="vehicle.chassis"/></tr>
+                    <tr t-if="vehicle.location">
+                        <th>Location</th>
+                        <td class="o_scrap_touch_vehicle_location"><i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-out="vehicle.location"/></td>
+                    </tr>
+                    <tr t-if="vehicle.purchase"><th>Purchase</th><td><t t-out="vehicle.purchase"/> · <t t-out="vehicle.partner"/></td></tr>
+                    <tr t-if="vehicle.discharge_date"><th>Discharge date</th><td t-out="this.formatDateShort(vehicle.discharge_date)"/></tr>
+                </tbody>
+            </table>
+            <div t-if="this.vehicleStages(vehicle).length" class="d-grid gap-2 o_scrap_touch_deadlines">
+                <t t-foreach="this.vehicleStages(vehicle)" t-as="stage" t-key="stage">
+                    <t t-set="deadline" t-value="this.deadline(vehicle, stage)"/>
+                    <div t-attf-class="border rounded p-3 o_scrap_touch_stage o_scrap_touch_stage_{{ stage }} {{ stage === this.currentMode.stage ? 'border-primary border-2' : '' }}">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="fs-5 fw-bold me-auto" t-out="deadline.name"/>
+                            <span t-att-class="'badge fs-6 o_scrap_touch_deadline ' + this.deadlineClass(deadline)" t-out="this.deadlineLabel(deadline)"/>
+                        </div>
+                        <div t-if="deadline.limit" class="small text-muted">Legal limit: <t t-out="this.formatDateShort(deadline.limit)"/></div>
+                        <div t-if="deadline.date" class="d-flex align-items-center gap-2 mt-2">
+                            <i class="oi fs-3 text-success" data-icon="check_circle"/>
+                            <span class="flex-grow-1"/>
+                            <button t-if="stage === 'scrap' and vehicle.dismantled_parts" class="btn btn-secondary o_scrap_touch_dismantle_parts"
+                                    t-on-click="() => this.onOpenDismantle('scrap')">
+                                <i class="oi" data-icon="build"/> Parts
+                            </button>
+                            <button t-if="stage === 'decontamination' and vehicle.waste_parts" class="btn btn-secondary o_scrap_touch_waste_parts"
+                                    t-on-click="() => this.onOpenDismantle('decontamination')">
+                                <i class="oi" data-icon="colorize"/> Waste
+                            </button>
+                            <button class="btn btn-link text-danger o_scrap_touch_unmark" t-att-disabled="this.state.sending"
+                                    t-on-click="() => this.onUnmarkVehicle(stage)">
+                                <i class="oi" data-icon="undo"/> Undo
+                            </button>
+                        </div>
+                        <t t-elif="stage === 'scrap' and this.canMark(vehicle, stage)">
+                            <!-- Opens the screen where the operator marks the parts -->
+                            <button class="btn btn-primary btn-lg w-100 mt-2 o_scrap_touch_dismantle"
+                                    t-att-disabled="this.state.sending" t-on-click="() => this.onOpenDismantle('scrap')">
+                                <i class="oi" data-icon="build"/> Dismantle
+                            </button>
+                            <div class="small text-muted mt-1">
+                                <t t-out="vehicle.pending_parts"/> parts to dismantle<t t-if="vehicle.dismantled_parts"> · <t t-out="vehicle.dismantled_parts"/> marked</t>
+                            </div>
+                        </t>
+                        <t t-elif="this.canMark(vehicle, stage)">
+                            <!-- Opens the screen where the operator takes out the waste -->
+                            <button class="btn btn-primary btn-lg w-100 mt-2 o_scrap_touch_decontaminate"
+                                    t-att-disabled="this.state.sending" t-on-click="() => this.onOpenDismantle('decontamination')">
+                                <i class="oi" data-icon="colorize"/> Decontaminate
+                            </button>
+                            <div t-if="vehicle.waste_parts" class="small text-muted mt-1">
+                                <t t-out="vehicle.waste_parts"/> waste marked
+                            </div>
+                        </t>
+                        <div t-elif="vehicle.is_subproduct" class="small text-muted mt-2">It is dismantled once received.</div>
+                        <div t-else="" class="small text-muted mt-2">It is dismantled once decontaminated.</div>
+                    </div>
+                </t>
+            </div>
+            <div t-if="vehicle.boms.length" class="list-group mt-3 o_scrap_touch_vehicle_boms">
+                <div t-foreach="vehicle.boms" t-as="bom" t-key="bom_index" class="list-group-item d-flex align-items-center gap-3">
+                    <i class="oi" data-icon="account_tree"/>
+                    <span class="fw-bold flex-grow-1" t-out="bom.name"/>
+                    <span class="small text-muted">
+                        <t t-out="bom.components"/> components · <t t-out="bom.operations"/> operations
+                    </span>
+                </div>
+            </div>
+            <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
+                <button class="btn btn-secondary btn-lg o_scrap_touch_open_vehicle" t-on-click="this.onOpenVehicleForm">
+                    <i class="oi" data-icon="open_in_new"/> Open
+                </button>
+                <button class="btn btn-secondary btn-lg o_scrap_touch_back_to_vehicles" t-on-click="this.onBackToVehicles">
+                    <i class="oi" data-icon="arrow_back"/> Back to the list
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <!-- Dismantling of a vehicle: the operator marks each component of its bills of materials as
+         dismantled (with its condition and destination), missing or discarded -->
+    <t t-name="scrap_touch.TouchScreenDismantle">
+        <t t-set="vehicle" t-value="this.state.vehicle"/>
+        <t t-set="dismantle" t-value="this.state.dismantle"/>
+        <t t-set="part" t-value="this.state.part"/>
+        <div class="d-flex flex-column flex-lg-row gap-3 o_scrap_touch_dismantle_screen">
+            <div class="flex-grow-1 min-w-0">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                    <span t-if="vehicle.plate" class="badge text-bg-dark fs-5" t-out="vehicle.plate"/>
+                    <span t-else="" class="badge text-bg-info fs-5 o_scrap_touch_dismantle_name" t-out="vehicle.name"/>
+                    <span t-if="vehicle.ref" class="badge text-bg-secondary fs-6" t-out="vehicle.ref"/>
+                    <span class="me-auto"/>
+                    <span t-if="!this.isDecontamination" class="fs-5 o_scrap_touch_pending_count"><t t-out="dismantle.pending.length"/> to dismantle</span>
+                </div>
+                <t t-if="!dismantle.pending.length">
+                    <div t-if="this.isDecontamination" class="alert alert-warning o_scrap_touch_no_waste">
+                        There are no waste products: set them in the CAT tab of the company.
+                    </div>
+                    <div t-else="" class="alert alert-info o_scrap_touch_nothing_left">
+                        Nothing left to dismantle.
+                    </div>
+                </t>
+                <div class="o_scrap_touch_grid">
+                    <button t-foreach="dismantle.pending" t-as="line" t-key="line.id"
+                            t-att-class="'btn o_scrap_touch_tile o_scrap_touch_part ' + (part and part.line.id === line.id ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-att-disabled="this.dismantleDone" t-on-click="() => this.onSelectPart(line)">
+                        <div class="d-flex align-items-center gap-2">
+                            <img t-if="line.image_unique" class="o_scrap_touch_product_image rounded" alt="" t-att-src="this.partImage(line)"/>
+                            <span class="fs-5 fw-bold text-truncate me-auto" t-out="line.product"/>
+                            <span t-if="!this.isDecontamination" class="badge text-bg-light fs-6 o_scrap_touch_part_qty"><t t-out="this.formatQty(line.quantity)"/> <t t-out="line.uom"/></span>
+                            <span t-else="" class="badge text-bg-light fs-6" t-out="line.uom"/>
+                        </div>
+                        <div t-if="line.operation" class="small text-truncate" t-out="line.operation"/>
+                    </button>
+                </div>
+                <div t-if="dismantle.parts.length" class="mt-4">
+                    <div t-if="this.isDecontamination" class="fs-5 fw-bold mb-2">Waste marked</div>
+                    <div t-else="" class="fs-5 fw-bold mb-2">Parts marked</div>
+                    <table class="table table-sm o_scrap_touch_parts">
+                        <tbody>
+                            <tr t-foreach="dismantle.parts" t-as="marked" t-key="marked.id"
+                                t-att-class="part and part.marked and part.marked.id === marked.id ? 'table-active' : ''">
+                                <td><t t-out="this.formatQty(marked.quantity)"/> <t t-out="marked.uom"/></td>
+                                <td>
+                                    <div class="fw-bold" t-out="marked.product"/>
+                                    <div t-if="marked.source" class="small text-muted o_scrap_touch_part_source">
+                                        <i class="oi" data-icon="subdirectory_arrow_right"/> <t t-out="marked.source"/>
+                                    </div>
+                                </td>
+                                <td><span t-att-class="'badge ' + this.partResultClass(marked.result)" t-out="marked.result_label"/></td>
+                                <td t-out="marked.condition_label"/>
+                                <td class="small text-muted" t-out="marked.location"/>
+                                <td class="small text-muted text-nowrap"><t t-out="this.formatDateTimeShort(marked.date)"/> · <t t-out="marked.user"/></td>
+                                <td class="text-end">
+                                    <button t-if="marked.can_undo and this.isDecontamination" class="btn btn-link p-0 me-3 o_scrap_touch_edit_part"
+                                            title="Edit" t-att-disabled="this.state.sending" t-on-click="() => this.onEditWaste(marked)">
+                                        <i class="fa fa-pencil" aria-hidden="true"/> Edit
+                                    </button>
+                                    <button t-if="marked.can_undo" class="btn btn-link text-danger p-0 o_scrap_touch_undo_part"
+                                            t-att-title="this.isDecontamination ? 'Delete' : 'Undo'" t-att-disabled="this.state.sending" t-on-click="() => this.onUndoPart(marked)">
+                                        <t t-if="this.isDecontamination"><i class="fa fa-trash" aria-hidden="true"/> Delete</t>
+                                        <t t-else=""><i class="oi" data-icon="undo"/> Undo</t>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="o_scrap_touch_ticket d-flex flex-column gap-3 border rounded p-3">
+                <t t-if="part and this.state.choosingLocation">
+                    <div class="fs-5 fw-bold">Destination of <t t-out="part.line.product"/></div>
+                    <div class="input-group input-group-lg o_scrap_touch_search">
+                        <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                        <input type="search" class="form-control o_scrap_touch_location_search" autocomplete="off"
+                               placeholder="Search a location"
+                               t-att-value="this.state.locationSearch" t-on-input="this.onLocationSearchInput"/>
+                    </div>
+                    <div class="list-group overflow-auto">
+                        <button t-foreach="this.state.locations" t-as="location" t-key="location.id"
+                                t-att-class="'list-group-item list-group-item-action py-3 o_scrap_touch_location ' + (location.id === part.location.id ? 'active' : '')"
+                                t-on-click="() => this.onSelectLocation(location)" t-out="location.name"/>
+                    </div>
+                    <button class="btn btn-secondary btn-lg" t-on-click="this.onCancelLocation">Cancel</button>
+                </t>
+                <t t-elif="part">
+                    <div class="fs-4 fw-bold o_scrap_touch_part_name">
+                        <t t-if="part.marked">Edit · </t><t t-out="part.line.product"/>
+                    </div>
+                    <t t-if="this.isDecontamination">
+                        <!-- Typed on the keyboard or on the keypad -->
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="me-auto mb-0" for="o_scrap_touch_waste_quantity">Quantity</label>
+                            <input type="text" inputmode="decimal" autocomplete="off" id="o_scrap_touch_waste_quantity"
+                                   class="form-control form-control-lg fs-3 text-end border-primary border-2 w-50 o_scrap_touch_waste_quantity"
+                                   placeholder="0" t-att-value="part.quantityText"
+                                   t-on-input="this.onWasteQuantityInput" t-on-keydown="this.onWasteQuantityKeydown"/>
+                            <span class="text-muted" t-out="part.line.uom"/>
+                        </div>
+                        <TouchNumpad onKey="(key) => this.onWasteNumpadKey(key)"/>
+                    </t>
+                    <div t-elif="part.line.quantity > 1" class="d-flex align-items-center gap-2">
+                        <span class="me-auto">Quantity</span>
+                        <button class="btn btn-secondary btn-lg o_scrap_touch_part_minus" t-on-click="() => this.onPartQuantity(-1)">−</button>
+                        <span class="fs-4 fw-bold px-2 o_scrap_touch_part_quantity" t-out="this.formatQty(part.quantity)"/>
+                        <button class="btn btn-secondary btn-lg o_scrap_touch_part_plus" t-on-click="() => this.onPartQuantity(1)">+</button>
+                        <span class="text-muted">of <t t-out="this.formatQty(part.line.quantity)"/></span>
+                    </div>
+                    <!-- One tap: the condition of the part dismantled, or missing, or discarded -->
+                    <div class="d-grid gap-2 o_scrap_touch_part_options" style="grid-template-columns: 1fr 1fr">
+                        <button t-foreach="this.partOptions" t-as="option" t-key="option.key"
+                                t-attf-class="btn btn-lg o_scrap_touch_part_option_{{ option.key }} {{ this.isPartOption(option) ? 'btn-' + option.cls : 'btn-outline-' + option.cls }}"
+                                t-on-click="() => this.onPartOption(option)">
+                            <i t-if="option.icon" class="oi" t-att-data-icon="option.icon"/> <t t-out="option.name"/>
+                        </button>
+                    </div>
+                    <div t-if="part.result !== 'missing' and part.result !== 'discarded'" class="d-flex align-items-center gap-2">
+                        <i class="fa fa-map-marker" aria-hidden="true"/>
+                        <span class="flex-grow-1 text-truncate o_scrap_touch_part_location" t-out="part.location.name or '—'"/>
+                        <button class="btn btn-secondary o_scrap_touch_change_location" t-on-click="this.onChangeLocation">Change</button>
+                    </div>
+                    <span class="flex-grow-1"/>
+                    <div t-if="part.marked" class="d-flex gap-2">
+                        <button class="btn btn-secondary btn-lg flex-grow-1 o_scrap_touch_cancel_edit" t-on-click="this.onBack">Cancel</button>
+                        <button class="btn btn-danger btn-lg o_scrap_touch_delete_part" t-att-disabled="this.state.sending"
+                                t-on-click="() => this.onUndoPart(part.marked)">
+                            <i class="fa fa-trash" aria-hidden="true"/> Delete
+                        </button>
+                    </div>
+                    <button class="btn btn-primary btn-lg o_scrap_touch_confirm_part"
+                            t-att-disabled="!this.canConfirmPart or this.state.sending" t-on-click="this.onConfirmPart">
+                        <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/><i t-else="" class="oi" data-icon="check"/>
+                        <t t-if="part.marked"> Update</t><t t-else=""> Confirm</t>
+                    </button>
+                </t>
+                <t t-else="">
+                    <div t-if="this.dismantleDone" class="d-flex align-items-center gap-2 fs-5 o_scrap_touch_dismantled">
+                        <i class="oi fs-3 text-success" data-icon="check_circle"/>
+                        <t t-out="this.vehicleStatus(vehicle).label"/>
+                    </div>
+                    <t t-else="">
+                        <t t-if="this.isDecontamination">
+                            <div class="text-muted">Choose a waste to mark how much is taken out, or that it is missing. It can be done as many times as needed.</div>
+                            <span class="flex-grow-1"/>
+                            <div class="fs-5 fw-bold">Finish the decontamination</div>
+                            <button class="btn btn-primary btn-lg o_scrap_touch_finish"
+                                    t-att-disabled="this.state.sending" t-on-click="() => this.onFinishDismantle()">
+                                <i class="oi" data-icon="check"/> Decontaminated today
+                            </button>
+                        </t>
+                        <t t-else="">
+                            <div class="text-muted">Choose a part to mark it as dismantled, missing or discarded.</div>
+                            <span class="flex-grow-1"/>
+                            <div class="fs-5 fw-bold">Finish the dismantling</div>
+                            <div class="small text-muted">It is finished by itself when nothing is left.</div>
+                            <button class="btn btn-primary btn-lg o_scrap_touch_finish"
+                                    t-att-disabled="this.state.sending" t-on-click="() => this.onFinishDismantle()">
+                                <i class="oi" data-icon="check"/> Dismantled today
+                            </button>
+                        </t>
+                        <div class="d-flex gap-2">
+                            <input type="date" class="form-control form-control-lg o_scrap_touch_mark_date"
+                                   t-att-value="this.state.markDate" t-on-change="this.onMarkDateChange"/>
+                            <button class="btn btn-secondary btn-lg text-nowrap o_scrap_touch_finish_on_date"
+                                    t-att-disabled="this.state.sending" t-on-click="() => this.onFinishDismantle(true)">
+                                <i class="oi" data-icon="today"/> On this date
+                            </button>
+                        </div>
+                    </t>
+                    <button class="btn btn-secondary btn-lg o_scrap_touch_close_dismantle" t-on-click="this.onCloseDismantle">
+                        <i class="oi" data-icon="arrow_back"/> Back to the vehicle
+                    </button>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="scrap_touch.TouchNumpad">
+        <div class="o_scrap_touch_numpad d-grid gap-2">
+            <button t-foreach="this.keys" t-as="key" t-key="key" class="btn btn-secondary btn-lg o_scrap_touch_numpad_key"
+                    t-on-click="() => this.onKey(key)" t-out="key"/>
+            <button class="btn btn-secondary btn-lg" t-att-disabled="!this.props.decimals"
+                    t-on-click="() => this.onKey(this.decimalPoint)" t-out="this.decimalPoint"/>
+            <button class="btn btn-secondary btn-lg o_scrap_touch_numpad_key" t-on-click="() => this.onKey('0')">0</button>
+            <button class="btn btn-secondary btn-lg" title="Delete" t-on-click="() => this.onKey('backspace')">
+                <i class="oi" data-icon="backspace"/>
+            </button>
+            <button class="btn btn-warning btn-lg o_scrap_touch_numpad_clear" style="grid-column: span 3" t-on-click="() => this.onKey('clear')">Clear</button>
+        </div>
+    </t>
+
+</templates>

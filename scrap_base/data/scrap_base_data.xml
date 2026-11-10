@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Lots & Serial Numbers, Storage Locations, Analytic Accounting and Work Orders, enabled
+         on each install and update -->
+    <function model="res.groups" name="_scrap_base_enable_lots"/>
+    <function model="res.groups" name="_scrap_base_enable_locations"/>
+    <function model="res.groups" name="_scrap_base_enable_analytic"/>
+    <function model="res.groups" name="_scrap_base_enable_routings"/>
+
+    <!-- Analytic plans of the vehicles, and their locations, set in the companies on install -->
+    <data noupdate="1">
+        <record id="analytic_plan_scrap_main" model="account.analytic.plan">
+            <field name="name">Vehículos para desguazar</field>
+        </record>
+        <record id="analytic_plan_scrap_refurbish" model="account.analytic.plan">
+            <field name="name">Vehículos compra / venta</field>
+        </record>
+        <function model="res.company" name="_scrap_base_set_defaults"/>
+    </data>
+
+</odoo>

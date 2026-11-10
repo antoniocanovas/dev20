@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="scrap_crm.Available">
+        <div class="o_action o_scrap_touch o_scrap_crm_available d-flex flex-column h-100 bg-view">
+            <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom">
+                <button class="btn btn-light btn-lg o_scrap_crm_available_back" title="Back" t-on-click="this.onBack">
+                    <i class="oi fs-2" data-icon="arrow_back"/>
+                </button>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fs-4 fw-bold text-truncate">
+                        Available<t t-if="this.state.data.lead"> · <span t-out="this.state.data.lead.name"/></t>
+                    </div>
+                    <div t-if="this.state.data.lead and this.state.data.lead.partner" class="small text-muted text-truncate"
+                         t-out="this.state.data.lead.partner"/>
+                </div>
+            </div>
+            <div class="flex-grow-1 overflow-auto p-3">
+                <!-- The two options, in big buttons with how many there are -->
+                <div class="d-flex flex-wrap gap-2 mb-3 o_scrap_crm_available_modes">
+                    <button t-foreach="this.modes" t-as="mode" t-key="mode.key"
+                            t-attf-class="btn btn-lg d-flex align-items-center gap-2 px-4 py-3 o_scrap_crm_available_mode_{{ mode.key }} {{ mode.key === this.state.mode ? 'btn-primary' : 'btn-secondary' }}"
+                            t-on-click="() => this.onMode(mode.key)">
+                        <i class="oi fs-3" t-att-data-icon="mode.icon"/>
+                        <span class="fs-5 fw-bold" t-out="mode.name"/>
+                        <span class="badge text-bg-light fs-6 o_scrap_crm_available_count" t-out="this.state.counts[mode.key]"/>
+                    </button>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <div class="input-group input-group-lg flex-grow-1 o_scrap_touch_search">
+                        <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                        <input type="search" class="form-control o_scrap_crm_available_search" autocomplete="off"
+                               placeholder="Name, barcode or any reference"
+                               title="Name, barcode, internal reference, visible or OEM reference, references, chassis or plate"
+                               t-att-value="this.state.query" t-on-input="this.onSearchInput"/>
+                    </div>
+                    <select class="form-select form-select-lg w-auto o_scrap_crm_available_brand" title="Brand"
+                            t-on-change="this.onBrand">
+                        <option value="" t-att-selected="!this.state.brandId">All brands</option>
+                        <option t-foreach="this.state.data.brands" t-as="brand" t-key="brand.id"
+                                t-att-value="brand.id" t-att-selected="brand.id === this.state.brandId" t-out="brand.name"/>
+                    </select>
+                    <!-- With the one of the opportunity: in stock, the products made of it; assembled,
+                         the ones with it still to dismantle -->
+                    <select class="form-select form-select-lg w-auto o_scrap_crm_available_template"
+                            title="Scrap template: in stock, the products made of it; assembled, the ones with it still to dismantle"
+                            t-on-change="this.onTemplate">
+                        <option value="" t-att-selected="!this.state.templateId">All templates</option>
+                        <option t-foreach="this.state.data.templates" t-as="template" t-key="template.id"
+                                t-att-value="template.id" t-att-selected="template.id === this.state.templateId" t-out="template.name"/>
+                    </select>
+                </div>
+                <t t-if="!this.state.products.length">
+                    <div t-if="this.state.mode === 'assembled' and !this.state.templateId" class="alert alert-info o_scrap_crm_available_no_template">
+                        Choose the scrap template asked for: the products in stock with it still to dismantle are shown.
+                    </div>
+                    <div t-else="" class="alert alert-info o_scrap_crm_available_none">Nothing available.</div>
+                </t>
+                <div class="o_scrap_touch_grid">
+                    <!-- The tile opens the product here; its corner link, in a new tab, to keep several
+                         open while talking with the customer -->
+                    <div t-foreach="this.state.products" t-as="product" t-key="product.id"
+                         class="position-relative o_scrap_crm_available_item">
+                    <button class="btn btn-outline-secondary w-100 h-100 o_scrap_touch_tile o_scrap_crm_available_product"
+                            t-on-click="() => this.onOpenProduct(product)">
+                        <div class="d-flex align-items-start gap-2">
+                            <!-- Its photo opens the gallery of all of them, not the product -->
+                            <span t-if="product.image_unique" class="position-relative flex-shrink-0 o_scrap_crm_available_photo"
+                                  title="See the photos" t-on-click.stop="() => this.onOpenGallery(product)">
+                                <img class="o_scrap_touch_product_image rounded" alt="" t-att-src="this.productImage(product)"/>
+                                <span t-if="product.image_count > 1"
+                                      class="badge rounded-pill text-bg-dark position-absolute bottom-0 end-0 o_scrap_crm_available_photo_count">
+                                    <i class="fa fa-camera me-1" aria-hidden="true"/><t t-out="product.image_count"/>
+                                </span>
+                            </span>
+                            <div class="min-w-0 me-auto">
+                                <div class="fs-5 fw-bold text-truncate" t-out="product.name"/>
+                                <div class="small text-muted text-truncate">
+                                    <t t-out="product.brand"/><t t-if="product.brand and product.model"> · </t><t t-out="product.model"/>
+                                </div>
+                            </div>
+                            <span class="badge text-bg-light fs-6 flex-shrink-0 text-nowrap o_scrap_crm_available_qty"><t t-out="this.formatQty(product.qty_available)"/> <t t-out="product.uom"/></span>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1 mt-1 small">
+                            <span t-if="product.plate" class="badge text-bg-dark" t-out="product.plate"/>
+                            <span t-if="product.ref_oem" class="badge text-bg-secondary">OEM <t t-out="product.ref_oem"/></span>
+                            <span t-if="product.ref_market" class="badge text-bg-secondary" t-out="product.ref_market"/>
+                            <span t-if="product.unbuild_type_label" class="badge text-bg-light" t-out="product.unbuild_type_label"/>
+                        </div>
+                        <div t-if="product.pending_qty" class="small fw-semibold text-info mt-1 o_scrap_crm_available_pending">
+                            <i class="oi" data-icon="build"/> <t t-out="this.formatQty(product.pending_qty)"/> × <t t-out="product.pending_name"/> to dismantle
+                        </div>
+                        <div t-if="product.location" class="small text-muted text-truncate mt-1">
+                            <i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-out="product.location"/>
+                        </div>
+                    </button>
+                    <a t-att-href="this.productUrl(product)" target="_blank" rel="noopener"
+                       class="btn btn-light border position-absolute bottom-0 end-0 m-1 o_scrap_crm_available_open_tab"
+                       title="Open in a new tab" aria-label="Open in a new tab">
+                        <i class="fa fa-external-link" aria-hidden="true"/>
+                    </a>
+                    </div>
+                </div>
+            </div>
+            <!-- The photos of a product, full screen: swiped or with the arrows -->
+            <div t-if="this.state.gallery" class="o_scrap_crm_available_gallery position-fixed top-0 start-0 w-100 h-100 d-flex flex-column"
+                 tabindex="-1" t-ref="this.galleryRef" t-on-keydown="this.onGalleryKeydown">
+                <t t-set="gallery" t-value="this.state.gallery"/>
+                <div class="d-flex align-items-center gap-2 px-3 py-2 text-white">
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="fs-4 fw-bold text-truncate" t-out="gallery.product.name"/>
+                        <div t-if="gallery.images.length" class="small opacity-75 o_scrap_crm_available_gallery_position">
+                            <t t-out="gallery.index + 1"/> / <t t-out="gallery.images.length"/>
+                        </div>
+                    </div>
+                    <button class="btn btn-light btn-lg o_scrap_crm_available_gallery_product"
+                            t-on-click="() => this.onGalleryProduct()">Product</button>
+                    <a t-att-href="this.productUrl(gallery.product)" target="_blank" rel="noopener"
+                       class="btn btn-light btn-lg" title="Open in a new tab" aria-label="Open in a new tab">
+                        <i class="fa fa-external-link" aria-hidden="true"/>
+                    </a>
+                    <button class="btn btn-light btn-lg o_scrap_crm_available_gallery_close" title="Close" aria-label="Close"
+                            t-on-click="() => this.onCloseGallery()">
+                        <i class="fa fa-times" aria-hidden="true"/>
+                    </button>
+                </div>
+                <div class="flex-grow-1 d-flex align-items-center justify-content-center position-relative min-h-0 px-2"
+                     t-on-touchstart="this.onGalleryTouchStart" t-on-touchend="this.onGalleryTouchEnd">
+                    <t t-if="gallery.images.length">
+                        <img class="o_scrap_crm_available_gallery_image" t-att-alt="gallery.images[gallery.index].name"
+                             t-att-src="this.galleryImage(gallery.images[gallery.index], 'image_1024')"/>
+                        <t t-if="gallery.images.length > 1">
+                            <button class="btn btn-light btn-lg rounded-circle position-absolute start-0 ms-3 o_scrap_crm_available_gallery_prev"
+                                    title="Previous" aria-label="Previous" t-on-click="() => this.onGalleryMove(-1)">
+                                <i class="fa fa-chevron-left" aria-hidden="true"/>
+                            </button>
+                            <button class="btn btn-light btn-lg rounded-circle position-absolute end-0 me-3 o_scrap_crm_available_gallery_next"
+                                    title="Next" aria-label="Next" t-on-click="() => this.onGalleryMove(1)">
+                                <i class="fa fa-chevron-right" aria-hidden="true"/>
+                            </button>
+                        </t>
+                    </t>
+                    <div t-else="" class="text-white fs-5">No photos.</div>
+                </div>
+                <div t-if="gallery.images.length > 1" class="d-flex gap-2 p-2 overflow-auto justify-content-center o_scrap_crm_available_gallery_thumbs">
+                    <img t-foreach="gallery.images" t-as="image" t-key="image.model + image.id"
+                         t-attf-class="rounded o_scrap_crm_available_gallery_thumb {{ image_index === gallery.index ? 'o_active' : '' }}"
+                         t-att-alt="image.name" t-att-src="this.galleryImage(image, 'image_128')"
+                         t-on-click="() => this.onGalleryGo(image_index)"/>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

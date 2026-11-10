@@ -1,0 +1,6 @@
+id,name,model_id,group_id/id,operation,domain
+access_fleet_vehicle_model_user_scrap,fleet.vehicle.model.user.scrap,fleet.vehicle.model,base.group_user,r,
+access_fleet_vehicle_model_brand_user_scrap,fleet.vehicle.model.brand.user.scrap,fleet.vehicle.model.brand,base.group_user,r,
+access_scrap_dismantle_line_user,scrap.dismantle.line.user,scrap.dismantle.line,stock.group_stock_user,r,
+access_scrap_dismantle_line_manager,scrap.dismantle.line.manager,scrap.dismantle.line,stock.group_stock_manager,crud,
+scrap_dismantle_line_comp_rule,Dismantled parts multi-company,scrap.dismantle.line,,crud,"[('company_id', 'in', company_ids)]"

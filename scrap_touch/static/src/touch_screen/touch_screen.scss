@@ -1,0 +1,65 @@
+.o_scrap_touch {
+    touch-action: manipulation;
+
+    .o_scrap_touch_home_menu {
+        max-width: 36rem;
+    }
+
+    .o_scrap_touch_search {
+        max-width: 40rem;
+    }
+
+    .o_scrap_touch_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        gap: map-get($spacers, 2);
+    }
+
+    .o_scrap_touch_tile {
+        min-height: 5.5rem;
+        text-align: start;
+        white-space: normal;
+    }
+
+    .o_scrap_touch_product_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+        gap: map-get($spacers, 2);
+    }
+
+    .o_scrap_touch_product {
+        min-height: 5rem;
+    }
+
+    .o_scrap_touch_product_image {
+        width: 3.5rem;
+        height: 3.5rem;
+        flex-shrink: 0;
+        object-fit: cover;
+    }
+
+    .o_scrap_touch_ticket {
+        width: 26rem;
+        max-height: 100%;
+        flex-shrink: 0;
+
+        @include media-breakpoint-down(lg) {
+            width: auto;
+            max-height: none;
+        }
+    }
+
+    .o_scrap_touch_numpad {
+        grid-template-columns: repeat(3, 5rem);
+        grid-auto-rows: 4.5rem;
+        align-self: flex-start;
+
+        .btn {
+            font-size: 1.75rem;
+        }
+    }
+
+    .o_scrap_touch_done {
+        max-width: 40rem;
+    }
+}

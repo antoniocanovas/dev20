@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_company_form_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">res.company.form.inherit.scrap_base</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="CAT" name="scrap_cat">
+                    <group string="Internal references of the vehicles received" name="scrap_sequences">
+                        <field name="scrap_main_sequence_id" context="{'default_company_id': id}"/>
+                        <field name="scrap_refurbish_sequence_id" context="{'default_company_id': id}"/>
+                    </group>
+                    <group name="scrap_vehicles">
+                        <group string="Analytic plans of the vehicles" name="scrap_analytic_plans">
+                            <field name="scrap_main_analytic_plan_id"/>
+                            <field name="scrap_refurbish_analytic_plan_id"/>
+                        </group>
+                        <group string="Locations of the vehicles" name="scrap_locations">
+                            <field name="scrap_main_location_id"/>
+                            <field name="scrap_refurbish_location_id"/>
+                        </group>
+                    </group>
+                    <group string="Decontamination" name="scrap_decontamination">
+                        <field name="scrap_waste_location_id"/>
+                        <field name="scrap_waste_product_ids" widget="many2many_tags"
+                               options="{'no_create': True}" context="{'default_company_id': id}"/>
+                    </group>
+                    <group string="Legal deadlines of the vehicles to dismantle" name="scrap_deadlines">
+                        <field name="decontamination_days"/>
+                        <field name="scrap_days"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+
+</odoo>

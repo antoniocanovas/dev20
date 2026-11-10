@@ -1,0 +1,44 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-10 15:02+0000\n"
+"PO-Revision-Date: 2026-11-10 15:02+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: scrap_repair
+#. odoo-python
+#: code:addons/scrap_repair/models/product_template.py:0
+msgid "%s isn't a vehicle to repair and sell."
+msgstr "%s no es un vehículo para reparar y vender."
+
+#. module: scrap_repair
+#. odoo-python
+#: code:addons/scrap_repair/models/product_template.py:0
+msgid "%s isn't in stock nor sold: receive it first."
+msgstr "%s no está en stock ni vendido: recíbelo primero."
+
+#. module: scrap_repair
+#. odoo-python
+#: code:addons/scrap_repair/models/product_template.py:0
+msgid "Only the inventory users can repair the vehicles."
+msgstr "Solo los usuarios de inventario pueden reparar los vehículos."
+
+#. module: scrap_repair
+#. odoo-javascript
+#: code:addons/scrap_repair/static/src/touch_screen_repair.xml:0
+msgid "Repair"
+msgstr "Reparar"
+
+#. module: scrap_repair
+#. odoo-javascript
+#: code:addons/scrap_repair/static/src/touch_screen_repair.js:0
+msgid "Repair of %s"
+msgstr "Reparación de %s"

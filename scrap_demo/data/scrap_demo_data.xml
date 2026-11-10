@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Modelos de vehículo (las marcas son las de Flota) -->
+        <record id="model_renault_clio" model="fleet.vehicle.model">
+            <field name="name">Clio</field>
+            <field name="brand_id" ref="fleet.brand_renault"/>
+            <field name="vehicle_type">car</field>
+        </record>
+        <record id="model_volkswagen_golf" model="fleet.vehicle.model">
+            <field name="name">Golf</field>
+            <field name="brand_id" ref="fleet.brand_volkswagen"/>
+            <field name="vehicle_type">car</field>
+        </record>
+        <record id="model_ford_transit" model="fleet.vehicle.model">
+            <field name="name">Transit</field>
+            <field name="brand_id" ref="fleet.brand_ford"/>
+            <field name="vehicle_type">car</field>
+        </record>
+        <record id="model_peugeot_308" model="fleet.vehicle.model">
+            <field name="name">308</field>
+            <field name="brand_id" ref="fleet.brand_peugeot"/>
+            <field name="vehicle_type">car</field>
+        </record>
+        <record id="model_citroen_berlingo" model="fleet.vehicle.model">
+            <field name="name">Berlingo</field>
+            <field name="brand_id" ref="fleet.brand_citroen"/>
+            <field name="vehicle_type">car</field>
+        </record>
+        <record id="model_opel_corsa" model="fleet.vehicle.model">
+            <field name="name">Corsa</field>
+            <field name="brand_id" ref="fleet.brand_opel"/>
+            <field name="vehicle_type">car</field>
+        </record>
+        <record id="model_honda_cbr" model="fleet.vehicle.model">
+            <field name="name">CBR 600</field>
+            <field name="brand_id" ref="fleet.brand_honda"/>
+            <field name="vehicle_type">bike</field>
+        </record>
+
+        <!-- Proveedores -->
+        <!-- Etiquetas de los clientes: se ven en las oportunidades (scrap_crm) -->
+        <record id="partner_tag_workshop" model="res.partner.category">
+            <field name="name">Taller (demo)</field>
+        </record>
+        <record id="partner_tag_private" model="res.partner.category">
+            <field name="name">Particular (demo)</field>
+        </record>
+
+        <record id="partner_gruas" model="res.partner">
+            <field name="name">Grúas Martínez (demo)</field>
+            <field name="is_company" eval="True"/>
+            <field name="city">Murcia</field>
+            <field name="country_id" ref="base.es"/>
+        </record>
+        <record id="partner_taller" model="res.partner">
+            <field name="name">Taller López (demo)</field>
+            <field name="ref">TL01</field>
+            <field name="category_id" eval="[Command.link(ref('partner_tag_workshop'))]"/>
+            <field name="is_company" eval="True"/>
+            <field name="city">Cartagena</field>
+            <field name="country_id" ref="base.es"/>
+        </record>
+        <record id="partner_particular" model="res.partner">
+            <field name="name">Ana García (demo)</field>
+            <field name="ref">PA01</field>
+            <field name="category_id" eval="[Command.link(ref('partner_tag_private'))]"/>
+            <field name="city">Lorca</field>
+            <field name="country_id" ref="base.es"/>
+        </record>
+
+        <record id="partner_recambios" model="res.partner">
+            <field name="name">Recambios Norte (demo)</field>
+            <field name="ref">RN01</field>
+            <field name="category_id" eval="[Command.link(ref('partner_tag_workshop'))]"/>
+            <field name="is_company" eval="True"/>
+            <field name="city">Albacete</field>
+            <field name="phone">+34 967 000 000</field>
+            <field name="country_id" ref="base.es"/>
+        </record>
+
+        <!-- Categorías de las tareas de las oportunidades (scrap_crm) -->
+        <record id="scrap_category_mechanics" model="scrap.category">
+            <field name="name">Mecánica</field>
+        </record>
+        <record id="scrap_category_body" model="scrap.category">
+            <field name="name">Carrocería</field>
+        </record>
+        <record id="scrap_category_electrics" model="scrap.category">
+            <field name="name">Electricidad</field>
+        </record>
+
+        <!-- Proyecto de las tareas de las oportunidades, con sus etapas y procesos -->
+        <record id="project_scrap" model="project.project">
+            <field name="name">Peticiones de piezas (demo)</field>
+        </record>
+        <record id="task_stage_todo" model="project.task.type">
+            <field name="name">Por hacer</field>
+            <field name="sequence">1</field>
+            <field name="project_ids" eval="[Command.link(ref('project_scrap'))]"/>
+            <field name="user_id" eval="False"/>
+        </record>
+        <record id="task_stage_doing" model="project.task.type">
+            <field name="name">En taller</field>
+            <field name="sequence">2</field>
+            <field name="project_ids" eval="[Command.link(ref('project_scrap'))]"/>
+            <field name="user_id" eval="False"/>
+        </record>
+        <record id="task_stage_done" model="project.task.type">
+            <field name="name">Hecho</field>
+            <field name="sequence">3</field>
+            <field name="fold" eval="True"/>
+            <field name="project_ids" eval="[Command.link(ref('project_scrap'))]"/>
+            <field name="user_id" eval="False"/>
+        </record>
+        <record id="task_tag_check" model="project.tags">
+            <field name="name">Comprobar pieza</field>
+        </record>
+        <record id="task_tag_dismantle" model="project.tags">
+            <field name="name">Desmontar</field>
+        </record>
+        <record id="task_tag_photo" model="project.tags">
+            <field name="name">Fotografiar</field>
+        </record>
+
+        <!-- Categorías -->
+        <record id="category_vehicles" model="product.category">
+            <field name="name">Vehículos</field>
+        </record>
+        <record id="category_parts" model="product.category">
+            <field name="name">Piezas</field>
+        </record>
+        <record id="category_waste" model="product.category">
+            <field name="name">Residuos</field>
+        </record>
+
+        <!-- Plantillas desguace: ni se compran ni se venden; cada vehículo comprado pasa a ser
+             una copia de su plantilla, con su lista de materiales -->
+        <record id="template_car" model="product.template">
+            <field name="name">Turismo</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="is_template" eval="True"/>
+            <field name="scrap_unbuild_type">main</field>
+            <field name="purchase_ok" eval="False"/>
+            <field name="sale_ok" eval="False"/>
+            <field name="categ_id" ref="category_vehicles"/>
+        </record>
+        <record id="template_van" model="product.template">
+            <field name="name">Furgoneta</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="is_template" eval="True"/>
+            <field name="scrap_unbuild_type">main</field>
+            <field name="purchase_ok" eval="False"/>
+            <field name="sale_ok" eval="False"/>
+            <field name="categ_id" ref="category_vehicles"/>
+        </record>
+        <record id="template_motorbike" model="product.template">
+            <field name="name">Motocicleta</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="is_template" eval="True"/>
+            <field name="scrap_unbuild_type">main</field>
+            <field name="purchase_ok" eval="False"/>
+            <field name="sale_ok" eval="False"/>
+            <field name="categ_id" ref="category_vehicles"/>
+        </record>
+
+        <!-- Plantilla de subproducto: el motor de los vehículos (al desmontarlo, cada uno es un
+             producto propio, un subproducto del vehículo) y el motor usado que se compra para
+             despiezarlo -->
+        <record id="template_engine" model="product.template">
+            <field name="name">Motor usado</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="is_template" eval="True"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="purchase_ok" eval="False"/>
+            <field name="sale_ok" eval="False"/>
+            <field name="categ_id" ref="category_parts"/>
+        </record>
+
+        <!-- Piezas con datos CAT: se encuentran por su Ref. OEM, Ref. visible o referencias -->
+        <record id="part_alternator" model="product.template">
+            <field name="name">Alternador</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">85</field>
+            <field name="vehicle_model_id" ref="model_renault_clio"/>
+            <field name="ref_oem">231001234R</field>
+            <field name="ref_market">TG11C068</field>
+            <field name="uses">Renault Clio III y IV, motores 1.5 dCi.</field>
+            <field name="references">231009185R
+8200667609</field>
+        </record>
+        <record id="part_headlight" model="product.template">
+            <field name="name">Faro delantero izquierdo</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">120</field>
+            <field name="vehicle_model_id" ref="model_volkswagen_golf"/>
+            <field name="ref_oem">5G1941005</field>
+            <field name="ref_market">90059818</field>
+        </record>
+        <record id="part_door" model="product.template">
+            <field name="name">Puerta lateral corredera derecha</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">250</field>
+            <field name="vehicle_model_id" ref="model_ford_transit"/>
+            <field name="ref_oem">BK31-V24630-AB</field>
+        </record>
+
+        <!-- Piezas en que se despieza un vehículo: los componentes de las listas de materiales -->
+        <record id="comp_steering" model="product.product">
+            <field name="name">Volante</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">40</field>
+        </record>
+        <record id="comp_wheel" model="product.product">
+            <field name="name">Rueda</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">30</field>
+        </record>
+        <record id="comp_battery" model="product.product">
+            <field name="name">Batería</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">35</field>
+        </record>
+        <record id="comp_door" model="product.product">
+            <field name="name">Puerta delantera</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">90</field>
+        </record>
+        <record id="comp_seat" model="product.product">
+            <field name="name">Asiento delantero</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">60</field>
+        </record>
+        <record id="comp_handlebar" model="product.product">
+            <field name="name">Manillar</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">45</field>
+        </record>
+        <record id="comp_tank" model="product.product">
+            <field name="name">Depósito de combustible</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">50</field>
+        </record>
+
+        <!-- Plantilla de subproducto dentro del motor: la culata, que también se despieza (segundo
+             nivel: vehículo, motor, culata) -->
+        <record id="comp_cylinder_head" model="product.product">
+            <field name="name">Culata</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="tracking">serial</field>
+            <field name="is_template" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="purchase_ok" eval="False"/>
+            <field name="sale_ok" eval="False"/>
+            <field name="list_price">150</field>
+        </record>
+        <record id="comp_valve" model="product.product">
+            <field name="name">Válvula</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">8</field>
+        </record>
+        <record id="comp_camshaft" model="product.product">
+            <field name="name">Árbol de levas</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">70</field>
+        </record>
+        <record id="comp_engine_block" model="product.product">
+            <field name="name">Bloque motor</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">200</field>
+        </record>
+        <record id="comp_turbo" model="product.product">
+            <field name="name">Turbo</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">180</field>
+        </record>
+
+        <!-- Recambio nuevo y mano de obra de la reparación de ejemplo (scrap_repair) -->
+        <record id="part_clutch" model="product.product">
+            <field name="name">Kit de embrague (demo)</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="standard_price">120</field>
+            <field name="list_price">220</field>
+        </record>
+        <record id="service_labour" model="product.product">
+            <field name="name">Mano de obra taller (demo)</field>
+            <field name="type">service</field>
+            <field name="uom_id" ref="uom.product_uom_hour"/>
+            <field name="standard_price">25</field>
+            <field name="list_price">45</field>
+        </record>
+
+        <!-- Residuo de la descontaminación: se ofrece en la pantalla al descontaminar -->
+        <record id="waste_oil" model="product.product">
+            <field name="name">Aceite para reciclar</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_waste"/>
+            <field name="uom_id" ref="uom.product_uom_litre"/>
+            <field name="purchase_ok" eval="False"/>
+        </record>
+
+        <!-- Centros de trabajo del despiece -->
+        <record id="workcenter_decontamination" model="mrp.workcenter">
+            <field name="name">Zona de descontaminación</field>
+        </record>
+        <record id="workcenter_dismantling" model="mrp.workcenter">
+            <field name="name">Zona de despiece</field>
+        </record>
+
+        <!-- Despiece turismo: se copia a cada vehículo comprado con la plantilla -->
+        <record id="bom_car" model="mrp.bom">
+            <field name="product_tmpl_id" ref="template_car"/>
+            <field name="code">Despiece turismo</field>
+            <field name="product_qty">1</field>
+        </record>
+        <record id="bom_car_op_decontamination" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="name">Descontaminar: fluidos, batería y depósito</field>
+            <field name="workcenter_id" ref="workcenter_decontamination"/>
+            <field name="sequence">10</field>
+            <field name="time_cycle_manual">60</field>
+        </record>
+        <record id="bom_car_op_dismantling" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="name">Desmontar piezas</field>
+            <field name="workcenter_id" ref="workcenter_dismantling"/>
+            <field name="sequence">20</field>
+            <field name="time_cycle_manual">180</field>
+        </record>
+        <record id="bom_car_comp_battery" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" ref="comp_battery"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_car_op_decontamination"/>
+        </record>
+        <record id="bom_car_comp_tank" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" ref="comp_tank"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_car_op_decontamination"/>
+        </record>
+        <record id="bom_car_comp_engine" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" search="[('product_tmpl_id', '=', ref('template_engine'))]"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_car_op_dismantling"/>
+        </record>
+        <record id="bom_car_comp_wheel" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" ref="comp_wheel"/>
+            <field name="product_qty">4</field>
+            <field name="operation_id" ref="bom_car_op_dismantling"/>
+        </record>
+        <record id="bom_car_comp_steering" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" ref="comp_steering"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_car_op_dismantling"/>
+        </record>
+        <record id="bom_car_comp_door" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" ref="comp_door"/>
+            <field name="product_qty">2</field>
+            <field name="operation_id" ref="bom_car_op_dismantling"/>
+        </record>
+        <record id="bom_car_comp_seat" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" ref="comp_seat"/>
+            <field name="product_qty">2</field>
+            <field name="operation_id" ref="bom_car_op_dismantling"/>
+        </record>
+
+        <!-- Despiece motocicleta: se copia a cada vehículo comprado con la plantilla -->
+        <record id="bom_motorbike" model="mrp.bom">
+            <field name="product_tmpl_id" ref="template_motorbike"/>
+            <field name="code">Despiece motocicleta</field>
+            <field name="product_qty">1</field>
+        </record>
+        <record id="bom_motorbike_op_decontamination" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="name">Descontaminar: fluidos, batería y depósito</field>
+            <field name="workcenter_id" ref="workcenter_decontamination"/>
+            <field name="sequence">10</field>
+            <field name="time_cycle_manual">30</field>
+        </record>
+        <record id="bom_motorbike_op_dismantling" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="name">Desmontar piezas</field>
+            <field name="workcenter_id" ref="workcenter_dismantling"/>
+            <field name="sequence">20</field>
+            <field name="time_cycle_manual">90</field>
+        </record>
+        <record id="bom_motorbike_comp_battery" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="product_id" ref="comp_battery"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_motorbike_op_decontamination"/>
+        </record>
+        <record id="bom_motorbike_comp_tank" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="product_id" ref="comp_tank"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_motorbike_op_decontamination"/>
+        </record>
+        <record id="bom_motorbike_comp_engine" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="product_id" search="[('product_tmpl_id', '=', ref('template_engine'))]"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_motorbike_op_dismantling"/>
+        </record>
+        <record id="bom_motorbike_comp_wheel" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="product_id" ref="comp_wheel"/>
+            <field name="product_qty">2</field>
+            <field name="operation_id" ref="bom_motorbike_op_dismantling"/>
+        </record>
+        <record id="bom_motorbike_comp_handlebar" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="product_id" ref="comp_handlebar"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_motorbike_op_dismantling"/>
+        </record>
+
+        <!-- Despiece furgoneta: se copia a cada producto comprado con la plantilla -->
+        <record id="bom_van" model="mrp.bom">
+            <field name="product_tmpl_id" ref="template_van"/>
+            <field name="code">Despiece furgoneta</field>
+            <field name="product_qty">1</field>
+        </record>
+        <record id="bom_van_op_decontamination" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="name">Descontaminar: fluidos, batería y depósito</field>
+            <field name="workcenter_id" ref="workcenter_decontamination"/>
+            <field name="sequence">10</field>
+            <field name="time_cycle_manual">75</field>
+        </record>
+        <record id="bom_van_op_dismantling" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="name">Desmontar piezas</field>
+            <field name="workcenter_id" ref="workcenter_dismantling"/>
+            <field name="sequence">20</field>
+            <field name="time_cycle_manual">240</field>
+        </record>
+        <record id="bom_van_comp_battery" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" ref="comp_battery"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_van_op_decontamination"/>
+        </record>
+        <record id="bom_van_comp_tank" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" ref="comp_tank"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_van_op_decontamination"/>
+        </record>
+        <record id="bom_van_comp_engine" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" search="[('product_tmpl_id', '=', ref('template_engine'))]"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_van_op_dismantling"/>
+        </record>
+        <record id="bom_van_comp_wheel" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" ref="comp_wheel"/>
+            <field name="product_qty">4</field>
+            <field name="operation_id" ref="bom_van_op_dismantling"/>
+        </record>
+        <record id="bom_van_comp_steering" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" ref="comp_steering"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_van_op_dismantling"/>
+        </record>
+        <record id="bom_van_comp_door" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" ref="comp_door"/>
+            <field name="product_qty">2</field>
+            <field name="operation_id" ref="bom_van_op_dismantling"/>
+        </record>
+        <record id="bom_van_comp_seat" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" ref="comp_seat"/>
+            <field name="product_qty">3</field>
+            <field name="operation_id" ref="bom_van_op_dismantling"/>
+        </record>
+
+        <!-- Despiece motor: se copia a cada motor, desmontado de un vehículo o comprado. La culata
+             es a su vez una plantilla de subproducto -->
+        <record id="bom_engine" model="mrp.bom">
+            <field name="product_tmpl_id" ref="template_engine"/>
+            <field name="code">Despiece motor</field>
+            <field name="product_qty">1</field>
+        </record>
+        <record id="bom_engine_op_dismantling" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_engine"/>
+            <field name="name">Desmontar motor</field>
+            <field name="workcenter_id" ref="workcenter_dismantling"/>
+            <field name="sequence">10</field>
+            <field name="time_cycle_manual">120</field>
+        </record>
+        <record id="bom_engine_comp_cylinder_head" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_engine"/>
+            <field name="product_id" ref="comp_cylinder_head"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_engine_op_dismantling"/>
+        </record>
+        <record id="bom_engine_comp_engine_block" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_engine"/>
+            <field name="product_id" ref="comp_engine_block"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_engine_op_dismantling"/>
+        </record>
+        <record id="bom_engine_comp_turbo" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_engine"/>
+            <field name="product_id" ref="comp_turbo"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_engine_op_dismantling"/>
+        </record>
+
+        <!-- Despiece culata: se copia a cada culata desmontada de un motor -->
+        <record id="bom_cylinder_head" model="mrp.bom">
+            <field name="product_tmpl_id" search="[('product_variant_ids', 'in', [ref('comp_cylinder_head')])]"/>
+            <field name="code">Despiece culata</field>
+            <field name="product_qty">1</field>
+        </record>
+        <record id="bom_cylinder_head_op_dismantling" model="mrp.routing.workcenter">
+            <field name="bom_id" ref="bom_cylinder_head"/>
+            <field name="name">Desmontar culata</field>
+            <field name="workcenter_id" ref="workcenter_dismantling"/>
+            <field name="sequence">10</field>
+            <field name="time_cycle_manual">60</field>
+        </record>
+        <record id="bom_cylinder_head_comp_valve" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_cylinder_head"/>
+            <field name="product_id" ref="comp_valve"/>
+            <field name="product_qty">16</field>
+            <field name="operation_id" ref="bom_cylinder_head_op_dismantling"/>
+        </record>
+        <record id="bom_cylinder_head_comp_camshaft" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_cylinder_head"/>
+            <field name="product_id" ref="comp_camshaft"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_cylinder_head_op_dismantling"/>
+        </record>
+
+    </data>
+</odoo>

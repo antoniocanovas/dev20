@@ -1,0 +1,1213 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* scrap_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-09 07:38+0000\n"
+"PO-Revision-Date: 2026-11-09 07:38+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: scrap_base
+#: model:ir.module.module,description:base.module_scrap_base
+msgid ""
+"# Base del reciclaje de vehículos (`scrap_base`)\n"
+"\n"
+"Datos comunes del vertical de reciclaje de vehículos, que usan los demás módulos `scrap_*`.\n"
+"\n"
+"Depende de `purchase_stock`, `account`, `fleet` (por los modelos de vehículo) y `mrp` (por las listas de materiales de despiece). Funciona en Odoo 20 Community y Enterprise.\n"
+"\n"
+"## Qué añade\n"
+"\n"
+"- **Plantilla desguace** (`is_template`) en el producto: una casilla en la ficha, junto a *Se puede comprar*. Marca los productos que sirven de plantilla en el desguace, como los vehículos que se compran para desmontar. En el listado de productos hay un filtro **Plantillas desguace**.\n"
+"\n"
+"- **Tipo desguace** (`unbuild_type`) en la compra, con las mismas opciones que el campo del producto de `scrap_unbuild` en Odoo 17:\n"
+"  - *Vehículo o Parte para desguace* (`main`): vehículos para desmontar.\n"
+"  - *Subproducto* (`subproduct`).\n"
+"  - *Para compra/venta* (`refurbish`): vehículos para reparar y vender completos.\n"
+"  - *Otros finales desguazados* (`other`).\n"
+"\n"
+"  Se ve en el formulario de la compra (editable mientras está en presupuesto), como columna en los listados de compras y en el buscador, con los filtros *Para desguace* y *Para compra/venta* y la agrupación por tipo.\n"
+"- **Pestaña CAT** en la compañía, con la configuración de cada tipo de entrada de vehículos (*Vehículo o Parte para desguace* y *Para compra/venta*):\n"
+"  - **Plan analítico**: donde se crea la cuenta analítica de cada vehículo. Al instalar se crean los planes *Vehículos para desguazar* y *Vehículos compra / venta* y se ponen en cada compañía.\n"
+"  - **Ubicación**: la ubicación padre de las ubicaciones de los vehículos. Al instalar se crean *Para desguazar* y *Compra / Venta* dentro del stock del primer almacén de cada compañía. Las compañías nuevas también las reciben.\n"
+"  - **Secuencia**: la de las referencias internas de los vehículos recibidos. No se crea por defecto; sin ella no se asigna referencia.\n"
+"\n"
+"  Y, para la descontaminación:\n"
+"  - **Zona de desecho** (`scrap_waste_location_id`): donde entran por defecto los residuos que se retiran al descontaminar. Al instalar (o actualizar a la 20.0.1.2.0) se crea *Zona de desecho* dentro del stock del primer almacén de cada compañía, como las otras.\n"
+"  - **Productos de desecho** (`scrap_waste_product_ids`): los residuos que se retiran de los vehículos al descontaminarlos (aceite, combustible, baterías...). Son productos normales de Odoo, no plantillas: al retirarlos solo se incrementa su stock.\n"
+"\n"
+"- **Tipo desguace del producto** (`scrap_unbuild_type`), en la pestaña *Información general*, debajo de la categoría, con las mismas opciones que el de la compra. Las plantillas desguace lo llevan según lo que se compra con ellas (para desguazar o subproducto); los vehículos reciben el de su compra.\n"
+"\n"
+"- **Pestaña CAT en el producto**, la primera de la ficha, visible solo en los productos con *Tipo desguace*, con los datos de los vehículos y sus piezas, los mismos campos que `custom_product` en Odoo 17:\n"
+"  - *Marca/Modelo* (`vehicle_model_id`): modelo de vehículo de Flota.\n"
+"  - *Placa* (`plate`): para los subproductos; no es la matrícula del vehículo (`scrap_lot_name`). No se copia al duplicar el producto.\n"
+"  - *Ref. visible* (`ref_market`): la referencia escrita o troquelada en la pieza.\n"
+"  - *Ref. OEM* (`ref_oem`): la referencia del fabricante del vehículo.\n"
+"  - *Usos del producto* (`uses`) y *Referencias* (`references`), textos libres.\n"
+"  - *Bastidor* (`chassis`): se guarda en cada variante (`product.product`). Si el producto no tiene variantes, se escribe y se ve en la plantilla y pasa a su única variante, como la referencia interna de Odoo; si las tiene, la plantilla no lo muestra y cada variante tiene el suyo, en su propio formulario. No se copia al duplicar.\n"
+"\n"
+"  **Búsqueda:** un producto se encuentra también por su bastidor, placa, Ref. OEM, Ref. visible y referencias, tanto en el buscador de productos y variantes como al escribir en cualquier campo de producto (líneas de compra, venta, albaranes...). En estos campos salen primero las coincidencias por referencia interna, código de barras y nombre, y después las de los datos CAT.\n"
+"\n"
+"  **Bastidor repetido:** si se escribe un bastidor que ya tiene otro producto (aunque esté archivado), Odoo avisa con el producto que lo tiene, como con la referencia interna. Es solo un aviso: se puede guardar.\n"
+"\n"
+"  En los productos que no son plantilla, la misma pestaña muestra además la **plantilla del vehículo** y, si la tienen, la matrícula, la **cuenta analítica** y la **ubicación original** (la creada para el vehículo). Los responsables de productos pueden cambiarlos.\n"
+"\n"
+"  **Vehículos creados a mano en el backend.** Lo recomendable es que todo vehículo entre por una compra, aunque sea a 0 € (por ejemplo, el que entrega un particular), porque crea todo lo necesario y deja rastro. Para corregir o completar un vehículo creado a mano: se pone su tipo desguace (*Vehículo o Parte para desguace* o *Para compra/venta*; con él aparece la pestaña CAT), su plantilla del vehículo y su matrícula, y el botón **Completar datos CAT** crea lo que le falte, igual que al confirmar la compra: la cuenta analítica y la ubicación con la matrícula como nombre, en el plan y la ubicación de su tipo, su distribución analítica y, si no tiene ninguna, las listas de materiales de su plantilla. Si el producto no tenía compañía, recibe la actual. Comprueba que la matrícula no la tenga otro vehículo y que no tenga variantes. Recibido después por cualquier compra, entra en su ubicación con su matrícula y, si es para desguazar, recibe su fecha de baja.\n"
+"\n"
+"- **Un producto por vehículo.** Al confirmar una compra de tipo *Vehículo o Parte para desguace* o *Para compra/venta*, cada línea con un producto *Plantilla desguace* se convierte en un vehículo:\n"
+"  - Se **duplica la plantilla** en un producto nuevo, con el nombre de la plantilla y la matrícula, *Plantilla desguace* desmarcada, la **matrícula** (`scrap_lot_name`), la **plantilla de origen** (`scrap_template_id`) y como **coste** el precio de la línea (en la moneda de la compañía, impuestos no incluidos y con descuento).\n"
+"  - Se crea su **cuenta analítica**, con la matrícula como nombre, en el plan de su tipo, y una **distribución analítica** para el producto: la compra, su factura y cualquier otra factura del vehículo (por ejemplo, su venta) van a esa cuenta.\n"
+"  - Se crea su **ubicación**, con la matrícula como nombre, dentro de la ubicación de su tipo.\n"
+"  - La línea de la compra pasa al producto nuevo, con su cuenta analítica, y así el albarán y la factura. Al recibirlo, el vehículo entra en su ubicación con la matrícula como **número de serie**.\n"
+"  - Se copian las **listas de materiales** de la plantilla (las de su compañía o sin compañía), con sus componentes y **operaciones**: cómo se despieza el vehículo (volante, ruedas, motor...). Cada vehículo tiene así las suyas, que se podrán cambiar sin tocar las de la plantilla; servirán para los desmontajes (*unbuild*), que se desarrollarán después.\n"
+"  - Hereda de la plantilla la marca/modelo, los usos y las referencias. El producto del vehículo muestra estos datos en su pestaña **CAT**, y en el buscador de productos (y de variantes) hay un filtro **Vehículos**, se puede buscar por **Plantilla del vehículo** (escribiendo el nombre de la plantilla) y agrupar por ella.\n"
+"\n"
+"  Para confirmar, cada vehículo va en su propia línea, con cantidad 1 y su matrícula (columna **Matrícula** de las líneas de la compra, que se guarda en mayúsculas y sin espacios ni guiones). No puede haber dos vehículos activos con la misma matrícula, ni la plantilla puede tener variantes. Las compras de otros tipos, o sin tipo, y los productos que no son plantilla no cambian.\n"
+"\n"
+"  Si se **cancela** la compra, los vehículos que no llegaron a recibirse devuelven la línea a su plantilla, con su matrícula, y se archivan junto con su ubicación y su cuenta analítica, y se borra su distribución analítica. Así la matrícula se puede volver a comprar.\n"
+"\n"
+"- **Plazos legales de los vehículos para desguazar** (como `scrap_unbuild` en Odoo 17, con los mismos nombres de campo):\n"
+"  - En la pestaña CAT de la compañía, los **días de descontaminación** (`decontamination_days`) y los **días de desguace** (`scrap_days`), contados desde la fecha de baja. Sin días no hay fecha límite.\n"
+"  - En el producto (pestaña CAT, salvo en las plantillas desguace): **fecha de baja** (`discharge_date`), que se pone sola al validar su recepción (se puede corregir); **Descontaminar** y **Desguazar** (los límites legales), calculados con los días de la compañía del vehículo, y que se recalculan si cambian; y **Descontaminado el** y **Desguazado el** (`decontamination_date`, `scrap_date`). Las etiquetas son cortas, para que quepan en una línea; la explicación está en la ayuda de cada campo.\n"
+"  - Cada vehículo guarda su **tipo desguace** (`scrap_unbuild_type`), el de su compra, y su compañía. Se puede corregir en *Información general*. Los de compra/venta se marcan como *Se puede vender*, aunque su plantilla no se venda.\n"
+"  - Comprobaciones: no se descontamina antes de la fecha de baja ni se desguaza antes de descontaminar.\n"
+"\n"
+"- **Residuos de la descontaminación** (en el mismo modelo que las piezas desmontadas, con la etapa *Descontaminación*): cada vez que el operario retira un producto de desecho de la compañía, *Desechado* (la cantidad que sea, que entra en stock desde la ubicación de producción en la zona de desecho o en otra ubicación interna) o *No existe* (sin movimiento). Se puede hacer tantas veces como haga falta mientras el vehículo no esté marcado como descontaminado. Un residuo marcado por error se deshace igual que una pieza: su stock vuelve y el vehículo deja de estar descontaminado, salvo si ya está desguazado.\n"
+"- **Piezas desmontadas** (`scrap.dismantle.line`): cada componente de la lista de materiales de un vehículo que el operario marca al desguazarlo: *Desmontado* (con su estado: *Excelente*, *Buen estado*, *Media vida* o *Funcional*, y su ubicación de destino, por defecto la del vehículo), *No existe* o *Desechado*. La cantidad se descuenta de la lista de materiales del vehículo (la línea se queda a 0), que así guarda lo que queda por desmontar. Lo desmontado entra en stock desde la ubicación de producción; si el componente es una plantilla desguace, cada unidad se convierte en un producto propio (copia de la plantilla, con el nombre de la plantilla y la referencia del vehículo, su marca/modelo y las listas de materiales de la plantilla); si no, se incrementa el stock del componente. Lo desechado va a la ubicación de desecho de la compañía y lo que no existe no mueve stock. Cuando no queda nada por desmontar, el vehículo queda desguazado con la fecha de hoy. Una pieza marcada por error se **deshace**: su stock vuelve con un movimiento inverso (lo desmontado tiene que seguir en su destino, con su lote), el producto creado de una plantilla se archiva, la cantidad vuelve a la lista de materiales, la pieza se borra y, si el vehículo estaba desguazado, deja de estarlo. Se ven en la pestaña CAT del vehículo (usuarios de inventario); los responsables de inventario las pueden modificar.\n"
+"- **Descontaminación, desguace y consulta de vehículos:** en la pantalla táctil (`scrap_touch`, opciones F3 a F5 de la aplicación *CAT*). Los usuarios de inventario pueden marcar los vehículos como hechos aunque no puedan modificar productos; el resto de datos del vehículo los cambian los responsables de productos.\n"
+"- **Marcas y modelos de vehículo** (de Flota): los pueden leer todos los usuarios internos, para ver la marca/modelo de productos y vehículos sin ser usuarios de Flota.\n"
+"- **Referencia interna de los vehículos recibidos.** Al validar la recepción, cada vehículo recibe la siguiente referencia de la secuencia de su tipo, en la **Referencia interna** de su número de serie y, si no tiene, en la del producto del vehículo. Funciona igual se reciba desde la pantalla táctil o desde el backend. Un número de serie que ya tiene referencia la conserva.\n"
+"- **Ajustes activados**: al instalar o actualizar el módulo se activan *Números de serie y lote* y *Ubicaciones de almacenamiento* (Ajustes de Inventario) *Contabilidad analítica* (Ajustes de Contabilidad) y *Órdenes de trabajo* (Ajustes de Fabricación, para las operaciones de las listas de materiales), que necesitan los vehículos. Si alguien los desactiva en Ajustes, vuelven a activarse con la siguiente actualización del módulo.\n"
+"\n"
+"## Quién lo usa\n"
+"\n"
+"- `scrap_touch`: las entradas de la pantalla táctil ofrecen los productos marcados como plantilla, y cada una pone su tipo en la compra: *Entrada para desguace* el tipo `main` y *Entrada Compra/Venta* el tipo `refurbish`. También tiene la descontaminación, el desguace y la consulta de vehículos.\n"
+"\n"
+"## Actualización\n"
+"\n"
+"Al actualizar a la versión 20.0.1.1.0 se crean los planes analíticos y las ubicaciones por defecto en las compañías que no los tengan, como al instalar.\n"
+"\n"
+"Al actualizar a la versión 20.0.1.2.0 se crea la *Zona de desecho* en las compañías que no la tengan.\n"
+msgstr ""
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%(part)s can't be undone: it isn't in %(location)s anymore."
+msgstr "%(part)s no se puede deshacer: ya no está en %(location)s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%(quantity)s %(part)s can't be marked: %(left)s left."
+msgstr "No se pueden marcar %(quantity)s %(part)s: quedan %(left)s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s can't be decontaminated before its discharge date."
+msgstr "%s no se puede descontaminar antes de su fecha de baja."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s can't be dismantled before it is decontaminated."
+msgstr "%s no se puede desguazar antes de descontaminarlo."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid ""
+"%s can't be undone: its line of the bill of materials doesn't exist anymore."
+msgstr ""
+"%s no se puede deshacer: su línea de la lista de materiales ya no existe."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s has variants: a vehicle can't have them."
+msgstr "%s tiene variantes: un vehículo no puede tenerlas."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s is already decontaminated."
+msgstr "%s ya está descontaminado."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s is already dismantled."
+msgstr "%s ya está desguazado."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s is decontaminated: undo the decontamination first."
+msgstr "%s está descontaminado: deshaz primero la descontaminación."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s is dismantled by whole units."
+msgstr "%s se desmonta por unidades enteras."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s is taken out by whole units."
+msgstr "%s se retira por unidades enteras."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s isn't a vehicle to dismantle received."
+msgstr "%s no es un vehículo para desguazar recibido."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s isn't a waste product of the company."
+msgstr "%s no es un producto de desecho de la compañía."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s must be decontaminated before it is dismantled."
+msgstr "%s se tiene que descontaminar antes de desguazarlo."
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_res_groups
+msgid "Access Groups"
+msgstr ""
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_analytic_account_id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_analytic_account_id
+msgid "Analytic Account"
+msgstr "Cuenta analítica"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_analytic_account_id
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_analytic_account_id
+msgid ""
+"Analytic account of the vehicle, named after its license plate, set on its "
+"purchase and its invoices."
+msgstr ""
+"Cuenta analítica del vehículo, con su matrícula como nombre, que se pone en "
+"su compra y en sus facturas."
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.view_company_form_inherit_scrap_base
+msgid "Analytic plans of the vehicles"
+msgstr "Planes analíticos de los vehículos"
+
+#. module: scrap_base
+#: model:ir.module.module,summary:base.module_scrap_base
+msgid ""
+"Base del reciclaje de vehículos: plantillas de desguace en los productos"
+msgstr ""
+"Base del reciclaje de vehículos: plantillas de desguace en los productos"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__bom_line_id
+msgid "BoM Line"
+msgstr "Línea de lista de materiales"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_form_view_inherit_scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.view_company_form_inherit_scrap_base
+msgid "CAT"
+msgstr "CAT"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__chassis
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__chassis
+msgid "Chassis"
+msgstr "Bastidor"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__chassis
+msgid "Chassis (VIN) of the vehicle or the accessory, of this variant."
+msgstr "Bastidor (VIN) del vehículo o del accesorio, de esta variante."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_template__chassis
+msgid ""
+"Chassis (VIN) of the vehicle or the accessory. With variants, each one has "
+"its own."
+msgstr ""
+"Bastidor (VIN) del vehículo o del accesorio. Con variantes, cada una tiene "
+"el suyo."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Choose an internal location of the company for the dismantled part."
+msgstr "Elige una ubicación interna de la compañía para la pieza desmontada."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Choose an internal location of the company for the waste."
+msgstr "Elige una ubicación interna de la compañía para el residuo."
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_res_company
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_form_view_inherit_scrap_base
+msgid "Complete CAT Data"
+msgstr "Completar datos CAT"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__condition
+msgid "Condition"
+msgstr "Estado"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_scrap_dismantle_line__condition
+msgid "Condition of the dismantled part."
+msgstr "Estado de la pieza desmontada."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_form_view_inherit_scrap_base
+msgid ""
+"Creates the analytic account and the location of the vehicle, named after "
+"its license plate, as its purchase does."
+msgstr ""
+"Crea la cuenta analítica y la ubicación del vehículo, con su matrícula como "
+"nombre, como hace su compra."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__date
+msgid "Date"
+msgstr "Fecha"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__discharge_date
+#: model:ir.model.fields,help:scrap_base.field_product_template__discharge_date
+msgid ""
+"Date the vehicle to dismantle was received, set by its receipt; its legal "
+"deadlines count from it."
+msgstr ""
+"Fecha en que se recibió el vehículo para desguazar, que pone su recepción; "
+"sus plazos legales cuentan desde ella."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__decontamination_date
+#: model:ir.model.fields,help:scrap_base.field_product_template__decontamination_date
+msgid "Date the vehicle was decontaminated; empty while it is pending."
+msgstr ""
+"Fecha en que se descontaminó el vehículo; vacía mientras está pendiente."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_date
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_date
+msgid "Date the vehicle was dismantled; empty while it is pending."
+msgstr "Fecha en que se desguazó el vehículo; vacía mientras está pendiente."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__decontamination_days_left
+#: model:ir.model.fields,help:scrap_base.field_product_template__decontamination_days_left
+msgid "Days left until the decontamination limit; negative when it is late."
+msgstr ""
+"Días que quedan hasta el límite de descontaminación; negativo si va con "
+"retraso."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_days_left
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_days_left
+msgid "Days left until the dismantling limit; negative when it is late."
+msgstr ""
+"Días que quedan hasta el límite de desguace; negativo si va con retraso."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__decontamination_days_left
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__decontamination_days_left
+msgid "Days to Decontaminate"
+msgstr "Días para descontaminar"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_days_left
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_days_left
+msgid "Days to Dismantle"
+msgstr "Días para desguazar"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__decontamination_limit_date
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__decontamination_limit_date
+msgid "Decontaminate By"
+msgstr "Descontaminar"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__decontamination_date
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__decontamination_date
+msgid "Decontaminated On"
+msgstr "Descontaminado el"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__stage__decontamination
+#: model_terms:ir.ui.view,arch_db:scrap_base.view_company_form_inherit_scrap_base
+msgid "Decontamination"
+msgstr "Descontaminación"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__decontamination_days
+msgid "Decontamination Days"
+msgstr "Días descontaminación"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__location_dest_id
+msgid "Destination"
+msgstr "Destino"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__result__discarded
+msgid "Discarded"
+msgstr "Desechado"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__discharge_date
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__discharge_date
+msgid "Discharge Date"
+msgstr "Fecha de baja"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_limit_date
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_limit_date
+msgid "Dismantle By"
+msgstr "Desguazar"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_date
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_date
+msgid "Dismantled On"
+msgstr "Desguazado el"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__stage__dismantling
+msgid "Dismantling"
+msgstr "Desguace"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_days
+msgid "Dismantling Days"
+msgstr "Días desguace"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_purchase_order__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_purchase_order_line__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_res_groups__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_stock_location__display_name
+#: model:ir.model.fields,field_description:scrap_base.field_stock_move__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/purchase_order.py:0
+msgid ""
+"Each vehicle goes in a line of its own, with a quantity of 1 %(uom)s: "
+"%(product)s."
+msgstr ""
+"Cada vehículo va en su propia línea, con una cantidad de 1 %(uom)s: "
+"%(product)s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+#: code:addons/scrap_base/models/purchase_order.py:0
+msgid "Enter the license plate of %s."
+msgstr "Indica la matrícula de %s."
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__condition__excellent
+msgid "Excellent"
+msgstr "Excelente"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__condition__functional
+msgid "Functional"
+msgstr "Funcional"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__condition__good
+msgid "Good"
+msgstr "Buen estado"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__condition__half_life
+msgid "Half Life"
+msgstr "Media vida"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__id
+#: model:ir.model.fields,field_description:scrap_base.field_purchase_order__id
+#: model:ir.model.fields,field_description:scrap_base.field_purchase_order_line__id
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__id
+#: model:ir.model.fields,field_description:scrap_base.field_res_groups__id
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__id
+#: model:ir.model.fields,field_description:scrap_base.field_stock_location__id
+#: model:ir.model.fields,field_description:scrap_base.field_stock_move__id
+msgid "ID"
+msgstr "ID"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_main_sequence_id
+msgid ""
+"Internal reference given to each vehicle bought to dismantle (purchases of "
+"scrap type 'Vehículo o Parte para desguace') when it is received."
+msgstr ""
+"Referencia interna que se da a cada vehículo comprado para desguace (compras"
+" de tipo «Vehículo o Parte para desguace») al recibirlo."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_refurbish_sequence_id
+msgid ""
+"Internal reference given to each vehicle bought to repair and sell whole "
+"(purchases of scrap type 'Para compra/venta') when it is received."
+msgstr ""
+"Referencia interna que se da a cada vehículo comprado para reparar y vender "
+"completo (compras de tipo «Para compra/venta») al recibirlo."
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.view_company_form_inherit_scrap_base
+msgid "Internal references of the vehicles received"
+msgstr "Referencias internas de los vehículos recibidos"
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Invalid result."
+msgstr "Resultado no válido."
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_stock_location
+msgid "Inventory Location"
+msgstr ""
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_purchase_order__unbuild_type
+msgid ""
+"Kind of entry of the purchase: vehicles to dismantle, or to repair and sell "
+"whole."
+msgstr ""
+"Tipo de entrada de la compra: vehículos para desguazar, o para reparar y "
+"vender completos."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_unbuild_type
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_unbuild_type
+msgid ""
+"Kind of product of the vehicle recycling: a vehicle or a part to dismantle, "
+"a subproduct, or a vehicle to repair and sell. A vehicle gets the one of its"
+" purchase. The CAT tab is shown when it is set."
+msgstr ""
+"Tipo de producto del reciclaje de vehículos: vehículo o parte para "
+"desguazar, subproducto o vehículo para reparar y vender. Un vehículo recibe "
+"el de su compra. La pestaña CAT se muestra cuando está establecido."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__decontamination_days
+msgid ""
+"Legal days to decontaminate a vehicle to dismantle, from its discharge date."
+msgstr ""
+"Días legales para descontaminar un vehículo para desguazar, desde su fecha "
+"de baja."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_days
+msgid "Legal days to dismantle a vehicle, from its discharge date."
+msgstr "Días legales para desguazar un vehículo, desde su fecha de baja."
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_form_view_inherit_scrap_base
+msgid "Legal deadlines"
+msgstr "Plazos legales"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.view_company_form_inherit_scrap_base
+msgid "Legal deadlines of the vehicles to dismantle"
+msgstr "Plazos legales de los vehículos para desguazar"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__decontamination_limit_date
+#: model:ir.model.fields,help:scrap_base.field_product_template__decontamination_limit_date
+msgid ""
+"Legal limit to decontaminate the vehicle: its discharge date plus the "
+"decontamination days of the company."
+msgstr ""
+"Límite legal para descontaminar el vehículo: su fecha de baja más los días "
+"de descontaminación de la compañía."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_limit_date
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_limit_date
+msgid ""
+"Legal limit to dismantle the vehicle: its discharge date plus the "
+"dismantling days of the company."
+msgstr ""
+"Límite legal para desguazar el vehículo: su fecha de baja más los días de "
+"desguace de la compañía."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_lot_name
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_lot_name
+#: model:ir.model.fields,field_description:scrap_base.field_purchase_order_line__scrap_lot_name
+msgid "License Plate"
+msgstr "Matrícula"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_purchase_order_line__scrap_lot_name
+msgid ""
+"License plate of the vehicle, given to it as serial number when it is "
+"received."
+msgstr ""
+"Matrícula del vehículo, que se le da como número de serie al recibirlo."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_lot_name
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_lot_name
+msgid "License plate of the vehicle, its serial number when it is received."
+msgstr "Matrícula del vehículo, su número de serie al recibirlo."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_location_id
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_location_id
+msgid ""
+"Location created for the vehicle, named after its license plate, under the "
+"one of its kind of entry in the company, where it is received."
+msgstr ""
+"Ubicación creada para el vehículo, con su matrícula como nombre, dentro de "
+"la de su tipo de entrada en la compañía, donde se recibe."
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.view_company_form_inherit_scrap_base
+msgid "Locations of the vehicles"
+msgstr "Ubicaciones de los vehículos"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__vehicle_model_id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__vehicle_model_id
+msgid "Make/Model"
+msgstr "Marca/Modelo"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__result__missing
+msgid "Missing"
+msgstr "No existe"
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_product.py:0
+msgid "Note:"
+msgstr "Nota:"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__ref_oem
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__ref_oem
+msgid "OEM Ref."
+msgstr "Ref. OEM"
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Only the inventory users can decontaminate the vehicles."
+msgstr "Solo los usuarios de inventario pueden descontaminar los vehículos."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Only the inventory users can dismantle the vehicles."
+msgstr "Solo los usuarios de inventario pueden desguazar los vehículos."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Only the inventory users can mark the vehicles as done."
+msgstr ""
+"Solo los usuarios de inventario pueden marcar los vehículos como hechos."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__user_id
+msgid "Operator"
+msgstr "Operario"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_location_id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_location_id
+msgid "Original Location"
+msgstr "Ubicación original"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__product_template__scrap_unbuild_type__other
+#: model:ir.model.fields.selection,name:scrap_base.selection__purchase_order__unbuild_type__other
+msgid "Otros finales desguazados"
+msgstr "Otros finales desguazados"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__product_template__scrap_unbuild_type__refurbish
+#: model:ir.model.fields.selection,name:scrap_base.selection__purchase_order__unbuild_type__refurbish
+msgid "Para compra/venta"
+msgstr "Para compra/venta"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_main_location_id
+msgid ""
+"Parent of the location created for each vehicle bought to dismantle, named "
+"after its license plate, where it is received."
+msgstr ""
+"Ubicación padre de la que se crea para cada vehículo comprado para "
+"desguazar, con el nombre de su matrícula, donde se recibe."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_refurbish_location_id
+msgid ""
+"Parent of the location created for each vehicle bought to repair and sell "
+"whole, named after its license plate, where it is received."
+msgstr ""
+"Ubicación padre de la que se crea para cada vehículo comprado para reparar y"
+" vender completo, con el nombre de su matrícula, donde se recibe."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__product_id
+msgid "Part"
+msgstr "Pieza"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_dismantle_line_ids
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_dismantle_line_ids
+msgid "Parts and Waste"
+msgstr "Piezas y residuos"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_main_analytic_plan_id
+msgid ""
+"Plan of the analytic account created for each vehicle bought to dismantle, "
+"when its purchase is confirmed."
+msgstr ""
+"Plan de la cuenta analítica que se crea para cada vehículo comprado para "
+"desguazar, al confirmar su compra."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_refurbish_analytic_plan_id
+msgid ""
+"Plan of the analytic account created for each vehicle bought to repair and "
+"sell whole, when its purchase is confirmed."
+msgstr ""
+"Plan de la cuenta analítica que se crea para cada vehículo comprado para "
+"reparar y vender completo, al confirmar su compra."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__plate
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__plate
+msgid "Plate"
+msgstr "Placa"
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_product_template
+msgid "Product"
+msgstr "Producto"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__uses
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__uses
+msgid "Product Uses"
+msgstr "Usos del producto"
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_product_product
+msgid "Product Variant"
+msgstr ""
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__is_template
+#: model:ir.model.fields,help:scrap_base.field_product_template__is_template
+msgid ""
+"Products used as templates of the vehicle recycling, as the vehicles bought "
+"to be dismantled. The scrap entry of the touch screen offers them. When a "
+"purchase of vehicles is confirmed, each vehicle becomes a copy of its "
+"template."
+msgstr ""
+"Productos que sirven de plantilla en el reciclaje de vehículos, como los "
+"vehículos que se compran para desmontar. Los ofrece la entrada para desguace"
+" de la pantalla táctil. Al confirmar una compra de vehículos, cada vehículo "
+"pasa a ser una copia de su plantilla."
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_purchase_order
+msgid "Purchase Order"
+msgstr "Pedido de compra"
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_purchase_order_line
+msgid "Purchase Order Line"
+msgstr "Línea de pedido de compra"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__quantity
+msgid "Quantity"
+msgstr "Cantidad"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__references
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__references
+msgid "References"
+msgstr "Referencias"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__scrap_dismantle_line__result__dismantled
+msgid "Removed"
+msgstr "Desmontado"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__result
+msgid "Result"
+msgstr "Resultado"
+
+#. module: scrap_base
+#: model:ir.module.module,shortdesc:base.module_scrap_base
+msgid "Scrap Base"
+msgstr "Base de desguace"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__is_template
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__is_template
+msgid "Scrap Template"
+msgstr "Plantilla desguace"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_search_view_inherit_scrap_base
+msgid "Scrap Templates"
+msgstr "Plantillas desguace"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_unbuild_type
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_unbuild_type
+#: model:ir.model.fields,field_description:scrap_base.field_purchase_order__unbuild_type
+#: model_terms:ir.ui.view,arch_db:scrap_base.purchase_order_search_inherit_scrap_base
+msgid "Scrap Type"
+msgstr "Tipo desguace"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_template_id
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_template_id
+msgid ""
+"Scrap template this vehicle was copied from when its purchase was confirmed."
+" Set it on a vehicle created by hand to make it a vehicle."
+msgstr ""
+"Plantilla desguace de la que se copió el vehículo al confirmar su compra. En"
+" un vehículo creado a mano, ponerla lo convierte en vehículo."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+#: code:addons/scrap_base/models/purchase_order.py:0
+msgid ""
+"Set the analytic plan and the location of the vehicles of this kind of entry"
+" in the CAT tab of the company %s."
+msgstr ""
+"Indica el plan analítico y la ubicación de los vehículos de este tipo de "
+"entrada en la pestaña CAT de la compañía %s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Set the condition of the dismantled part."
+msgstr "Indica el estado de la pieza desmontada."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid ""
+"Set the scrap type of %s: 'Vehículo o Parte para desguace' or 'Para "
+"compra/venta'."
+msgstr ""
+"Indique el tipo desguace de %s: 'Vehículo o Parte para desguace' o 'Para "
+"compra/venta'."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Set the vehicle template of %s: only a vehicle gets the CAT data."
+msgstr ""
+"Indique la plantilla del vehículo de %s: solo un vehículo recibe los datos "
+"CAT."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__stage
+msgid "Stage"
+msgstr "Fase"
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_stock_move
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__move_id
+msgid "Stock Move"
+msgstr "Movimiento de stock"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__product_template__scrap_unbuild_type__subproduct
+#: model:ir.model.fields.selection,name:scrap_base.selection__purchase_order__unbuild_type__subproduct
+msgid "Subproducto"
+msgstr "Subproducto"
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_product.py:0
+msgid "The chassis %(chassis)s is already in %(product)s."
+msgstr "El bastidor %(chassis)s ya lo tiene %(product)s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/purchase_order.py:0
+msgid "The license plate %s is in more than one line."
+msgstr "La matrícula %s está en más de una línea."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "The part isn't in the bill of materials of %s."
+msgstr "La pieza no está en la lista de materiales de %s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "The part isn't of %s."
+msgstr "La pieza no es de %s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "The production and scrap locations of the company %s are missing."
+msgstr "Faltan las ubicaciones de producción y de desecho de la compañía %s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+#: model:ir.model.constraint,message:scrap_base.constraint_scrap_dismantle_line_quantity_positive
+msgid "The quantity must be positive."
+msgstr "La cantidad debe ser positiva."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__ref_oem
+#: model:ir.model.fields,help:scrap_base.field_product_template__ref_oem
+msgid "The reference of the manufacturer of the vehicle."
+msgstr "La referencia del fabricante del vehículo."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__ref_market
+#: model:ir.model.fields,help:scrap_base.field_product_template__ref_market
+msgid "The reference written or stamped on the part."
+msgstr "La referencia que tiene escrita o troquelada la pieza."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "The scrap template %s can't have variants."
+msgstr "La plantilla desguace %s no puede tener variantes."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/purchase_order.py:0
+msgid ""
+"The scrap template %s has variants: a vehicle template can't have them."
+msgstr ""
+"La plantilla desguace %s tiene variantes: una plantilla de vehículo no puede"
+" tenerlas."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "The waste isn't of %s."
+msgstr "El residuo no es de %s."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+#: code:addons/scrap_base/models/purchase_order.py:0
+msgid "There is already a vehicle with the license plate %s."
+msgstr "Ya hay un vehículo con la matrícula %s."
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.purchase_order_search_inherit_scrap_base
+msgid "To Dismantle"
+msgstr "Para desguace"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.purchase_order_search_inherit_scrap_base
+msgid "To Repair and Sell"
+msgstr "Para compra/venta"
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "Undone: %s"
+msgstr "Deshecho: %s"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__uom_id
+msgid "Unit"
+msgstr "Unidad"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__vehicle_id
+msgid "Vehicle"
+msgstr "Vehículo"
+
+#. module: scrap_base
+#: model:ir.model,name:scrap_base.model_scrap_dismantle_line
+msgid "Vehicle Part or Waste"
+msgstr "Pieza o residuo de vehículo"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_template_id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_template_id
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_search_view_inherit_scrap_base
+msgid "Vehicle Template"
+msgstr "Plantilla del vehículo"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_search_view_inherit_scrap_base
+msgid "Vehicles"
+msgstr "Vehículos"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_main_analytic_plan_id
+msgid "Vehicles to Dismantle Analytic Plan"
+msgstr "Plan analítico vehículos para desguazar"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_main_location_id
+msgid "Vehicles to Dismantle Location"
+msgstr "Ubicación vehículos para desguazar"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_main_sequence_id
+msgid "Vehicles to Dismantle Sequence"
+msgstr "Secuencia vehículos para desguace"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_refurbish_analytic_plan_id
+msgid "Vehicles to Repair and Sell Analytic Plan"
+msgstr "Plan analítico vehículos de compra/venta"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_refurbish_location_id
+msgid "Vehicles to Repair and Sell Location"
+msgstr "Ubicación vehículos de compra/venta"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_refurbish_sequence_id
+msgid "Vehicles to Repair and Sell Sequence"
+msgstr "Secuencia vehículos de compra/venta"
+
+#. module: scrap_base
+#: model:ir.model.fields.selection,name:scrap_base.selection__product_template__scrap_unbuild_type__main
+#: model:ir.model.fields.selection,name:scrap_base.selection__purchase_order__unbuild_type__main
+msgid "Vehículo o Parte para desguace"
+msgstr "Vehículo o Parte para desguace"
+
+#. module: scrap_base
+#: model:account.analytic.plan,name:scrap_base.analytic_plan_scrap_refurbish
+msgid "Vehículos compra / venta"
+msgstr "Vehículos compra / venta"
+
+#. module: scrap_base
+#: model:account.analytic.plan,name:scrap_base.analytic_plan_scrap_main
+msgid "Vehículos para desguazar"
+msgstr "Vehículos para desguazar"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__ref_market
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__ref_market
+msgid "Visible Ref."
+msgstr "Ref. visible"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_waste_product_ids
+msgid "Waste Products"
+msgstr "Productos de desecho"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_res_company__scrap_waste_location_id
+msgid "Waste Zone"
+msgstr "Zona de desecho"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_dismantle_line_ids
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_dismantle_line_ids
+msgid ""
+"Waste taken out of the vehicle while decontaminating it, and components of "
+"its bill of materials marked while dismantling it."
+msgstr ""
+"Residuos retirados del vehículo al descontaminarlo y componentes de su lista"
+" de materiales marcados al desguazarlo."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_waste_product_ids
+msgid ""
+"Waste taken out of the vehicles while decontaminating them, offered by the "
+"decontamination of the touch screen."
+msgstr ""
+"Residuos que se retiran de los vehículos al descontaminarlos; los ofrece la "
+"descontaminación de la pantalla táctil."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_scrap_dismantle_line__location_dest_id
+msgid ""
+"Where the part dismantled, or the waste, enters the stock; by default, the "
+"location of the vehicle, or the waste zone of the company."
+msgstr ""
+"Dónde entra en stock la pieza desmontada o el residuo; por defecto, la "
+"ubicación del vehículo o la zona de desecho de la compañía."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_res_company__scrap_waste_location_id
+msgid ""
+"Where the waste taken out of the vehicles while decontaminating them (oil, "
+"fuel, batteries...) enters the stock by default."
+msgstr ""
+"Dónde entra en stock por defecto lo que se retira de los vehículos al "
+"descontaminarlos (aceite, combustible, baterías...)."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s has parts marked: undo its dismantling first."
+msgstr "%s tiene piezas marcadas: deshaz antes su desguace."
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s is archived."
+msgstr "%s está archivado."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_origin_line_ids
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_origin_line_ids
+msgid "All Parts"
+msgstr "Todas las piezas"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_form_view_inherit_scrap_base
+msgid "Dismantled From"
+msgstr "Desguazado de"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_search_view_inherit_scrap_base
+msgid "Subproducts"
+msgstr "Subproductos"
+
+#. module: scrap_base
+#. odoo-python
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s isn't received yet."
+msgstr "%s aún no se ha recibido."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_origin_id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_origin_id
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__origin_id
+msgid "Origin"
+msgstr "Origen"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_origin_line_ids
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_origin_line_ids
+msgid ""
+"Parts and waste of the vehicle, or of the subproduct bought, and of all its "
+"subproducts, dismantled later."
+msgstr ""
+"Piezas y residuos del vehículo, o del subproducto comprado, y de todos sus "
+"subproductos, desguazados después."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_origin_id
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_origin_id
+msgid ""
+"What a subproduct was dismantled from at first: the vehicle or, when it was "
+"dismantled from another subproduct, the origin of that one. Empty on what is"
+" bought, as the vehicles or an engine bought to dismantle, which are the "
+"origin of their subproducts."
+msgstr ""
+"De dónde se desmontó en primer lugar un subproducto: el vehículo o, si se "
+"desmontó de otro subproducto, el origen de este. Vacío en lo que se compra, "
+"como los vehículos o un motor comprado para desguazar, que son el origen de "
+"sus subproductos."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_scrap_dismantle_line__origin_id
+msgid ""
+"What the part comes from at first: the vehicle (or the subproduct bought) "
+"dismantled or, if it was dismantled from a subproduct, the origin of that "
+"one."
+msgstr ""
+"De dónde procede en primer lugar la pieza: el vehículo (o el subproducto "
+"comprado) desguazado o, si se desmontó de un subproducto, el origen de este."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_vehicle_brand_id
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_vehicle_brand_id
+msgid ""
+"Brand (manufacturer) of the vehicle of the product, from its make/model: the"
+" vehicles and their parts are found by it, as from the opportunities."
+msgstr ""
+"Marca (fabricante) del vehículo del producto, según su marca/modelo: los "
+"vehículos y sus piezas se encuentran por ella, también desde las "
+"oportunidades."
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_search_view_inherit_scrap_base
+msgid "In Stock"
+msgstr "En stock"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_vehicle_brand_id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_vehicle_brand_id
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_search_view_inherit_scrap_base
+msgid "Vehicle Brand"
+msgstr "Marca del vehículo"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_kanban_view_inherit_scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.product_template_kanban_view_inherit_scrap_base
+msgid "Template"
+msgstr "Plantilla"
