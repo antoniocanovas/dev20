@@ -6,12 +6,12 @@
       "parameters": {
         "public": true,
         "mode": "hostedChat",
-        "authentication": "n8nUserAuth",
-        "initialMessages": "Hola 👋 Soy el asistente de clientes de AYC. Puedo buscar clientes por nombre, CIF o código. ¿Qué cliente buscas?",
+        "authentication": "basicAuth",
+        "initialMessages": "Hola 👋 Soy el asistente de clientes de AYC. Puedo buscar clientes por nombre, CIF o código, y consultar sus precios especiales, descuentos y surtido. ¿Qué necesitas?",
         "options": {
           "title": "Asistente de clientes AYC",
-          "subtitle": "ia-support · consulta de clientes",
-          "inputPlaceholder": "Ej.: busca Ñam Ñam / B30682488 / 4300017472…"
+          "subtitle": "ia-support · clientes, precios especiales, descuentos y surtidos",
+          "inputPlaceholder": "Ej.: busca Ñam Ñam / precios especiales del 4300016289…"
         }
       },
       "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e01",
@@ -22,12 +22,18 @@
         0,
         0
       ],
-      "webhookId": "6d2b7e41-58c3-4f0a-a9e2-4b1d9c0e7a31"
+      "webhookId": "6d2b7e41-58c3-4f0a-a9e2-4b1d9c0e7a31",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "AlbIaBasicAuth01",
+          "name": "Albaranes IA - Basic Auth"
+        }
+      }
     },
     {
       "parameters": {
         "options": {
-          "systemMessage": "=Eres el asistente de consulta de clientes del ERP de AYC. Hablas en español, con frases breves y claras. Trabajas SOLO con las herramientas; nunca inventes datos, códigos ni resultados.\n\n## Conceptos\n- código = código de cliente (p. ej. 4300017472). CIF = CIF/NIF/NIE del cliente.\n- Un mismo CIF puede tener varios códigos de cliente (una ficha por dirección o tienda): son clientes distintos, distínguelos por dirección y población.\n- cadena = nombre del cliente cadena (grupo o central al que pertenece). nombre_factura = nombre del cliente al que se factura. Vienen vacíos si no tiene o si son iguales al nombre: muéstralos SOLO si no están vacíos, como \"Cadena: ...\" y \"Factura a: ...\".\n\n## Cómo trabajar\n1. Para cualquier pregunta sobre un cliente usa consultar_clientes con el dato que dé el usuario: parte del nombre, CIF o código. Busca por un dato cada vez, el más distintivo (si da el CIF o el código, usa ese).\n2. Si la búsqueda devuelve requiere_eleccion = true, muestra una lista numerada corta (nombre, código, CIF y población, más cadena y factura a si no están vacíos) y pide que elija. No elijas tú.\n3. Si hay_mas = true, di cuántos hay en total (total), muestra los 10 primeros y propone acotar con más palabras del nombre, el CIF o el código.\n4. Si no hay resultados, dilo y prueba o sugiere otra forma: menos palabras, una sola palabra significativa del nombre, con o sin tildes/Ñ, o el CIF.\n5. Con un solo cliente (o cuando el usuario elige uno de la lista), muestra su ficha: nombre, código, CIF, dirección, código postal, población y provincia, y cadena y factura a si no están vacíos. Para preguntas posteriores sobre el mismo cliente usa los datos que ya tienes; no vuelvas a buscar si no hace falta.\n6. Si una herramienta devuelve {\"error\": ...}, explícalo en lenguaje natural y propone reintentar. No muestres JSON ni nombres técnicos de campos.\n7. En esta fase solo puedes CONSULTAR clientes. Si te piden dar de alta, modificar o borrar clientes, o datos de otras cosas (pedidos, facturas, albaranes, artículos...), indica que de momento solo consultas clientes.",
+          "systemMessage": "=Eres el asistente de consulta de clientes del ERP de AYC. Hablas en español, con frases breves y claras. Trabajas SOLO con las herramientas; nunca inventes datos, códigos ni resultados.\n\n## Conceptos\n- código = código de cliente (p. ej. 4300017472). Muestra los códigos de artículo tal cual vienen, con sus ceros a la izquierda (0126, no 126). CIF = CIF/NIF/NIE del cliente.\n- Un mismo CIF puede tener varios códigos de cliente (una ficha por dirección o tienda): son clientes distintos, distínguelos por dirección y población.\n- precios especiales y descuentos: cada cliente tiene asignada una tabla de precios especiales y otra de descuentos (codigo, descripcion y cuántos clientes la comparten). Cada línea de la tabla es un artículo (codigo y descripción) con su precio en euros o su descuento en %, y las fechas desde y hasta. vigente = false significa que la línea aún no ha empezado.\n- surtido: cada cliente puede tener asignado un surtido (tabla con código, descripción y cuántos clientes lo comparten): la lista CERRADA de lo que se le puede vender; nada fuera del surtido. Sus líneas son de tres clases: artículos sueltos (productos, cada uno con su marca y su grupo), marcas completas (marcas: se le pueden vender TODOS los artículos de esa marca) y grupos de una marca (grupos: todos los artículos de ese grupo de esa marca, p. ej. el grupo \"GR ENVUELTO DSOL 1\" de DULCESOL). Las marcas y los grupos NO vienen desglosados en artículos: la herramienta no sabe qué artículos hay dentro. avisos son marcas especiales del surtido (p. ej. \"CLIENTE SOLO ENDOSOS\", \"FIN DE SERVICIO\", \"CSA CLIENTE SOLO ART.AUTORIZADOS\"), no artículos.\n- cadena = nombre del cliente cadena (grupo o central al que pertenece). nombre_factura = nombre del cliente al que se factura. Vienen vacíos si no tiene o si son iguales al nombre: muéstralos SOLO si no están vacíos, como \"Cadena: ...\" y \"Factura a: ...\".\n\n## Cómo trabajar\n1. Para cualquier pregunta sobre un cliente usa consultar_clientes con el dato que dé el usuario: parte del nombre, CIF o código. Busca por un dato cada vez, el más distintivo (si da el CIF o el código, usa ese).\n2. Si la búsqueda devuelve requiere_eleccion = true, muestra una lista numerada corta (nombre, código, CIF y población, más cadena y factura a si no están vacíos) y pide que elija. No elijas tú.\n3. Si hay_mas = true, di cuántos hay en total (total), muestra los 10 primeros y propone acotar con más palabras del nombre, el CIF o el código.\n4. Si no hay resultados, dilo y prueba o sugiere otra forma: menos palabras, una sola palabra significativa del nombre, con o sin tildes/Ñ, o el CIF.\n5. Con un solo cliente (o cuando el usuario elige uno de la lista), muestra su ficha: nombre, código, CIF, dirección, código postal, población y provincia, y cadena y factura a si no están vacíos. Para preguntas posteriores sobre el mismo cliente usa los datos que ya tienes; no vuelvas a buscar si no hace falta.\n6. Si una herramienta devuelve {\"error\": ...}, explícalo en lenguaje natural y propone reintentar. No muestres JSON ni nombres técnicos de campos.\n7. Para precios especiales usa consultar_precios_especiales y para descuentos consultar_descuentos, con el código de cliente. Si el usuario da el nombre o el CIF, busca antes el cliente con consultar_clientes (y que elija si hay varios); si ya lo tienes en la conversación, usa su código. Si pregunta por un artículo concreto, pásalo en articulo (código o palabras de la descripción). Si da directamente un número de tabla, pásalo en codigo_tabla.\n8. Al mostrar precios especiales o descuentos: primero la tabla (código, y descripción y cuántos clientes la comparten si vienen; si no vienen, no lo menciones) y después la lista de artículos con código, descripción, precio (p. ej. 5,75 €) o descuento (p. ej. 15,4 %) y \"hasta dd/mm/aaaa\". Marca como \"a partir del dd/mm/aaaa\" las líneas con vigente = false. Si un artículo aparece dos veces con periodos distintos, muestra las dos. Si total = 0, di que el cliente no tiene precios especiales (o descuentos) en esa tabla e indica la descripción de la tabla. Si hay_mas = true, di cuántos hay y propone filtrar por artículo.\n9. Para el surtido (qué se le puede vender a un cliente) usa consultar_surtido, igual que los precios: con el código de cliente (busca antes el cliente si hace falta), o codigo_tabla si da el número de surtido, y articulo para filtrar por código o palabras de la descripción (también la marca, que suele ir en la descripción). Muestra primero el surtido (código, descripción y cuántos clientes lo comparten), los avisos solo si hay alguno (si no hay, no los menciones), y después, si las hay, las marcas completas (\"Marca completa: DULCESOL\") y los grupos (\"Grupo GR ENVUELTO DSOL 1 de DULCESOL\"), con sus fechas como los artículos; si no hay marcas ni grupos, no los menciones. Luego cuántos artículos sueltos tiene (total_tabla) y la lista de artículos agrupada por marca (un encabezado por marca), cada uno con código y descripción, el grupo entre paréntesis si lo tiene, \"hasta dd/mm/aaaa\" solo si hasta no está vacío, y \"a partir del dd/mm/aaaa\" si vigente = false. Si hay_mas = true, di cuántos hay, resume cuántos artículos hay de cada marca (articulos_por_marca) y propone filtrar por marca o artículo. A \"¿puedo venderle X?\": filtra por X con las palabras clave (p. ej. \"poker vainilla\"); es SÍ si el artículo aparece en productos (y vigente), y entonces di su código y descripción. Si no aparece suelto pero su marca está en marcas, también es SÍ (por la marca completa). Si no aparece suelto y su marca solo tiene grupos en grupos, di que puede entrar si el artículo es de alguno de esos grupos (nómbralos), pero que no puedes comprobar el grupo de un artículo que no está en la lista. Si productos está vacío pero hay parecidos, no digas que no: muéstralos y pregunta si es alguno de ellos. Solo si no hay ni productos, ni parecidos, ni marca o grupo que pueda incluirlo, di que no aparece en su surtido. Si la herramienta dice que no se encontró la tabla de surtido 999, el cliente no tiene surtido asignado: dilo así, sin suponer que puede comprar de todo.\n10. Solo puedes CONSULTAR clientes, sus precios especiales, sus descuentos y su surtido. Si te piden dar de alta, modificar o borrar algo, o datos de otras cosas (pedidos, facturas, albaranes, stock...), indica que de momento no puedes.",
           "maxIterations": 8
         }
       },
@@ -86,13 +92,53 @@
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "dato": "={{ $fromAI('dato', 'Parte del nombre, CIF/NIF o código de cliente a buscar', 'string') }}"
+            "accion": "clientes",
+            "dato": "={{ $fromAI('dato', 'Parte del nombre, CIF/NIF o código de cliente a buscar', 'string') }}",
+            "codigo_cliente": "",
+            "codigo_tabla": "",
+            "articulo": ""
           },
           "matchingColumns": [],
           "schema": [
             {
+              "id": "accion",
+              "displayName": "accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
               "id": "dato",
               "displayName": "dato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_cliente",
+              "displayName": "codigo_cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_tabla",
+              "displayName": "codigo_tabla",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "articulo",
+              "displayName": "articulo",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -115,10 +161,256 @@
     },
     {
       "parameters": {
+        "description": "Consulta la tabla de precios especiales asignada a un cliente (por su código de cliente) o una tabla por su código, y lista sus artículos. Devuelve tabla (codigo, descripcion, num_clientes), total, hay_mas y hasta 60 productos con articulo, descripcion, precio (euros), desde, hasta y vigente.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ChatIaClienAYC01"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "accion": "preciosEspeciales",
+            "dato": "",
+            "codigo_cliente": "={{ $fromAI('codigo_cliente', 'Código de cliente (p. ej. 4300016289); vacío si se da codigo_tabla', 'string', '') }}",
+            "codigo_tabla": "={{ $fromAI('codigo_tabla', 'Código de la tabla de precios especiales, solo si el usuario lo da; si no, vacío', 'string', '') }}",
+            "articulo": "={{ $fromAI('articulo', 'Código o palabras de la descripción del artículo (o de la marca o el grupo, en surtidos) para filtrar; vacío para todos', 'string', '') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "accion",
+              "displayName": "accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "dato",
+              "displayName": "dato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_cliente",
+              "displayName": "codigo_cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_tabla",
+              "displayName": "codigo_tabla",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "articulo",
+              "displayName": "articulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e09",
+      "name": "consultar_precios_especiales",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Consulta la tabla de descuentos asignada a un cliente (por su código de cliente) o una tabla por su código, y lista sus artículos. Devuelve tabla (codigo, descripcion, num_clientes), total, hay_mas y hasta 60 productos con articulo, descripcion, descuento (%), desde, hasta y vigente.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ChatIaClienAYC01"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "accion": "descuentos",
+            "dato": "",
+            "codigo_cliente": "={{ $fromAI('codigo_cliente', 'Código de cliente (p. ej. 4300016289); vacío si se da codigo_tabla', 'string', '') }}",
+            "codigo_tabla": "={{ $fromAI('codigo_tabla', 'Código de la tabla de descuentos, solo si el usuario lo da; si no, vacío', 'string', '') }}",
+            "articulo": "={{ $fromAI('articulo', 'Código o palabras de la descripción del artículo (o de la marca o el grupo, en surtidos) para filtrar; vacío para todos', 'string', '') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "accion",
+              "displayName": "accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "dato",
+              "displayName": "dato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_cliente",
+              "displayName": "codigo_cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_tabla",
+              "displayName": "codigo_tabla",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "articulo",
+              "displayName": "articulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e10",
+      "name": "consultar_descuentos",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "description": "Consulta el surtido asignado a un cliente (por su código de cliente) o un surtido por su código: la lista cerrada de lo que se le puede vender. Devuelve tabla (codigo, descripcion, num_clientes), avisos (marcas especiales del surtido), marcas (marcas completas incluidas), grupos (grupos de una marca incluidos completos), total_tabla (artículos sueltos), articulos_por_marca, total, hay_mas, hasta 60 productos con articulo, descripcion, marca, grupo, desde, hasta (vacío = sin fecha de fin) y vigente, y parecidos (si al filtrar por articulo no hay coincidencia exacta). marcas y grupos van siempre completos, aunque se filtre por articulo.",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ChatIaClienAYC01"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "accion": "surtidos",
+            "dato": "",
+            "codigo_cliente": "={{ $fromAI('codigo_cliente', 'Código de cliente (p. ej. 4300016289); vacío si se da codigo_tabla', 'string', '') }}",
+            "codigo_tabla": "={{ $fromAI('codigo_tabla', 'Código de la tabla de surtido, solo si el usuario lo da; si no, vacío', 'string', '') }}",
+            "articulo": "={{ $fromAI('articulo', 'Código o palabras de la descripción del artículo (o de la marca o el grupo, en surtidos) para filtrar; vacío para todos', 'string', '') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "accion",
+              "displayName": "accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "dato",
+              "displayName": "dato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_cliente",
+              "displayName": "codigo_cliente",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "codigo_tabla",
+              "displayName": "codigo_tabla",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "articulo",
+              "displayName": "articulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e18",
+      "name": "consultar_surtido",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        1000,
+        300
+      ]
+    },
+    {
+      "parameters": {
         "workflowInputs": {
           "values": [
             {
+              "name": "accion"
+            },
+            {
               "name": "dato"
+            },
+            {
+              "name": "codigo_cliente"
+            },
+            {
+              "name": "codigo_tabla"
+            },
+            {
+              "name": "articulo"
             }
           ]
         }
@@ -129,6 +421,40 @@
       "typeVersion": 1.1,
       "position": [
         0,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e11-c",
+              "leftValue": "={{ [\"preciosEspeciales\", \"descuentos\", \"surtidos\"].includes($json.accion) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e11",
+      "name": "¿Condiciones?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        220,
         600
       ]
     },
@@ -166,8 +492,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        220,
-        600
+        440,
+        800
       ],
       "credentials": {
         "httpHeaderAuth": {
@@ -189,8 +515,245 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
+        660,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e12-c",
+              "leftValue": "={{ !String($json.codigo_tabla || \"\").trim() && !!String($json.codigo_cliente || \"\").trim() }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e12",
+      "name": "¿Buscar tabla?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
         440,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ \"http://88.27.249.204:50880/api/\" + $json.accion + \"/consultar\" }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "codigoCliente",
+              "value": "={{ String($json.codigo_cliente || \"\").trim() }}"
+            },
+            {
+              "name": "subEmpresa",
+              "value": "AYC"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e13",
+      "name": "API tabla cliente",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        660,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AycApiKeyHeader1",
+          "name": "API AYC (X-api-key)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Código del nodo \"Tabla\" del flujo chat-ia-clientes-ayc.json (se copia dentro del\n// JSON con build_workflow.py). Decide qué tabla de precios especiales, de descuentos o\n// de surtido listar: la que da el usuario o la que devuelve \"consultar\" para el cliente.\nconst e = $('Consulta').first().json;\nconst r = $input.first().json;\nconst t = (v) => String(v ?? '').trim();\nconst que = { descuentos: 'descuentos', surtidos: 'surtidos' }[e.accion] || 'precios especiales';\n// Los 4xx llegan como texto en error.message: '404 - {\"mensaje\":\"No hay datos comerciales (CLP) ...\"}'.\nconst mensajeApi = (err) => (String(err?.message || '').match(/\"(?:mensaje|message)\"\\s*:\\s*\"([^\"]*)\"/) || [])[1];\n\nif (t(e.codigo_tabla)) {\n  return [{ json: { tabla: { codigo: t(e.codigo_tabla) } } }];\n}\nif (!t(e.codigo_cliente)) {\n  return [{ json: { error: 'Falta el código de cliente (o el código de tabla).' } }];\n}\nif (r.error) {\n  return [{ json: { error: mensajeApi(r.error) || `La API de ${que} no responde o ha dado un error. Prueba de nuevo en unos segundos.` } }];\n}\nlet d;\ntry {\n  d = JSON.parse(r.data);\n} catch (err) {\n  return [{ json: { error: `La API de ${que} ha devuelto una respuesta no válida.` } }];\n}\nif (d.codigoTabla === undefined) {\n  return [{ json: { error: d.mensaje || `La API de ${que} ha dado un error.` } }];\n}\nreturn [{\n  json: { tabla: { codigo: t(d.codigoTabla), descripcion: t(d.descripcion), num_clientes: d.numeroClientes } },\n}];\n"
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e14",
+      "name": "Tabla",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e15-c",
+              "leftValue": "={{ !!$json.tabla }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e15",
+      "name": "¿Hay tabla?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ \"http://88.27.249.204:50880/api/\" + $(\"Consulta\").first().json.accion + \"/listarProductos\" }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "codigoTabla",
+              "value": "={{ $json.tabla.codigo }}"
+            },
+            {
+              "name": "subEmpresa",
+              "value": "AYC"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e16",
+      "name": "API productos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        400
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "AycApiKeyHeader1",
+          "name": "API AYC (X-api-key)"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 1000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e19-c",
+              "leftValue": "={{ $(\"Consulta\").first().json.accion === \"surtidos\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e19",
+      "name": "¿Surtido?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Código del nodo \"Normalizar condiciones\" del flujo chat-ia-clientes-ayc.json (se\n// copia dentro del JSON con build_workflow.py). Convierte la respuesta de\n// listarProductos (precios especiales o descuentos) en { tabla, total, hay_mas, productos }.\nconst LIMITE = 60;\nconst e = $('Consulta').first().json;\nconst tb = $('Tabla').first().json;\nconst r = $input.first().json;\nconst t = (v) => String(v ?? '').trim();\nconst descuentos = e.accion === 'descuentos';\nconst que = descuentos ? 'descuentos' : 'precios especiales';\nconst mensajeApi = (err) => (String(err?.message || '').match(/\"(?:mensaje|message)\"\\s*:\\s*\"([^\"]*)\"/) || [])[1];\n\nif (tb.error) {\n  return [{ json: { error: tb.error } }];\n}\nif (r.error) {\n  return [{ json: { error: mensajeApi(r.error) || `La API de ${que} no responde o ha dado un error. Prueba de nuevo en unos segundos.` } }];\n}\nlet lista;\ntry {\n  lista = JSON.parse(r.data);\n} catch (err) {\n  return [{ json: { error: `La API de ${que} ha devuelto una respuesta no válida.` } }];\n}\nif (!Array.isArray(lista)) {\n  return [{ json: { error: lista.mensaje || `La API de ${que} ha dado un error.` } }];\n}\n\n// La API no devuelve líneas caducadas, pero sí futuras, y a veces el mismo artículo\n// con dos periodos (p. ej. uno desde 2024 y otro que empieza hoy): se dejan todas.\nconst hoy = $now.setZone('Europe/Madrid').toFormat('yyyy-MM-dd');\nconst iso = (f) => t(f).split('/').reverse().join('-');\nconst plano = (s) => t(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();\nconst VACIAS = new Set(['DE', 'DEL', 'LA', 'EL', 'LOS', 'LAS', 'CON', 'Y', 'EN', 'AL', 'A', 'UN', 'UNA', 'PARA', 'POR']);\n// Palabras del artículo a buscar, sin las vacías (\"poker de vainilla\" → POKER, VAINILLA).\nconst palabras = plano(e.articulo).split(/[\\s,.;]+/).filter((w) => w && !VACIAS.has(w));\nconst aciertos = (texto) => palabras.filter((w) => plano(texto).includes(w)).length;\n\nconst productos = lista\n  .map((p) => ({\n    articulo: t(p.codigoArticulo),\n    descripcion: t(p.descripcion).replace(/\\s{2,}/g, ' '),\n    ...(descuentos ? { descuento: p.descuento } : { precio: p.precio }),\n    desde: t(p.fechaDesde),\n    hasta: t(p.fechaFin),\n    vigente: iso(p.fechaDesde) <= hoy && hoy <= iso(p.fechaFin),\n  }))\n  .filter((p) => aciertos(`${p.articulo} ${p.descripcion}`) === palabras.length)\n  .sort((a, b) => a.descripcion.localeCompare(b.descripcion, 'es') || iso(a.desde).localeCompare(iso(b.desde)));\n\nreturn [{\n  json: {\n    tipo: que,\n    codigo_cliente: t(e.codigo_cliente),\n    tabla: tb.tabla,\n    articulo: t(e.articulo),\n    total_tabla: lista.length,\n    total: productos.length,\n    hay_mas: productos.length > LIMITE,\n    productos: productos.slice(0, LIMITE),\n  },\n}];\n"
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e17",
+      "name": "Normalizar condiciones",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
         600
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Código del nodo \"Normalizar surtido\" del flujo chat-ia-clientes-ayc.json (se copia\n// dentro del JSON con build_workflow.py). Convierte la respuesta de\n// surtidos/listarProductos en { tabla, avisos, marcas, grupos, total, hay_mas, productos }.\n//\n// Un surtido es la lista cerrada de lo que se puede vender al cliente. Cada línea es\n// {codigoMarca, descripcionMarca, codigoGrupo, descripcionGrupo, codigoArticulo, descripcion,\n// fechaDesde, fechaFin} (fechaFin 31/12/2500 = sin fin; las descripciones faltan si el código\n// va vacío). Según lo que venga relleno (09/11/2026):\n//   - codigoArticulo numérico → artículo (marca y grupo son los del artículo, informativos);\n//   - sin artículo, con marca y sin grupo → TODA la marca (\"marcas\");\n//   - sin artículo, con marca y grupo → todo ese grupo de la marca (\"grupos\");\n//   - código no numérico (SOLOENDOSO, FINDESERVI, CSACLIENTE...) → marca del ERP (\"avisos\").\n// La API NO expande marcas ni grupos en artículos.\nconst LIMITE = 60;\nconst e = $('Consulta').first().json;\nconst tb = $('Tabla').first().json;\nconst r = $input.first().json;\nconst t = (v) => String(v ?? '').trim();\nconst mensajeApi = (err) => (String(err?.message || '').match(/\"(?:mensaje|message)\"\\s*:\\s*\"([^\"]*)\"/) || [])[1];\n\nif (tb.error) {\n  return [{ json: { error: tb.error } }];\n}\nif (r.error) {\n  return [{ json: { error: mensajeApi(r.error) || 'La API de surtidos no responde o ha dado un error. Prueba de nuevo en unos segundos.' } }];\n}\nlet lista;\ntry {\n  lista = JSON.parse(r.data);\n} catch (err) {\n  return [{ json: { error: 'La API de surtidos ha devuelto una respuesta no válida.' } }];\n}\nif (!Array.isArray(lista)) {\n  return [{ json: { error: lista.mensaje || 'La API de surtidos ha dado un error.' } }];\n}\n\nconst hoy = $now.setZone('Europe/Madrid').toFormat('yyyy-MM-dd');\nconst iso = (f) => t(f).split('/').reverse().join('-');\nconst plano = (s) => t(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();\nconst VACIAS = new Set(['DE', 'DEL', 'LA', 'EL', 'LOS', 'LAS', 'CON', 'Y', 'EN', 'AL', 'A', 'UN', 'UNA', 'PARA', 'POR']);\n// Palabras del artículo a buscar, sin las vacías (\"poker de vainilla\" → POKER, VAINILLA).\nconst palabras = plano(e.articulo).split(/[\\s,.;]+/).filter((w) => w && !VACIAS.has(w));\nconst aciertos = (texto) => palabras.filter((w) => plano(texto).includes(w)).length;\nconst esArticulo = (c) => /^\\d+$/.test(c);\n\nconst sp = (v) => t(v).replace(/\\s{2,}/g, ' ');\nconst lineas = lista.map((p) => {\n  const hasta = t(p.fechaFin);\n  const l = {\n    articulo: t(p.codigoArticulo),\n    descripcion: sp(p.descripcion),\n    codigo_marca: t(p.codigoMarca),\n    marca: sp(p.descripcionMarca) || t(p.codigoMarca),\n    codigo_grupo: t(p.codigoGrupo),\n    grupo: sp(p.descripcionGrupo) || t(p.codigoGrupo),\n    desde: t(p.fechaDesde),\n    hasta: hasta && !hasta.endsWith('/2500') ? hasta : '',\n  };\n  l.vigente = (!l.desde || iso(l.desde) <= hoy) && (!hasta || hoy <= iso(hasta));\n  return l;\n});\nconst fechas = (l) => ({ desde: l.desde, hasta: l.hasta, vigente: l.vigente });\nconst avisos = lineas.filter((l) => l.articulo && !esArticulo(l.articulo)).map((l) => `${l.articulo}: ${l.descripcion}`);\n// Marcas completas y grupos de marca: son pocas líneas y van siempre, sin filtrar, para que el agente\n// pueda decir si un artículo que no aparece suelto entra por su marca o su grupo.\nconst sinArticulo = lineas.filter((l) => !l.articulo && l.codigo_marca);\nconst marcas = sinArticulo.filter((l) => !l.codigo_grupo)\n  .map((l) => ({ codigo_marca: l.codigo_marca, marca: l.marca, ...fechas(l) }));\nconst grupos = sinArticulo.filter((l) => l.codigo_grupo)\n  .map((l) => ({ codigo_marca: l.codigo_marca, marca: l.marca, codigo_grupo: l.codigo_grupo, grupo: l.grupo, ...fechas(l) }));\nconst articulos = lineas.filter((l) => esArticulo(l.articulo)).map((l) => ({\n  articulo: l.articulo, descripcion: l.descripcion, marca: l.marca, grupo: l.grupo, ...fechas(l),\n}));\n// El filtro busca en código, descripción, marca y grupo (\"dulcesol\" encuentra los artículos DSOL de la marca).\nconst texto = (l) => `${l.articulo} ${l.descripcion} ${l.marca} ${l.grupo}`;\nconst productos = articulos\n  .filter((l) => aciertos(texto(l)) === palabras.length)\n  .sort((a, b) => a.marca.localeCompare(b.marca, 'es') || a.descripcion.localeCompare(b.descripcion, 'es')\n    || iso(a.desde).localeCompare(iso(b.desde)));\n// Resumen de artículos por marca, para surtidos grandes (el agente solo recibe LIMITE artículos).\nconst porMarca = {};\narticulos.forEach((l) => { porMarca[l.marca || 'SIN MARCA'] = (porMarca[l.marca || 'SIN MARCA'] || 0) + 1; });\n\n// Si con todas las palabras no sale nada, los que tienen más palabras en común (como mucho 10),\n// para que el agente no conteste \"no está\" solo porque la descripción lo escribe distinto.\nfunction parecidos(todos, hallados) {\n  if (hallados.length || palabras.length < 2) return [];\n  return todos.map((l) => [aciertos(texto(l)), l]).filter(([n]) => n > 0)\n    .sort((a, b) => b[0] - a[0]).slice(0, 10).map(([, l]) => l);\n}\n\nreturn [{\n  json: {\n    tipo: 'surtido',\n    codigo_cliente: t(e.codigo_cliente),\n    tabla: tb.tabla,\n    articulo: t(e.articulo),\n    avisos: [...new Set(avisos)],\n    marcas,\n    grupos,\n    total_tabla: articulos.length,\n    articulos_por_marca: porMarca,\n    total: productos.length,\n    hay_mas: productos.length > LIMITE,\n    productos: productos.slice(0, LIMITE),\n    parecidos: parecidos(articulos, productos),\n  },\n}];\n"
+      },
+      "id": "3f6a1c52-7d0e-4b8a-9c11-0a1b2c3d4e20",
+      "name": "Normalizar surtido",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        400
       ]
     }
   ],
@@ -239,8 +802,59 @@
         ]
       ]
     },
+    "consultar_precios_especiales": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente clientes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_descuentos": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente clientes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_surtido": {
+      "ai_tool": [
+        [
+          {
+            "node": "Agente clientes",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Consulta": {
       "main": [
+        [
+          {
+            "node": "¿Condiciones?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Condiciones?": {
+      "main": [
+        [
+          {
+            "node": "¿Buscar tabla?",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "API clientes",
@@ -255,6 +869,93 @@
         [
           {
             "node": "Normalizar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Buscar tabla?": {
+      "main": [
+        [
+          {
+            "node": "API tabla cliente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API tabla cliente": {
+      "main": [
+        [
+          {
+            "node": "Tabla",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tabla": {
+      "main": [
+        [
+          {
+            "node": "¿Hay tabla?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Hay tabla?": {
+      "main": [
+        [
+          {
+            "node": "API productos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "¿Surtido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API productos": {
+      "main": [
+        [
+          {
+            "node": "¿Surtido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Surtido?": {
+      "main": [
+        [
+          {
+            "node": "Normalizar surtido",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Normalizar condiciones",
             "type": "main",
             "index": 0
           }
