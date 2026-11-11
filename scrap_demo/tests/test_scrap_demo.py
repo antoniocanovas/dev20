@@ -23,6 +23,7 @@ class TestScrapDemo(TransactionCase):
 
         by_hand = Template.search([('scrap_lot_name', '=', '8642KLM')])
         self.assertFalse(by_hand.scrap_analytic_account_id)
+        self.assertFalse(by_hand.sale_ok, "To dismantle, not sold whole")
         by_hand.action_scrap_complete_vehicle()
         self.assertEqual(by_hand.scrap_location_id.name, '8642KLM')
         self.assertEqual(by_hand.bom_ids.code, 'Despiece turismo', "Copied from its template")
@@ -72,6 +73,7 @@ class TestScrapDemo(TransactionCase):
         bought = Template.search([('scrap_lot_name', '=', 'MOTOR0001')])
         self.assertEqual((bought.scrap_unbuild_type, bought.scrap_origin_id.id), ('subproduct', False))
         self.assertTrue(bought.discharge_date, "Received")
+        self.assertTrue(bought.sale_ok, "Also sold whole")
         listed = [item['id'] for item in self.env['scrap.touch'].get_vehicles('', 'subproduct', 'scrap')]
         self.assertIn(van_engine.id, listed)
         self.assertIn(bought.id, listed)

@@ -63,7 +63,10 @@ def post_init_hook(env):
     van._scrap_dismantle(lines.filtered(lambda line: line.product_id == engine), 1, 'dismantled', 'functional')
 
     # A used engine bought to dismantle it, received: a subproduct without origin
-    _receive(_buy(env, taller, 'main', [('template_engine', 'MOTOR0001', 120.0)]))
+    # It can also be sold whole
+    order = _buy(env, taller, 'main', [('template_engine', 'MOTOR0001', 120.0)])
+    _receive(order)
+    order.order_line.product_id.sale_ok = True
 
     # Given by a private person, for nothing: bought at 0, still to receive
     order = _buy(env, particular, 'main', [('template_car', '7890GHJ', 0.0)])
@@ -91,6 +94,8 @@ def post_init_hook(env):
         'scrap_template_id': env.ref('scrap_demo.template_car').id,
         'scrap_unbuild_type': 'main',
         'scrap_lot_name': '8642KLM',
+        # To dismantle, not sold whole, as the ones bought
+        'sale_ok': False,
         'vehicle_model_id': env.ref('scrap_demo.model_opel_corsa').id,
     })
 
