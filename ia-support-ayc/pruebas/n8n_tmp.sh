@@ -19,7 +19,7 @@ if [ "$1" = limpiar ]; then
     docker exec -u root \$(docker ps -q -f name=ia-support_n8n.1) rm -f /tmp/t.json; rm -f /tmp/tmp_pruebas.json"
   exit
 fi
-case "$1" in subflujo) E=$(python3 -c "import json,sys;d=dict.fromkeys(['accion','dato','codigo_cliente','codigo_tabla','articulo'],'');d.update(json.loads(sys.argv[1]));print(json.dumps(d,ensure_ascii=False))" "$2");; agente) E=$2;; *) echo "uso: $0 subflujo|agente|limpiar ..."; exit 1;; esac
+case "$1" in subflujo) E=$(python3 -c "import json,sys;d=dict.fromkeys(['accion','dato','codigo_cliente','codigo_tabla','articulo','cliente_factura','codigo_marca','codigo_grupo','valor','fecha_desde','fecha_fin','confirmacion'],'');d.update(json.loads(sys.argv[1]));print(json.dumps(d,ensure_ascii=False))" "$2");; agente) E=$2;; *) echo "uso: $0 subflujo|agente|limpiar ..."; exit 1;; esac
 python3 "$D/flujo_tmp.py" "$1" "$E" "$W/t.json"
 scp -q -P 22022 "$W/t.json" root@217.154.182.5:/tmp/tmp_pruebas.json
 $SSH 'C=$(docker ps -q -f name=ia-support_n8n.1); docker cp /tmp/tmp_pruebas.json $C:/tmp/t.json && docker exec $C n8n import:workflow --input=/tmp/t.json >/dev/null 2>&1

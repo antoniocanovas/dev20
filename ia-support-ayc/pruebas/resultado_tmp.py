@@ -8,7 +8,7 @@ try:
 except Exception as e:
     sys.exit(f'No se pudo leer la ejecución ({e}):\n{s[-1500:]}')
 for nombre, runs in rd['runData'].items():
-    if nombre.startswith('consultar_'):
+    if nombre.startswith(('consultar_', 'actualizar_')):
         for r in runs:
             print('  [herramienta]', nombre, json.dumps(r.get('inputOverride', {}), ensure_ascii=False)[:250])
 ultimo = rd['lastNodeExecuted']

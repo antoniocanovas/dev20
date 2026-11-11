@@ -1,28 +1,12 @@
-// Código del nodo "Normalizar" del flujo chat-ia-clientes-ayc.json (se copia
-// dentro del JSON con build_workflow.py). Convierte la respuesta de
-// consultarClientes en { total, requiere_eleccion, hay_mas, resultados }.
+// Código del nodo "Normalizar" del flujo chat-ia-clientes-ayc.json (build_workflow.py lo copia en el JSON, precedido
+// de comun.js). Convierte la respuesta de consultarClientes en { total, requiere_eleccion, hay_mas, resultados }.
 const LIMITE = 10;
-const dato = String($('Consulta').first().json.dato || '').trim().toUpperCase();
-const r = $input.first().json;
+const dato = t($('Consulta').first().json.dato).toUpperCase();
 
-if (!dato) {
-  return [{ json: { error: 'Falta el dato a buscar (nombre, CIF/NIF o código de cliente).' } }];
-}
-if (r.error) {
-  return [{ json: { error: 'La API de clientes no responde o ha dado un error. Prueba de nuevo en unos segundos.' } }];
-}
+if (!dato) return fallo('Falta el dato a buscar (nombre, CIF/NIF o código de cliente).');
+const { datos: lista, error } = leerApi($input.first().json, 'clientes', true);
+if (error) return fallo(error);
 
-let lista;
-try {
-  lista = JSON.parse(r.data);
-} catch (e) {
-  return [{ json: { error: 'La API de clientes ha devuelto una respuesta no válida.' } }];
-}
-if (!Array.isArray(lista)) {
-  return [{ json: { error: lista.mensaje || 'La API de clientes ha dado un error.' } }];
-}
-
-const t = (v) => String(v ?? '').trim();
 // nombreClienteCadena solo viene si el cliente es de una cadena (~4 %) y nombreClienteFactura
 // casi siempre es igual al nombre: se dejan vacíos si faltan o coinciden con el nombre.
 const distinto = (v, nombre) => (t(v) && t(v) !== nombre ? t(v) : '');
