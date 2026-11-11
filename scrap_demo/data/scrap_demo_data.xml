@@ -336,6 +336,9 @@
             <field name="categ_id" ref="category_parts"/>
             <field name="standard_price">120</field>
             <field name="list_price">220</field>
+            <!-- A new spare part, bought: replenished from its supplier, by the route Buy of the
+                 warehouse (in Odoo 20 it isn't chosen on the product) -->
+            <field name="seller_ids" eval="[Command.create({'partner_id': ref('partner_recambios'), 'price': 120, 'delay': 2})]"/>
         </record>
         <record id="service_labour" model="product.product">
             <field name="name">Mano de obra taller (demo)</field>

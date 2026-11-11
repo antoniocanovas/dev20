@@ -487,3 +487,9 @@ msgstr "Cerrar"
 #: code:addons/scrap_crm/static/src/available/available.xml:0
 msgid "No photos."
 msgstr "No hay fotos."
+
+#. module: scrap_crm
+#. odoo-javascript
+#: code:addons/scrap_crm/static/src/available/available.xml:0
+msgid "New tab"
+msgstr "Pestaña nueva"

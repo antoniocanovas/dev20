@@ -327,7 +327,7 @@
                             </div>
                             <div t-elif="line.plate" class="small o_scrap_touch_done_lot" t-out="line.plate"/>
                             <div t-if="line.location" class="small text-muted o_scrap_touch_done_location">
-                                <i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-out="line.location"/>
+                                <i class="oi me-1" data-icon="location_on" aria-hidden="true"/><t t-out="line.location"/>
                             </div>
                         </td>
                         <td class="text-end text-nowrap fw-bold" t-out="this.formatAmount(line.subtotal)"/>
@@ -455,7 +455,7 @@
                     <tr t-if="vehicle.chassis"><th>Chassis</th><td t-out="vehicle.chassis"/></tr>
                     <tr t-if="vehicle.location">
                         <th>Location</th>
-                        <td class="o_scrap_touch_vehicle_location"><i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-out="vehicle.location"/></td>
+                        <td class="o_scrap_touch_vehicle_location"><i class="oi me-1" data-icon="location_on" aria-hidden="true"/><t t-out="vehicle.location"/></td>
                     </tr>
                     <tr t-if="vehicle.purchase"><th>Purchase</th><td><t t-out="vehicle.purchase"/> · <t t-out="vehicle.partner"/></td></tr>
                     <tr t-if="vehicle.discharge_date"><th>Discharge date</th><td t-out="this.formatDateShort(vehicle.discharge_date)"/></tr>
@@ -588,11 +588,11 @@
                                 <td class="text-end">
                                     <button t-if="marked.can_undo and this.isDecontamination" class="btn btn-link p-0 me-3 o_scrap_touch_edit_part"
                                             title="Edit" t-att-disabled="this.state.sending" t-on-click="() => this.onEditWaste(marked)">
-                                        <i class="fa fa-pencil" aria-hidden="true"/> Edit
+                                        <i class="oi" data-icon="edit" aria-hidden="true"/> Edit
                                     </button>
                                     <button t-if="marked.can_undo" class="btn btn-link text-danger p-0 o_scrap_touch_undo_part"
                                             t-att-title="this.isDecontamination ? 'Delete' : 'Undo'" t-att-disabled="this.state.sending" t-on-click="() => this.onUndoPart(marked)">
-                                        <t t-if="this.isDecontamination"><i class="fa fa-trash" aria-hidden="true"/> Delete</t>
+                                        <t t-if="this.isDecontamination"><i class="oi" data-icon="delete" aria-hidden="true"/> Delete</t>
                                         <t t-else=""><i class="oi" data-icon="undo"/> Undo</t>
                                     </button>
                                 </td>
@@ -649,7 +649,7 @@
                         </button>
                     </div>
                     <div t-if="part.result !== 'missing' and part.result !== 'discarded'" class="d-flex align-items-center gap-2">
-                        <i class="fa fa-map-marker" aria-hidden="true"/>
+                        <i class="oi" data-icon="location_on" aria-hidden="true"/>
                         <span class="flex-grow-1 text-truncate o_scrap_touch_part_location" t-out="part.location.name or '—'"/>
                         <button class="btn btn-secondary o_scrap_touch_change_location" t-on-click="this.onChangeLocation">Change</button>
                     </div>
@@ -658,7 +658,7 @@
                         <button class="btn btn-secondary btn-lg flex-grow-1 o_scrap_touch_cancel_edit" t-on-click="this.onBack">Cancel</button>
                         <button class="btn btn-danger btn-lg o_scrap_touch_delete_part" t-att-disabled="this.state.sending"
                                 t-on-click="() => this.onUndoPart(part.marked)">
-                            <i class="fa fa-trash" aria-hidden="true"/> Delete
+                            <i class="oi" data-icon="delete" aria-hidden="true"/> Delete
                         </button>
                     </div>
                     <button class="btn btn-primary btn-lg o_scrap_touch_confirm_part"

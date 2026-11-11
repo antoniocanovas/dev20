@@ -13,7 +13,7 @@
                 <!-- The touch screen of what is available: in stock, of its brand by default, and
                      assembled, with its scrap template still to dismantle -->
                 <button name="action_scrap_available_parts" type="object" class="oe_stat_button"
-                        icon="fa-cubes">
+                        icon="inventory_2">
                     <field name="scrap_available_count" widget="statinfo" string="Available"/>
                 </button>
             </div>
@@ -92,7 +92,7 @@
                         <field name="datetime_deadline" optional="show"/>
                         <field name="stage_id" readonly="1"/>
                         <field name="company_id" column_invisible="True"/>
-                        <button name="action_open_in_new_tab" type="object" icon="fa-external-link" title="Abrir en pestaña nueva"/>
+                        <button name="action_open_in_new_tab" type="object" icon="open_in_new" title="Abrir en pestaña nueva"/>
                     </list>
                 </field>
                 <group>

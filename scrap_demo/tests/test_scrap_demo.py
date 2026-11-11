@@ -148,6 +148,17 @@ class TestScrapDemo(TransactionCase):
         self.assertTrue(all(products.mapped('image_1920')))
         self.assertEqual(len(set(products.mapped('image_1920'))), len(products), "All different")
 
+        # The clutch kit, a new spare part, replenished from Recambios Norte
+        clutch = self.env.ref('scrap_demo.part_clutch')
+        warehouse = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)], limit=1)
+        replenish = self.env['product.replenish'].create({
+            'product_id': clutch.id, 'product_tmpl_id': clutch.product_tmpl_id.id,
+            'quantity': 2, 'uom_id': clutch.uom_id.id, 'warehouse_id': warehouse.id,
+        })
+        replenish.launch_replenishment()
+        purchase = self.env['purchase.order.line'].search([('product_id', '=', clutch.id), ('order_id.state', '=', 'draft')]).order_id
+        self.assertEqual(purchase.partner_id, self.env.ref('scrap_demo.partner_recambios'))
+
         # The parts are found by their CAT data
         self.assertIn(self.env.ref('scrap_demo.part_alternator').product_variant_id,
                       self.env['product.product'].search([('display_name', 'ilike', 'TG11C068')]))

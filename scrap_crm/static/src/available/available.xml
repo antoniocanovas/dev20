@@ -70,7 +70,7 @@
                                 <img class="o_scrap_touch_product_image rounded" alt="" t-att-src="this.productImage(product)"/>
                                 <span t-if="product.image_count > 1"
                                       class="badge rounded-pill text-bg-dark position-absolute bottom-0 end-0 o_scrap_crm_available_photo_count">
-                                    <i class="fa fa-camera me-1" aria-hidden="true"/><t t-out="product.image_count"/>
+                                    <i class="oi me-1" data-icon="photo_camera" aria-hidden="true"/><t t-out="product.image_count"/>
                                 </span>
                             </span>
                             <div class="min-w-0 me-auto">
@@ -91,13 +91,13 @@
                             <i class="oi" data-icon="build"/> <t t-out="this.formatQty(product.pending_qty)"/> × <t t-out="product.pending_name"/> to dismantle
                         </div>
                         <div t-if="product.location" class="small text-muted text-truncate mt-1">
-                            <i class="fa fa-map-marker me-1" aria-hidden="true"/><t t-out="product.location"/>
+                            <i class="oi me-1" data-icon="location_on" aria-hidden="true"/><t t-out="product.location"/>
                         </div>
                     </button>
                     <a t-att-href="this.productUrl(product)" target="_blank" rel="noopener"
                        class="btn btn-light border position-absolute bottom-0 end-0 m-1 o_scrap_crm_available_open_tab"
                        title="Open in a new tab" aria-label="Open in a new tab">
-                        <i class="fa fa-external-link" aria-hidden="true"/>
+                        <i class="oi" data-icon="open_in_new" aria-hidden="true"/>
                     </a>
                     </div>
                 </div>
@@ -116,13 +116,9 @@
                     <button class="btn btn-light btn-lg o_scrap_crm_available_gallery_product"
                             t-on-click="() => this.onGalleryProduct()">Product</button>
                     <a t-att-href="this.productUrl(gallery.product)" target="_blank" rel="noopener"
-                       class="btn btn-light btn-lg" title="Open in a new tab" aria-label="Open in a new tab">
-                        <i class="fa fa-external-link" aria-hidden="true"/>
-                    </a>
-                    <button class="btn btn-light btn-lg o_scrap_crm_available_gallery_close" title="Close" aria-label="Close"
-                            t-on-click="() => this.onCloseGallery()">
-                        <i class="fa fa-times" aria-hidden="true"/>
-                    </button>
+                       class="btn btn-light btn-lg o_scrap_crm_available_gallery_tab">New tab</a>
+                    <button class="btn btn-light btn-lg o_scrap_crm_available_gallery_close"
+                            t-on-click="() => this.onCloseGallery()">Close</button>
                 </div>
                 <div class="flex-grow-1 d-flex align-items-center justify-content-center position-relative min-h-0 px-2"
                      t-on-touchstart="this.onGalleryTouchStart" t-on-touchend="this.onGalleryTouchEnd">
@@ -132,11 +128,11 @@
                         <t t-if="gallery.images.length > 1">
                             <button class="btn btn-light btn-lg rounded-circle position-absolute start-0 ms-3 o_scrap_crm_available_gallery_prev"
                                     title="Previous" aria-label="Previous" t-on-click="() => this.onGalleryMove(-1)">
-                                <i class="fa fa-chevron-left" aria-hidden="true"/>
+                                <i class="oi fs-2" data-icon="arrow_back" aria-hidden="true"/>
                             </button>
                             <button class="btn btn-light btn-lg rounded-circle position-absolute end-0 me-3 o_scrap_crm_available_gallery_next"
                                     title="Next" aria-label="Next" t-on-click="() => this.onGalleryMove(1)">
-                                <i class="fa fa-chevron-right" aria-hidden="true"/>
+                                <i class="oi fs-2" data-icon="arrow_forward" aria-hidden="true"/>
                             </button>
                         </t>
                     </t>
