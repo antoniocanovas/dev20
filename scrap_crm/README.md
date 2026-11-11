@@ -26,7 +26,7 @@ Las dos opciones se filtran a la vez por dos desplegables, que se ven siempre:
 
 El **buscador** de arriba filtra las dos opciones por nombre, código de barras, referencia interna, *Ref. visible*, *Ref. OEM*, referencias, bastidor, placa o matrícula.
 
-Cada tarjeta muestra el producto, su marca y modelo, la cantidad en stock, la matrícula o placa, las referencias, el tipo desguace y la ubicación. Al tocarla se abre la ficha del producto en un diálogo; el botón de su esquina inferior derecha la abre en una **pestaña nueva**, para tener varias a la vista mientras se habla con el cliente. Al tocar la **foto** de la tarjeta (con el número de fotos si tiene más de una) se abren a pantalla completa todas las del producto, las de la tienda (`website_sale`: la principal y las adicionales): se pasan deslizando, con las flechas de la pantalla o del teclado, o tocando las miniaturas; *Producto* abre la ficha y Escape o la cruz vuelven a la lista.
+Cada tarjeta muestra el producto, su marca y modelo, la cantidad en stock, la matrícula o placa, las referencias, el tipo desguace y la ubicación. Al tocarla se abre la ficha del producto en un diálogo; el botón de su esquina inferior derecha la abre en una **pestaña nueva**, para tener varias a la vista mientras se habla con el cliente. Al tocar la **foto** de la tarjeta (con el número de fotos si tiene más de una) se abren a pantalla completa todas las del producto, las de la tienda (`website_sale`: la principal y las adicionales): se pasan deslizando, con las flechas de la pantalla o del teclado, o tocando las miniaturas; *Producto* abre la ficha, *Pestaña nueva* la abre aparte y *Cerrar* (o Escape) vuelve a la lista.
 
 ## Pruebas
 
