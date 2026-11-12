@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="mail_activity_view_form_popup_project_task_touch" model="ir.ui.view">
+        <field name="name">mail.activity.form.popup.project_task_touch</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_form_popup"/>
+        <field name="arch" type="xml">
+            <field name="activity_type_id" position="after">
+                <field name="touch_ok"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

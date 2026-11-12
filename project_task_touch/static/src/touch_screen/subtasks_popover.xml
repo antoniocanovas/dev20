@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="project_task_touch.NameSubtasksField" t-inherit="web.CharField" t-inherit-mode="primary">
+        <xpath expr="//span[@t-out='this.formattedValue']" position="after">
+            <button t-if="this.props.record.data.subtask_count"
+                    class="btn btn-sm btn-light border ms-2 o_project_task_touch_subtasks" title="Subtasks"
+                    t-on-click.stop="this.onSubtasks">
+                <i class="oi me-1" data-icon="checklist"/>
+                <t t-out="this.props.record.data.closed_subtask_count"/>/<t t-out="this.props.record.data.subtask_count"/>
+            </button>
+            <button t-else="" class="btn btn-sm btn-link ms-1 o_project_task_touch_subtasks o_project_task_touch_subtasks_add"
+                    title="Add a subtask" t-on-click.stop="this.onSubtasks">
+                <i class="oi" data-icon="add"/>
+            </button>
+        </xpath>
+    </t>
+
+    <t t-name="project_task_touch.SubtasksPopover">
+        <div class="o_project_task_touch_subtasks_popover p-2" t-on-click.stop="">
+            <div class="fw-bold mb-2">Subtasks</div>
+            <div t-if="!this.state.subtasks.length" class="text-muted small mb-2">No open subtasks.</div>
+            <div t-foreach="this.state.subtasks" t-as="subtask" t-key="subtask.id"
+                 class="d-flex align-items-center gap-2 mb-1 o_project_task_touch_subtask">
+                <button class="btn btn-outline-success o_project_task_touch_subtask_done" title="Done"
+                        t-att-disabled="this.state.sending" t-on-click="() => this.setState(subtask, '1_done')">
+                    <i class="oi" data-icon="check"/>
+                </button>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="text-truncate o_project_task_touch_subtask_name" t-out="subtask.name"/>
+                    <div t-if="subtask.users" class="small text-muted text-truncate" t-out="subtask.users"/>
+                </div>
+                <select class="form-select form-select-sm w-auto o_project_task_touch_subtask_state" title="State"
+                        t-att-disabled="this.state.sending" t-on-change="(ev) => this.setState(subtask, ev.target.value)">
+                    <option t-foreach="this.props.states" t-as="option" t-key="option[0]"
+                            t-att-value="option[0]" t-att-selected="option[0] === subtask.state" t-out="option[1]"/>
+                </select>
+            </div>
+            <div class="d-flex gap-2 mt-2">
+                <input type="text" class="form-control o_project_task_touch_subtask_new" autocomplete="off"
+                       placeholder="New subtask" t-att-value="this.state.name"
+                       t-on-input="this.onNameInput" t-on-keydown="this.onNameKeydown"/>
+                <button class="btn btn-secondary o_project_task_touch_subtask_add" t-att-disabled="this.state.sending"
+                        t-on-click="this.onAdd">
+                    <i class="oi" data-icon="add"/>
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

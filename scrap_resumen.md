@@ -42,6 +42,10 @@ Actualizado: 2026-11-10. Módulos en `dev20`: `scrap_base`, `scrap_touch` y `scr
 - **Enterprise:** `web_enterprise` (`auto_install: ['web']`), `crm_enterprise`, `project_enterprise` y `sale_enterprise` se instalan solos si el `addons_path` incluye `20enterprise` (`odoo20.conf`). Para Community, usar `odoo20com.conf`.
 - Copias: `/Users/acanovas/pycharmprojects/backups/cat20_20261108_1353.dump` y `cat20_20261108_1717.dump`. Hacer un `pg_dump` antes de tocar cat20 otra vez.
 
+- **Fecha límite de las tareas (2026-11-11):** `scrap_crm` 20.0.1.2.0 quita `datetime_deadline` y vuelve a la *Fecha límite* estándar (migración incluida). `scrap_demo` pone fechas relativas al día de instalación (-2, -1, 0, +1 y +3). Actualizado en cat20.
+
+- **Expedientes (2026-11-12):** app nueva `project_task_touch` (ver su README) y demo de expedientes en `scrap_demo` 20.0.1.2.0 (`demo_files.py`). Todo instalado en cat20.
+
 ## Cómo probar
 
 ```

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="project_task_touch.TouchScreen">
+        <div class="o_action o_project_task_touch d-flex flex-column h-100 bg-view">
+            <div class="d-flex align-items-center gap-2 px-3 py-2 border-bottom">
+                <t t-if="this.state.creating">
+                    <button class="btn btn-light btn-lg o_project_task_touch_back" title="Back (Esc)"
+                            t-att-disabled="this.state.sending" t-on-click="this.onCancelCreating">
+                        <i class="oi fs-2" data-icon="arrow_back"/>
+                    </button>
+                </t>
+                <a t-else="" href="#" title="Odoo" aria-label="Odoo" class="oi fs-2 mx-2 text-body o_project_task_touch_odoo_home"
+                   data-icon="apps" t-on-click.prevent="this.onOdooHome"/>
+                <div class="flex-grow-1 min-w-0 fs-4 fw-bold text-truncate">
+                    Files
+                    <t t-if="this.state.creating">
+                        · <t t-if="this.state.creating.kind === 'task'">New task</t><t t-else="">New file</t>
+                        <t t-if="this.state.creating.parent"> · <span class="o_project_task_touch_parent" t-out="this.state.creating.parent.name"/></t>
+                    </t>
+                </div>
+                <t t-if="!this.state.creating">
+                    <!-- Only their icon on a phone -->
+                    <button t-if="this.state.data.can_create_task" class="btn btn-primary btn-lg o_project_task_touch_new_task"
+                            title="New task" aria-label="New task" t-on-click="this.onNewTask">
+                        <i class="oi" data-icon="add"/><span class="d-none d-sm-inline"> New task</span>
+                    </button>
+                    <button t-if="this.state.data.can_create_project" class="btn btn-primary btn-lg o_project_task_touch_new_project"
+                            title="New file" aria-label="New file" t-on-click="this.onNewProject">
+                        <i class="oi" data-icon="create_new_folder"/><span class="d-none d-sm-inline"> New file</span>
+                    </button>
+                    <a t-if="this.canInstall()" href="#" role="button"
+                       title="Install the app on this device" aria-label="Install the app on this device"
+                       class="btn btn-secondary btn-lg d-flex align-items-center oi o_project_task_touch_pwa_install"
+                       data-icon="download" t-on-click.prevent="this.onInstall"/>
+                </t>
+            </div>
+            <div class="flex-grow-1 overflow-auto p-3 d-flex flex-column">
+                <t t-if="this.state.creating" t-call="project_task_touch.TouchScreenCreate"/>
+                <t t-else="" t-call="project_task_touch.TouchScreenBoard"/>
+            </div>
+        </div>
+    </t>
+
+    <!-- The two options, the filters and the columns -->
+    <t t-name="project_task_touch.TouchScreenBoard">
+        <div class="d-flex flex-wrap gap-2 mb-3 o_project_task_touch_modes">
+            <button t-foreach="this.modes" t-as="mode" t-key="mode.key"
+                    t-attf-class="btn btn-lg d-flex align-items-center gap-2 px-4 py-3 o_project_task_touch_mode_{{ mode.key }} {{ mode.key === this.state.mode ? 'btn-primary' : 'btn-secondary' }}"
+                    t-on-click="() => this.onMode(mode.key)">
+                <i class="oi fs-3" t-att-data-icon="mode.icon"/>
+                <span class="fs-5 fw-bold" t-out="mode.name"/>
+                <span class="badge text-bg-light fs-6 o_project_task_touch_count" t-out="this.state.counts[mode.key]"/>
+            </button>
+        </div>
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <div class="input-group input-group-lg flex-grow-1 o_project_task_touch_searchbox">
+                <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                <input type="search" class="form-control o_project_task_touch_search" autocomplete="off"
+                       t-att-placeholder="this.searchPlaceholder"
+                       t-att-value="this.state.query" t-on-input="this.onSearchInput"/>
+            </div>
+            <t t-if="this.state.mode === 'tasks'">
+                <select class="form-select form-select-lg o_project_task_touch_filter o_project_task_touch_template" title="Project template"
+                        t-on-change="this.onTemplate">
+                    <option value="" t-att-selected="!this.state.templateId">All templates</option>
+                    <option t-foreach="this.state.data.templates" t-as="template" t-key="template.id"
+                            t-att-value="template.id" t-att-selected="template.id === this.state.templateId" t-out="template.name"/>
+                    <option value="none" t-att-selected="this.state.templateId === 'none'">Without template</option>
+                </select>
+                <select class="form-select form-select-lg o_project_task_touch_filter o_project_task_touch_project" title="Project"
+                        t-on-change="this.onProject">
+                    <option value="" t-att-selected="!this.state.projectId">All projects</option>
+                    <option t-foreach="this.projects" t-as="project" t-key="project.id"
+                            t-att-value="project.id" t-att-selected="project.id === this.state.projectId" t-out="project.name"/>
+                </select>
+                <!-- Kanban or list, as the switcher of Odoo -->
+                <div class="btn-group o_project_task_touch_views" role="group">
+                    <button t-foreach="this.taskViews" t-as="view" t-key="view.type"
+                            t-attf-class="btn btn-lg o_project_task_touch_view_{{ view.type }} {{ view.type === this.state.viewType ? 'btn-primary' : 'btn-secondary' }}"
+                            t-att-title="view.name" t-att-aria-label="view.name"
+                            t-on-click="() => this.onTaskView(view.type)">
+                        <i class="oi oi-fw" t-att-data-icon="view.icon"/>
+                    </button>
+                </div>
+            </t>
+            <button t-attf-class="btn btn-lg o_project_task_touch_closed {{ this.state.closed ? 'btn-primary' : 'btn-secondary' }}"
+                    title="Show the tasks or activities done (or cancelled)" t-on-click="this.onToggleClosed">
+                <i class="oi" data-icon="task_alt"/> Closed
+            </button>
+        </div>
+        <t t-if="this.state.mode === 'tasks'">
+            <div t-if="!this.state.data.projects.length" class="alert alert-warning o_project_task_touch_no_projects">
+                There is no project in Files: mark <strong>Show in Files</strong> in the settings of the projects or templates.
+            </div>
+            <!-- The kanban of the tasks, with the filters of the screen (kanbanVersion: shown again
+                 with its new props) -->
+            <div t-else="" class="flex-grow-1 d-flex flex-column min-h-0 o_project_task_touch_kanban"
+                 t-att-data-version="this.state.kanbanVersion">
+                <View t-if="this.kanbanProps" t-key="this.kanbanProps.type" t-props="this.kanbanProps"/>
+            </div>
+        </t>
+        <div t-else="" class="flex-grow-1 d-flex gap-3 overflow-auto pb-2 o_project_task_touch_columns">
+                <div t-foreach="this.activityColumns" t-as="column" t-key="column.key"
+                     t-attf-class="o_project_task_touch_column o_project_task_touch_column_{{ column.key }} d-flex flex-column rounded bg-body-tertiary p-2">
+                    <div class="d-flex align-items-center gap-2 mb-2 px-1">
+                        <span t-attf-class="badge {{ this.activityStateClass(column.key) }} fs-6 me-auto" t-out="column.name"/>
+                        <span class="badge text-bg-secondary fs-6" t-out="column.activities.length"/>
+                    </div>
+                    <div class="d-flex flex-column gap-2">
+                        <div t-foreach="column.activities" t-as="activity" t-key="activity.id"
+                             class="card o_project_task_touch_activity" role="button"
+                             t-on-click="() => this.onOpenActivityRecord(activity)">
+                            <div class="card-body p-2">
+                                <div class="d-flex align-items-start gap-1">
+                                    <span class="fw-bold me-auto o_project_task_touch_activity_name" t-out="activity.summary or activity.type"/>
+                                    <span t-if="activity.date_done" class="badge text-bg-success" title="Done on"
+                                          t-out="this.formatDay(activity.date_done)"/>
+                                    <span t-else="" t-attf-class="badge o_project_task_touch_activity_deadline {{ this.activityDeadlineClass(activity) }}"
+                                          t-att-title="this.formatDay(activity.date_deadline)" t-out="this.formatDay(activity.date_deadline)"/>
+                                </div>
+                                <div class="small text-truncate">
+                                    <span class="text-muted" t-out="activity.model"/> · <span t-out="activity.res_name"/>
+                                </div>
+                                <div t-if="activity.summary and activity.type" class="small text-muted" t-out="activity.type"/>
+                                <div t-if="activity.note" class="small text-muted text-truncate" t-out="activity.note"/>
+                                <div t-if="activity.feedback" class="small mt-1 o_project_task_touch_activity_feedback">
+                                    <i class="oi me-1" data-icon="chat"/><t t-out="activity.feedback"/>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <span class="small text-truncate me-auto">
+                                        <i t-if="activity.user" class="oi me-1" data-icon="person"/><t t-out="activity.user"/>
+                                    </span>
+                                    <button t-if="!activity.date_done" class="btn btn-success o_project_task_touch_activity_done"
+                                            t-on-click.stop="(ev) => this.onActivityDone(activity, ev)">
+                                        <i class="oi" data-icon="check"/> Done
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div t-if="!column.activities.length" class="text-muted small px-1">No activities.</div>
+                        <div t-if="this.state.closed and column.activities.length" class="text-muted small px-1">The last ones done first.</div>
+                    </div>
+                </div>
+        </div>
+    </t>
+
+    <!-- A new task or a new file: first its project or template, then its name and date -->
+    <t t-name="project_task_touch.TouchScreenCreate">
+        <t t-set="creating" t-value="this.state.creating"/>
+        <t t-if="!creating.parent">
+            <div class="fs-5 mb-3">
+                <t t-if="creating.kind === 'task'">Choose the project of the task</t>
+                <t t-else="">Choose the template of the file</t>
+            </div>
+            <div t-if="!this.creatingParents.length" class="alert alert-info o_project_task_touch_no_parents">
+                <t t-if="creating.kind === 'task'">There is no project to choose.</t>
+                <t t-else="">There is no template to choose: mark <strong>Show in Files</strong> in the settings of the templates.</t>
+            </div>
+            <div class="o_project_task_touch_grid">
+                <button t-foreach="this.creatingParents" t-as="parent" t-key="parent.id"
+                        class="btn btn-outline-secondary o_project_task_touch_tile o_project_task_touch_parent_choice"
+                        t-on-click="() => this.onChooseParent(parent)">
+                    <span class="fs-5 fw-bold" t-out="parent.name"/>
+                </button>
+            </div>
+        </t>
+        <div t-else="" class="d-flex flex-column gap-2 o_project_task_touch_form">
+            <label class="form-label mb-0">
+                <t t-if="creating.kind === 'task'">Name of the task</t><t t-else="">Name of the file</t>
+            </label>
+            <input type="text" class="form-control form-control-lg o_project_task_touch_new_name" autocomplete="off"
+                   t-att-value="creating.name" t-on-input="this.onCreatingName" t-on-keydown="this.onCreatingKeydown"/>
+            <label class="form-label mb-0">
+                <t t-if="creating.kind === 'task'">Deadline</t><t t-else="">Start date</t>
+            </label>
+            <input type="date" class="form-control form-control-lg o_project_task_touch_new_date"
+                   t-att-value="creating.date" t-on-change="this.onCreatingDate"/>
+            <div class="d-flex gap-2 mt-2">
+                <button class="btn btn-secondary btn-lg o_project_task_touch_cancel" t-att-disabled="this.state.sending"
+                        t-on-click="this.onCancelCreating">Cancel</button>
+                <button class="btn btn-primary btn-lg flex-grow-1 o_project_task_touch_create" t-att-disabled="this.state.sending"
+                        t-on-click="this.onCreate">
+                    <t t-if="creating.kind === 'task'">Create the task</t><t t-else="">Create the file</t>
+                </button>
+            </div>
+        </div>
+    </t>
+
+</templates>

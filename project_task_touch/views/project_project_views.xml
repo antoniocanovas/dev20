@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="project_project_view_form_project_task_touch" model="ir.ui.view">
+        <field name="name">project.project.form.project_task_touch</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <field name="label_tasks" position="after">
+                <field name="touch_ok"/>
+                <field name="touch_template_id" invisible="is_template or not touch_template_id"
+                       options="{'no_create': True}"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="project_project_view_search_project_task_touch" model="ir.ui.view">
+        <field name="name">project.project.search.project_task_touch</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_project_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='own_projects']" position="before">
+                <filter string="Files" name="touch_ok" domain="[('touch_ok', '=', True)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

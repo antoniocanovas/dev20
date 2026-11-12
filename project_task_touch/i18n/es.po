@@ -1,0 +1,432 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* project_task_touch
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-11 22:22+0000\n"
+"PO-Revision-Date: 2026-11-11 22:22+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/subtasks_popover.js:0
+msgid "%s closed."
+msgstr "%s cerrada."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Activities"
+msgstr "Actividades"
+
+#. module: project_task_touch
+#: model:ir.model,name:project_task_touch.model_mail_activity
+msgid "Activity"
+msgstr "Actividad"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Activity, document or person assigned"
+msgstr "Actividad, documento o persona asignada"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/subtasks_popover.xml:0
+msgid "Add a subtask"
+msgstr "Añadir una subtarea"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "All projects"
+msgstr "Todos los proyectos"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "All templates"
+msgstr "Todas las plantillas"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Back (Esc)"
+msgstr "Volver (Esc)"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Choose the project of the task"
+msgstr "Elige el proyecto de la tarea"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Choose the template of the file"
+msgstr "Elige la plantilla del expediente"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Closed"
+msgstr "Cerradas"
+
+#. module: project_task_touch
+#: model:ir.model,name:project_task_touch.model_res_company
+msgid "Company"
+msgstr "Compañía"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Create the file"
+msgstr "Crear el expediente"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Create the task"
+msgstr "Crear la tarea"
+
+#. module: project_task_touch
+#: model:ir.model.fields,field_description:project_task_touch.field_project_project__touch_template_id
+msgid "Created from Template"
+msgstr "Creado desde la plantilla"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Deadline"
+msgstr "Fecha límite"
+
+#. module: project_task_touch
+#: model:ir.model.fields,field_description:project_task_touch.field_mail_activity__display_name
+#: model:ir.model.fields,field_description:project_task_touch.field_project_project__display_name
+#: model:ir.model.fields,field_description:project_task_touch.field_project_task__display_name
+#: model:ir.model.fields,field_description:project_task_touch.field_project_task_touch__display_name
+#: model:ir.model.fields,field_description:project_task_touch.field_res_company__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/subtasks_popover.xml:0
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Done"
+msgstr "Hecho"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Done on"
+msgstr "Hecha el"
+
+#. module: project_task_touch
+#: model:ir.module.module,shortdesc:base.module_project_task_touch
+msgid "Expedientes"
+msgstr "Expedientes"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "File %s created."
+msgstr "Expediente %s creado."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+#: model:ir.actions.client,name:project_task_touch.project_task_touch_action
+#: model:ir.ui.menu,name:project_task_touch.project_task_touch_menu_root
+#: model_terms:ir.ui.view,arch_db:project_task_touch.project_project_view_search_project_task_touch
+#: model_terms:ir.ui.view,arch_db:project_task_touch.res_company_view_form_project_task_touch
+msgid "Files"
+msgstr "Expedientes"
+
+#. module: project_task_touch
+#: model:ir.model,name:project_task_touch.model_project_task_touch
+msgid "Files Touch Screen"
+msgstr "Pantalla táctil de expedientes"
+
+#. module: project_task_touch
+#: model:ir.model.fields,field_description:project_task_touch.field_mail_activity__id
+#: model:ir.model.fields,field_description:project_task_touch.field_project_project__id
+#: model:ir.model.fields,field_description:project_task_touch.field_project_task__id
+#: model:ir.model.fields,field_description:project_task_touch.field_project_task_touch__id
+#: model:ir.model.fields,field_description:project_task_touch.field_res_company__id
+msgid "ID"
+msgstr "ID"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Install the app on this device"
+msgstr "Instalar la aplicación en este dispositivo"
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "Invalid project."
+msgstr "Proyecto no válido."
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "Invalid task."
+msgstr "Tarea no válida."
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "Invalid template."
+msgstr "Plantilla no válida."
+
+#. module: project_task_touch
+#: model:ir.model.fields,help:project_task_touch.field_project_project__touch_ok
+msgid ""
+"Its tasks are shown in Files. A project created from a template marked so is"
+" marked too."
+msgstr ""
+"Sus tareas se muestran en Expedientes. Un proyecto creado desde una "
+"plantilla marcada también queda marcado."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Kanban"
+msgstr "Kanban"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "List"
+msgstr "Lista"
+
+#. module: project_task_touch
+#: model:ir.model.fields,field_description:project_task_touch.field_res_company__touch_activity_model_ids
+msgid "Models of the File Activities"
+msgstr "Modelos de las actividades de expedientes"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Name of the file"
+msgstr "Nombre del expediente"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Name of the task"
+msgstr "Nombre de la tarea"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "New file"
+msgstr "Nuevo expediente"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/subtasks_popover.xml:0
+msgid "New subtask"
+msgstr "Nueva subtarea"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "New task"
+msgstr "Nueva tarea"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No activities."
+msgstr "Sin actividades."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/subtasks_popover.xml:0
+msgid "No open subtasks."
+msgstr "No hay subtareas abiertas."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Odoo"
+msgstr "Odoo"
+
+#. module: project_task_touch
+#: model:ir.module.module,summary:base.module_project_task_touch
+msgid "Pantalla táctil de expedientes: tareas de proyectos y actividades"
+msgstr "Pantalla táctil de expedientes: tareas de proyectos y actividades"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+#: model:ir.model,name:project_task_touch.model_project_project
+msgid "Project"
+msgstr "Proyecto"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Project template"
+msgstr "Plantilla de proyecto"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+#: model:ir.model.fields,field_description:project_task_touch.field_mail_activity__touch_ok
+#: model:ir.model.fields,field_description:project_task_touch.field_project_project__touch_ok
+msgid "Show in Files"
+msgstr "Mostrar en Expedientes"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Show the tasks or activities done (or cancelled)"
+msgstr "Mostrar las tareas o actividades hechas (o canceladas)"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Start date"
+msgstr "Fecha de inicio"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/subtasks_popover.xml:0
+#: model:ir.model.fields,field_description:project_task_touch.field_project_task__state
+msgid "State"
+msgstr "Estado"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/subtasks_popover.xml:0
+msgid "Subtasks"
+msgstr "Subtareas"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Task %s created."
+msgstr "Tarea %s creada."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Task, project, customer, tag or person assigned"
+msgstr "Tarea, proyecto, cliente, etiqueta o persona asignada"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Tasks"
+msgstr "Tareas"
+
+#. module: project_task_touch
+#: model:ir.model.fields,help:project_task_touch.field_res_company__touch_activity_model_ids
+msgid ""
+"The activities created on the records of these models are shown in Files by "
+"default."
+msgstr ""
+"Las actividades creadas en los registros de estos modelos se muestran por "
+"defecto en Expedientes."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "The last ones done first."
+msgstr "Las últimas hechas, primero."
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "The project is not shown in Files."
+msgstr "El proyecto no se muestra en Expedientes."
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "The task is not of a file."
+msgstr "La tarea no es de un expediente."
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "The template is not shown in Files."
+msgstr "La plantilla no se muestra en Expedientes."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no project in Files: mark"
+msgstr "No hay ningún proyecto en Expedientes: marca"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no project to choose."
+msgstr "No hay ningún proyecto para elegir."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "There is no template to choose: mark"
+msgstr "No hay ninguna plantilla para elegir: marca"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Without template"
+msgstr "Sin plantilla"
+
+#. module: project_task_touch
+#. odoo-javascript
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Write the name of the file."
+msgstr "Escribe el nombre del expediente."
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "Write the name of the subtask."
+msgstr "Escribe el nombre de la subtarea."
+
+#. module: project_task_touch
+#. odoo-javascript
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Write the name of the task."
+msgstr "Escribe el nombre de la tarea."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "in the settings of the projects or templates."
+msgstr "en los ajustes de los proyectos o plantillas."
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "in the settings of the templates."
+msgstr "en los ajustes de las plantillas."

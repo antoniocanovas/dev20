@@ -1,0 +1,113 @@
+.o_project_task_touch {
+    touch-action: manipulation;
+
+    .o_project_task_touch_searchbox {
+        max-width: 40rem;
+    }
+
+    // The template and the project: side by side, also on a phone
+    .o_project_task_touch_filter {
+        flex: 0 1 auto;
+        width: auto;
+        min-width: 0;
+    }
+
+    .o_project_task_touch_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+        gap: map-get($spacers, 2);
+    }
+
+    .o_project_task_touch_tile {
+        min-height: 5.5rem;
+        text-align: start;
+        white-space: normal;
+    }
+
+    // The columns as in a kanban: side by side, scrolled sideways on a narrow screen
+    .o_project_task_touch_columns {
+        min-height: 0;
+        align-items: flex-start;
+    }
+
+    .o_project_task_touch_column {
+        flex: 1 0 18rem;
+        max-width: 26rem;
+        max-height: 100%;
+        overflow-y: auto;
+    }
+
+    // The kanban of the tasks fills the rest of the screen, scrolled by itself
+    .o_project_task_touch_kanban > .o_view_controller {
+        flex-grow: 1;
+        min-height: 0;
+    }
+
+    .o_project_task_touch_activity_name {
+        overflow-wrap: anywhere;
+    }
+
+    .o_project_task_touch_form {
+        max-width: 40rem;
+    }
+
+    // The name of the task, cut if long, but never its button of subtasks
+    // (more specific than the rule of the list that shows its fields inline, in list_renderer.scss)
+    .o_list_renderer .o_list_table .o_data_row:not(.o_selected_row) .o_list_char
+    .o_field_widget.o_field_project_task_touch_name_subtasks:not(.o_row_handle):not(.o_field_handle):not(.o_field_badge) {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        max-width: 100%;
+
+        > span:first-child {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .o_project_task_touch_subtasks {
+            flex-shrink: 0;
+        }
+    }
+
+    // Last, to win over the rules above on a phone
+    @include media-breakpoint-down(md) {
+        // On a phone: the search on its own row, the two filters sharing the next one
+        .o_project_task_touch_searchbox {
+            flex-basis: 100%;
+            max-width: none;
+        }
+
+        .o_project_task_touch_filter {
+            flex: 1 1 9rem;
+        }
+
+        // The columns of the activities, one under the other
+        .o_project_task_touch_columns {
+            flex-direction: column;
+            align-items: stretch;
+            overflow: visible;
+        }
+
+        .o_project_task_touch_column {
+            flex: 0 0 auto;
+            max-width: none;
+            max-height: none;
+            overflow: visible;
+        }
+    }
+}
+
+// The subtasks of a task, under its row of the list
+.o_project_task_touch_subtasks_popover {
+    width: 26rem;
+    max-width: 90vw;
+
+    .o_project_task_touch_subtask_done {
+        width: 2.75rem;
+        height: 2.75rem;
+        flex-shrink: 0;
+    }
+}

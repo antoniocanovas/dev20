@@ -54,3 +54,12 @@ Carga datos de ejemplo para probar `scrap_base`, `scrap_touch` y `scrap_crm`. De
 ## Desinstalar
 
 Al desinstalar se borran los registros del XML (modelos, proveedores, categorías, proyecto, plantillas y piezas) si nada los usa. Las compras, los vehículos, sus cuentas analíticas, ubicaciones y secuencias se crean al instalar y se quedan.
+
+- **Tareas de las oportunidades (2026-11-11):** con la fecha límite estándar (`date_deadline`), relativa al día de instalación: dos vencidas, una para hoy y dos próximas (-2, -1, 0, +1 y +3 días), para ver los colores en Expedientes.
+
+- **Expedientes (20.0.1.2.0, 2026-11-12):** `demo_files.py`, desde el hook de instalación (depende ahora de `project_task_touch`). Cuatro plantillas marcadas para Expedientes, con fechas de inicio y fin (desde el 1 de enero) y fechas límite en sus tareas, y expedientes creados con ellas: sus fechas límite y su fin salen de la plantilla, movidas a su inicio (`project_task_touch`):
+  - *Salida de residuos*: una tarea con 4 subtareas que se repite cada mes; la del mes pasado hecha y la de este mes creada por la recurrencia.
+  - *Onboarding de empleado*: 7 tareas con dependencias. *Onboarding Juan Pérez (mecánico)* en su segunda semana (una vencida, otras esperando) y *Onboarding Laura Martín (administración)* que empieza hoy.
+  - *Gestión AEAT mensual*: revisar facturas, conciliar bancos, modelos 303, 111 y 115, presentar y archivar, con dependencias y hasta el día 20 del mes siguiente. El mes anterior al pasado presentado y el pasado en curso.
+  - *Formación de taller*: cursos (PRL, descontaminación de VFU, carretilla, híbridos y eléctricos, corte) con las subtareas *Inscripción / Asistencia / Certificado entregado* y una evaluación final que depende de todos. *Formación de taller · Juan Pérez* con el PRL hecho y el resto en marcha.
+  - En una base ya instalada no se crean solos (el hook es solo de instalación): `from odoo.addons.scrap_demo.demo_files import create_files; create_files(env)` desde `odoo-bin shell`.

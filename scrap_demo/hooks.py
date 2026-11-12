@@ -9,6 +9,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 from odoo import Command, fields
 
+from .demo_files import create_files
+
 # Vehicles of the demo: (template, plate, make/model, chassis, price, days since their discharge,
 # days since their decontamination, days since their dismantling). The dates go back from today,
 # so that the CAT lists show vehicles late, close to their limit and done.
@@ -100,6 +102,8 @@ def post_init_hook(env):
     })
 
     _create_opportunities(env)
+    # Files (Expedientes): templates of the management of the yard and files made of them
+    create_files(env)
     _set_images(env)
 
 
@@ -148,11 +152,12 @@ def _create_opportunities(env):
     today = fields.Datetime.now()
     opportunities = [
         # (customer, brand, name, stage, market price, quoted price, price note, sales notes,
-        #  technical notes, tasks: (name, category, product, tags, stage, days to the deadline))
+        #  technical notes, tasks: (name, category, product, tags, stage, days to the deadline:
+        #  some late, one today, some to come))
         ('partner_taller', 'fleet.brand_renault', 'Motor 1.5 dCi para Clio IV', 'cliente', 950.0, 780.0,
          '700 - 800 €', 'Lo necesita para un cliente esta semana.',
          'Motor K9K. Comprobar compresión y fugas antes de ofertar.',
-         [('Comprobar compresión del motor', 'scrap_category_mechanics', clio, ['task_tag_check'], 'task_stage_doing', 2),
+         [('Comprobar compresión del motor', 'scrap_category_mechanics', clio, ['task_tag_check'], 'task_stage_doing', 0),
           ('Fotografiar motor', 'scrap_category_mechanics', clio, ['task_tag_photo'], 'task_stage_done', -1)]),
         ('partner_particular', 'fleet.brand_volkswagen', 'Faro delantero izquierdo Golf VI', 'comercial', 180.0, 0.0,
          '', 'Pregunta por teléfono si lo tenemos y el precio.', '',
@@ -196,7 +201,9 @@ def _create_opportunities(env):
             'tag_ids': [Command.set([env.ref(f'scrap_demo.{tag}').id for tag in tags])],
             'stage_id': env.ref(f'scrap_demo.{task_stage}').id,
             'user_ids': [Command.set(admin.ids)],
-            'datetime_deadline': today + timedelta(days=days),
+            # The deadline of Odoo (a datetime since v18), the one of the kanban, the list and
+            # their colours: red when late, yellow today
+            'date_deadline': today + timedelta(days=days),
         } for task_name, category, product, tags, task_stage, days in tasks])
 
 

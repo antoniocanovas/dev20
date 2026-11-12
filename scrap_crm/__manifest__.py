@@ -1,6 +1,6 @@
 {
     'name': 'SCRAP CRM',
-    'version': '20.0.1.1.0',
+    'version': '20.0.1.2.0',
     'category': '',
     'description': u"""
 SCRAP demand integration from CRM

@@ -10,19 +10,11 @@ class ProjectTask(models.Model):
     product_id = fields.Many2one('product.product', string="Producto")
     product_tmpl_id = fields.Many2one('product.template', string="Producto")
     crm_stage_type = fields.Selection(related='lead_id.stage_id.type', store=True)
-    datetime_deadline = fields.Datetime('Deadline time', store=True)
     partner_city = fields.Char(related='partner_id.city')
     partner_ref = fields.Char(related='partner_id.ref')
 
-    # Petición 01/24 para poner hora en la fecha límite de las tareas:
-    @api.depends('datetime_deadline')
-    def get_date_deadline_from_datetime_deadline(self):
-        for record in self:
-            deadline = False
-            if record.datetime_deadline:
-                deadline = record.datetime_deadline.date()
-            record['date_deadline'] = deadline
-
+    # Petición 01/24 de poner hora en la fecha límite: en Odoo 20, date_deadline ya es fecha y hora
+    # (el antiguo datetime_deadline se pasa a ella en la migración 20.0.1.2.0)
 
     @api.depends('crm_stage_type')
     def get_int_value_to_paint_tree_colors(self):

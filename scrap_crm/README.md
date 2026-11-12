@@ -35,3 +35,5 @@ odoo-bin -c odoo20com.conf -d <bd> -i scrap_crm --test-tags /scrap_crm --stop-af
 ```
 
 Incluye un recorrido táctil, desde la oportunidad hasta Ensamblados y de vuelta.
+
+- **Fecha límite (20.0.1.2.0, 2026-11-11):** quitado `datetime_deadline` (de v17). En Odoo 20 la *Fecha límite* estándar (`date_deadline`) ya es fecha y hora, y es la que usan la kanban, la lista y sus colores. El formulario de la tarea vuelve a la estándar y la lista de tareas de la oportunidad también. La migración `20.0.1.2.0/post-migrate.py` copia `datetime_deadline` a `date_deadline` donde esta está vacía; Odoo borra la columna antigua.

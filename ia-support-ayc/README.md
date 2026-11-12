@@ -271,6 +271,12 @@ Lo que se hizo con precios especiales, descuentos y surtidos:
 
 ## Pendiente
 
+- **Preguntas para el usuario (12/11/2026):**
+  - (1) Cómo saber la marca y el grupo de un artículo sin línea propia en la tabla. `listarProductos` combina los
+    filtros con AND y solo da la marca y el grupo de los artículos que tienen línea. Propuesta: un endpoint de
+    artículos en AcisaAPI.
+  - (2) Prioridad en precios y descuentos entre una línea de grupo (sin marca) y otra de marca.
+- `normalizar_surtido.js` no muestra las líneas de grupo sin marca: hay que incluirlas en `grupos`.
 - Marcas y grupos: la API no dice qué artículos hay dentro. Para contestar con seguridad "¿puedo venderle X?" haría
   falta una API de artículos o que `listarProductos` expanda las líneas.
 - Confirmar con AYC qué significan exactamente `SOLOENDOSO`, `FINDESERVI` y `CSACLIENTE` para la venta.
