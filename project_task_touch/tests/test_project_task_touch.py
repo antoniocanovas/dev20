@@ -149,6 +149,14 @@ class TestProjectTaskTouch(TransactionCase):
         self.assertIn('Touch Not Shown', summaries, "Marked by hand")
         self.assertEqual([data['summary'] for data in self.Touch.get_activities('Touch Partner')['activities']], ['Touch Call'])
         self.assertEqual([data['summary'] for data in self.Touch.get_activities('assignee')['activities']], ['Touch Call'])
+        # By type, with the count of the button too
+        call_type = self.env['mail.activity.type'].create({'name': 'Touch Phone Type'})
+        activity.activity_type_id = call_type
+        self.assertIn({'id': call_type.id, 'name': 'Touch Phone Type'}, self.Touch.get_activities()['activity_types'])
+        by_type = self.Touch.get_activities(activity_type_id=call_type.id)
+        self.assertEqual([data['summary'] for data in by_type['activities']], ['Touch Call'])
+        self.assertEqual(by_type['counts']['activities'], 1)
+        self.assertEqual(self.Touch.get_tasks(activity_type_id=call_type.id)['counts']['activities'], 1)
         activity.action_feedback(feedback='Touch Feedback')
         self.assertFalse(activity.active)
         self.assertNotIn('Touch Call', [data['summary'] for data in self.Touch.get_activities()['activities']])
@@ -156,3 +164,5 @@ class TestProjectTaskTouch(TransactionCase):
         closed = self.Touch.get_activities(closed=True)['activities']
         self.assertEqual([(data['summary'], data['feedback']) for data in closed], [('Touch Call', 'Touch Feedback')])
         self.assertTrue(closed[0]['date_done'])
+        self.assertEqual([data['summary'] for data in self.Touch.get_activities(closed=True, activity_type_id=call_type.id)['activities']], ['Touch Call'])
+        self.assertIn(call_type.id, [data['id'] for data in self.Touch.get_activities()['activity_types']], "Still among the types: done")

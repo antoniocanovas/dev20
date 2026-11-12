@@ -7,8 +7,8 @@ class ProjectProject(models.Model):
     _inherit = 'project.project'
 
     touch_ok = fields.Boolean(
-        string="Show in Files",
-        help="Its tasks are shown in Files. A project created from a template marked so is marked too.",
+        string="Show in Deadlines",
+        help="Its tasks are shown in Deadlines. A project created from a template marked so is marked too.",
     )
     # Odoo doesn't keep the template a project is created from
     touch_template_id = fields.Many2one(

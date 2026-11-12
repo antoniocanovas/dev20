@@ -54,6 +54,18 @@ msgstr "Todos los proyectos"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "All types"
+msgstr "Todos los tipos"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Activity type"
+msgstr "Tipo de actividad"
+
+#. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "All templates"
 msgstr "Todas las plantillas"
 
@@ -78,8 +90,8 @@ msgstr "Elige el proyecto de la tarea"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "Choose the template of the file"
-msgstr "Elige la plantilla del expediente"
+msgid "Choose the template of the deadline"
+msgstr "Elige la plantilla del vencimiento"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -95,8 +107,8 @@ msgstr "Compañía"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "Create the file"
-msgstr "Crear el expediente"
+msgid "Create the deadline"
+msgstr "Crear el vencimiento"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -140,14 +152,14 @@ msgstr "Hecha el"
 
 #. module: project_task_touch
 #: model:ir.module.module,shortdesc:base.module_project_task_touch
-msgid "Expedientes"
-msgstr "Expedientes"
+msgid "Vencimientos"
+msgstr "Vencimientos"
 
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
-msgid "File %s created."
-msgstr "Expediente %s creado."
+msgid "Deadline %s created."
+msgstr "Vencimiento %s creado."
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -156,13 +168,13 @@ msgstr "Expediente %s creado."
 #: model:ir.ui.menu,name:project_task_touch.project_task_touch_menu_root
 #: model_terms:ir.ui.view,arch_db:project_task_touch.project_project_view_search_project_task_touch
 #: model_terms:ir.ui.view,arch_db:project_task_touch.res_company_view_form_project_task_touch
-msgid "Files"
-msgstr "Expedientes"
+msgid "Deadlines"
+msgstr "Vencimientos"
 
 #. module: project_task_touch
 #: model:ir.model,name:project_task_touch.model_project_task_touch
-msgid "Files Touch Screen"
-msgstr "Pantalla táctil de expedientes"
+msgid "Deadlines Touch Screen"
+msgstr "Pantalla táctil de vencimientos"
 
 #. module: project_task_touch
 #: model:ir.model.fields,field_description:project_task_touch.field_mail_activity__id
@@ -192,6 +204,18 @@ msgid "Invalid task."
 msgstr "Tarea no válida."
 
 #. module: project_task_touch
+#. odoo-javascript
+#: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Edit the activity"
+msgstr "Editar la actividad"
+
+#. module: project_task_touch
+#. odoo-python
+#: code:addons/project_task_touch/models/project_task_touch.py:0
+msgid "Invalid activity type."
+msgstr "Tipo de actividad no válido."
+
+#. module: project_task_touch
 #. odoo-python
 #: code:addons/project_task_touch/models/project_task_touch.py:0
 msgid "Invalid template."
@@ -200,10 +224,10 @@ msgstr "Plantilla no válida."
 #. module: project_task_touch
 #: model:ir.model.fields,help:project_task_touch.field_project_project__touch_ok
 msgid ""
-"Its tasks are shown in Files. A project created from a template marked so is"
+"Its tasks are shown in Deadlines. A project created from a template marked so is"
 " marked too."
 msgstr ""
-"Sus tareas se muestran en Expedientes. Un proyecto creado desde una "
+"Sus tareas se muestran en Vencimientos. Un proyecto creado desde una "
 "plantilla marcada también queda marcado."
 
 #. module: project_task_touch
@@ -220,14 +244,14 @@ msgstr "Lista"
 
 #. module: project_task_touch
 #: model:ir.model.fields,field_description:project_task_touch.field_res_company__touch_activity_model_ids
-msgid "Models of the File Activities"
-msgstr "Modelos de las actividades de expedientes"
+msgid "Models of the Deadline Activities"
+msgstr "Modelos de las actividades de vencimientos"
 
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "Name of the file"
-msgstr "Nombre del expediente"
+msgid "Name of the deadline"
+msgstr "Nombre del vencimiento"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -238,8 +262,8 @@ msgstr "Nombre de la tarea"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "New file"
-msgstr "Nuevo expediente"
+msgid "New deadline"
+msgstr "Nuevo vencimiento"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -273,8 +297,8 @@ msgstr "Odoo"
 
 #. module: project_task_touch
 #: model:ir.module.module,summary:base.module_project_task_touch
-msgid "Pantalla táctil de expedientes: tareas de proyectos y actividades"
-msgstr "Pantalla táctil de expedientes: tareas de proyectos y actividades"
+msgid "Pantalla táctil de vencimientos: tareas de proyectos y actividades"
+msgstr "Pantalla táctil de vencimientos: tareas de proyectos y actividades"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -294,8 +318,8 @@ msgstr "Plantilla de proyecto"
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
 #: model:ir.model.fields,field_description:project_task_touch.field_mail_activity__touch_ok
 #: model:ir.model.fields,field_description:project_task_touch.field_project_project__touch_ok
-msgid "Show in Files"
-msgstr "Mostrar en Expedientes"
+msgid "Show in Deadlines"
+msgstr "Mostrar en Vencimientos"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -343,11 +367,11 @@ msgstr "Tareas"
 #. module: project_task_touch
 #: model:ir.model.fields,help:project_task_touch.field_res_company__touch_activity_model_ids
 msgid ""
-"The activities created on the records of these models are shown in Files by "
+"The activities created on the records of these models are shown in Deadlines by "
 "default."
 msgstr ""
 "Las actividades creadas en los registros de estos modelos se muestran por "
-"defecto en Expedientes."
+"defecto en Vencimientos."
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -358,26 +382,26 @@ msgstr "Las últimas hechas, primero."
 #. module: project_task_touch
 #. odoo-python
 #: code:addons/project_task_touch/models/project_task_touch.py:0
-msgid "The project is not shown in Files."
-msgstr "El proyecto no se muestra en Expedientes."
+msgid "The project is not shown in Deadlines."
+msgstr "El proyecto no se muestra en Vencimientos."
 
 #. module: project_task_touch
 #. odoo-python
 #: code:addons/project_task_touch/models/project_task_touch.py:0
-msgid "The task is not of a file."
-msgstr "La tarea no es de un expediente."
+msgid "The task is not of a deadline."
+msgstr "La tarea no es de un vencimiento."
 
 #. module: project_task_touch
 #. odoo-python
 #: code:addons/project_task_touch/models/project_task_touch.py:0
-msgid "The template is not shown in Files."
-msgstr "La plantilla no se muestra en Expedientes."
+msgid "The template is not shown in Deadlines."
+msgstr "La plantilla no se muestra en Vencimientos."
 
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "There is no project in Files: mark"
-msgstr "No hay ningún proyecto en Expedientes: marca"
+msgid "There is no project in Deadlines: mark"
+msgstr "No hay ningún proyecto en Vencimientos: marca"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -402,8 +426,8 @@ msgstr "Sin plantilla"
 #. odoo-python
 #: code:addons/project_task_touch/models/project_task_touch.py:0
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
-msgid "Write the name of the file."
-msgstr "Escribe el nombre del expediente."
+msgid "Write the name of the deadline."
+msgstr "Escribe el nombre del vencimiento."
 
 #. module: project_task_touch
 #. odoo-python

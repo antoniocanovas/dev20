@@ -21,7 +21,7 @@ def is_record_id(value):
 
 
 class ProjectTaskTouch(models.AbstractModel):
-    """ Files (Expedientes), on a touch screen as the one of CAT (scrap_touch):
+    """ Deadlines (Vencimientos), on a touch screen as the one of CAT (scrap_touch):
 
     * Tasks: the open tasks of the projects marked to be shown (touch_ok), in the kanban of the
       tasks grouped by state, filtered by the template the project was created from and by project;
@@ -33,7 +33,7 @@ class ProjectTaskTouch(models.AbstractModel):
     assigned).
     """
     _name = 'project.task.touch'
-    _description = "Files Touch Screen"
+    _description = "Deadlines Touch Screen"
 
     # ------------------------------------------------------------------
     # Screen
@@ -70,7 +70,7 @@ class ProjectTaskTouch(models.AbstractModel):
     # ------------------------------------------------------------------
 
     @api.model
-    def get_tasks(self, query='', template_id=False, project_id=False, closed=False):
+    def get_tasks(self, query='', template_id=False, project_id=False, closed=False, activity_type_id=False):
         """ The domain of the tasks, open or closed, for the kanban of the screen, the states to
         show as its columns, and how many tasks and activities there are.
 
@@ -82,7 +82,7 @@ class ProjectTaskTouch(models.AbstractModel):
         return {
             'domain': list(domain),
             'states': list(states),
-            'counts': self._get_counts(query, template_id, project_id),
+            'counts': self._get_counts(query, template_id, project_id, activity_type_id),
         }
 
     def _get_task_domain(self, query, template_id, project_id):
@@ -115,7 +115,7 @@ class ProjectTaskTouch(models.AbstractModel):
         project = self.env['project.project'].search(
             Domain(self._get_project_domain()) & Domain('id', '=', project_id))
         if not project:
-            raise UserError(self.env._("The project is not shown in Files."))
+            raise UserError(self.env._("The project is not shown in Deadlines."))
         name = (name or '').strip()
         if not name:
             raise UserError(self.env._("Write the name of the task."))
@@ -128,7 +128,7 @@ class ProjectTaskTouch(models.AbstractModel):
 
     @api.model
     def get_subtasks(self, task_id):
-        """ The open subtasks of a task of a file, to close them from the list of the screen. """
+        """ The open subtasks of a task of a deadline, to close them from the list of the screen. """
         task = self._browse_file_task(task_id)
         subtasks = task.child_ids.filtered(lambda subtask: subtask.state not in CLOSED_STATES)
         return [{
@@ -160,7 +160,7 @@ class ProjectTaskTouch(models.AbstractModel):
             raise ValidationError(self.env._("Invalid task."))
         task = self.env['project.task'].browse(task_id).exists()
         if not task or not task.project_id.touch_ok:
-            raise UserError(self.env._("The task is not of a file."))
+            raise UserError(self.env._("The task is not of a deadline."))
         return task
 
     def _to_deadline(self, date):
@@ -174,12 +174,12 @@ class ProjectTaskTouch(models.AbstractModel):
         return local.astimezone(pytz.utc).replace(tzinfo=None)
 
     # ------------------------------------------------------------------
-    # Files: projects created from a template
+    # Deadlines: projects created from a template
     # ------------------------------------------------------------------
 
     @api.model
     def create_project(self, template_id, name, date=False):
-        """ A new file: a project created from a template marked to be shown, starting on `date`.
+        """ A new deadline: a project created from a template marked to be shown, starting on `date`.
 
         :return: the new project, as in get_screen_data
         """
@@ -188,10 +188,10 @@ class ProjectTaskTouch(models.AbstractModel):
         template = self.env['project.project'].search(
             [('id', '=', template_id), ('is_template', '=', True), ('touch_ok', '=', True)])
         if not template:
-            raise UserError(self.env._("The template is not shown in Files."))
+            raise UserError(self.env._("The template is not shown in Deadlines."))
         name = (name or '').strip()
         if not name:
-            raise UserError(self.env._("Write the name of the file."))
+            raise UserError(self.env._("Write the name of the deadline."))
         values = {'name': name}
         if date:
             # Its end and the deadlines of its tasks, from it (see project.project)
@@ -205,13 +205,15 @@ class ProjectTaskTouch(models.AbstractModel):
     # ------------------------------------------------------------------
 
     @api.model
-    def get_activities(self, query='', template_id=False, project_id=False, closed=False):
-        """ The activities marked to be shown, with how many tasks and activities there are.
+    def get_activities(self, query='', template_id=False, project_id=False, closed=False, activity_type_id=False):
+        """ The activities marked to be shown, with how many tasks and activities there are and
+        the types to filter with.
 
         :param closed: the ones done instead (archived by Odoo with their date and feedback),
             the last done first
+        :param activity_type_id: id of an activity type, or False for all of them
         """
-        domain = self._get_activity_domain(query)
+        domain = self._get_activity_domain(query, activity_type_id)
         if closed:
             activities = self.env['mail.activity'].search(
                 domain & Domain('active', '=', False) & Domain('date_done', '!=', False),
@@ -220,11 +222,16 @@ class ProjectTaskTouch(models.AbstractModel):
             activities = self.env['mail.activity'].search(domain, limit=LIMIT, order='date_deadline asc, id asc')
         return {
             'activities': [self._get_activity_data(activity) for activity in activities],
-            'counts': self._get_counts(query, template_id, project_id),
+            'counts': self._get_counts(query, template_id, project_id, activity_type_id),
+            'activity_types': self._get_activity_types(activity_type_id),
         }
 
-    def _get_activity_domain(self, query):
+    def _get_activity_domain(self, query, activity_type_id=False):
+        if activity_type_id and not is_record_id(activity_type_id):
+            raise ValidationError(self.env._("Invalid activity type."))
         domain = Domain('touch_ok', '=', True)
+        if activity_type_id:
+            domain &= Domain('activity_type_id', '=', activity_type_id)
         if query := (query or '').strip():
             domain &= Domain.OR([
                 Domain('summary', 'ilike', query),
@@ -233,6 +240,18 @@ class ProjectTaskTouch(models.AbstractModel):
                 Domain('user_id.name', 'ilike', query),
             ])
         return domain
+
+    def _get_activity_types(self, activity_type_id=False):
+        """ The types of the activities marked to be shown, open or done, and the one filtered. """
+        Activity = self.env['mail.activity'].with_context(active_test=False)
+        types = self.env['mail.activity.type'].union(*(
+            activity_type for activity_type, in Activity._read_group(
+                [('touch_ok', '=', True), ('activity_type_id', '!=', False)], ['activity_type_id'])
+        ))
+        if activity_type_id:
+            types |= self.env['mail.activity.type'].browse(activity_type_id).exists()
+        return [{'id': activity_type.id, 'name': activity_type.name}
+                for activity_type in types.sorted(lambda activity_type: (activity_type.sequence, activity_type.name or '', activity_type.id))]
 
     def _get_activity_data(self, activity):
         return {
@@ -255,9 +274,9 @@ class ProjectTaskTouch(models.AbstractModel):
 
     # ------------------------------------------------------------------
 
-    def _get_counts(self, query, template_id, project_id):
+    def _get_counts(self, query, template_id, project_id, activity_type_id=False):
         domain = self._get_task_domain(query, template_id, project_id)
         return {
             'tasks': self.env['project.task'].search_count(domain & Domain('state', 'in', TASK_STATES)),
-            'activities': self.env['mail.activity'].search_count(self._get_activity_domain(query)),
+            'activities': self.env['mail.activity'].search_count(self._get_activity_domain(query, activity_type_id)),
         }

@@ -1,7 +1,7 @@
 {
-    'name': 'Expedientes',
+    'name': 'Vencimientos',
     'version': '20.0.1.0.0',
-    'summary': "Pantalla táctil de expedientes: tareas de proyectos y actividades",
+    'summary': "Pantalla táctil de vencimientos: tareas de proyectos y actividades",
     'author': 'Antonio Cánovas',
     'license': 'LGPL-3',
     'category': 'Services/Project',

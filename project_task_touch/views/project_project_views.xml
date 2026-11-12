@@ -20,7 +20,7 @@
         <field name="inherit_id" ref="project.view_project_project_filter"/>
         <field name="arch" type="xml">
             <xpath expr="//filter[@name='own_projects']" position="before">
-                <filter string="Files" name="touch_ok" domain="[('touch_ok', '=', True)]"/>
+                <filter string="Deadlines" name="touch_ok" domain="[('touch_ok', '=', True)]"/>
             </xpath>
         </field>
     </record>

@@ -4,7 +4,7 @@ import { projectTaskKanbanView } from "@project/views/project_task_kanban/projec
 const ProjectTaskKanbanController = projectTaskKanbanView.Controller;
 
 /**
- * The kanban of the tasks of Files, grouped by state: a task whose state is changed on its card
+ * The kanban of the tasks of Deadlines, grouped by state: a task whose state is changed on its card
  * (with the state widget, not by dragging it) goes to the column of its new state at once.
  */
 export class ProjectTaskTouchKanbanController extends ProjectTaskKanbanController {

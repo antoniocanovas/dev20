@@ -19,13 +19,15 @@ const KANBAN_ORDER = [
 ];
 // The views of the tasks, as in the switcher of Odoo
 const TASK_VIEWS = ["kanban", "list"];
+// The states of the tasks closed (as CLOSED_STATES of project.task.touch)
+const CLOSED_STATES = ["1_done", "1_canceled"];
 // The view chosen, kept on this device
 const VIEW_KEY = "project_task_touch.view";
 // Time to wait after typing before searching
 const SEARCH_DELAY = 300;
 
 /**
- * Files (Expedientes), on a touch screen as the one of CAT (scrap_touch).
+ * Deadlines (Vencimientos), on a touch screen as the one of CAT (scrap_touch).
  *
  * Two options, as big buttons with how many there are: the tasks of the projects marked to be
  * shown, in the kanban of the tasks grouped by state (its tags, subtasks, drag and drop...), and
@@ -34,7 +36,7 @@ const SEARCH_DELAY = 300;
  * The tasks are filtered by the template the project was created from, then by project, and a
  * single search box looks up the task, its project and the people assigned.
  *
- * Two buttons create: a new task (a project, then its name and deadline) and a new file (a
+ * Two buttons create: a new task (a project, then its name and deadline) and a new deadline (a
  * project created from a template, then its name and start date).
  */
 export class ProjectTaskTouch extends Component {
@@ -60,6 +62,10 @@ export class ProjectTaskTouch extends Component {
             // false (all), "none" (projects not created from a template) or the id of a template
             templateId: false,
             projectId: false,
+            // false (all) or the id of an activity type, to filter the activities
+            activityTypeId: false,
+            // The types of the activities shown, open or done (and the one filtered)
+            activityTypes: [],
             // The tasks closed (done or cancelled) instead of the open ones
             closed: false,
             // "kanban" or "list": the view of the tasks
@@ -71,7 +77,7 @@ export class ProjectTaskTouch extends Component {
             loading: false,
             sending: false,
             // Something being created: { kind: "task" | "project", parent, name, date }, its
-            // parent (the project of the task, the template of the file) chosen first
+            // parent (the project of the task, the template of the deadline) chosen first
             creating: null,
         });
         this.searchTimeout = null;
@@ -112,19 +118,22 @@ export class ProjectTaskTouch extends Component {
     // ------------------------------------------------------------------
 
     async load() {
-        const { mode, query, templateId, projectId, closed } = this.state;
+        const { mode, query, templateId, projectId, closed, activityTypeId } = this.state;
         this.state.loading = true;
         try {
+            const args = [query, templateId, projectId, closed, activityTypeId];
             const result = mode === "tasks"
-                ? await this.orm.call(MODEL, "get_tasks", [query, templateId, projectId, closed])
-                : await this.orm.call(MODEL, "get_activities", [query, templateId, projectId, closed]);
+                ? await this.orm.call(MODEL, "get_tasks", args)
+                : await this.orm.call(MODEL, "get_activities", args);
             // A later search may have answered first
             if (mode === this.state.mode && query === this.state.query && templateId === this.state.templateId
-                && projectId === this.state.projectId && closed === this.state.closed) {
+                && projectId === this.state.projectId && closed === this.state.closed
+                && activityTypeId === this.state.activityTypeId) {
                 if (mode === "tasks") {
                     this.setKanbanProps(result.domain, result.states);
                 } else {
                     this.state.activities = result.activities;
+                    this.state.activityTypes = result.activity_types;
                 }
                 this.state.counts = result.counts;
             }
@@ -156,6 +165,12 @@ export class ProjectTaskTouch extends Component {
 
     async onProject(ev) {
         this.state.projectId = parseInt(ev.target.value) || false;
+        await this.load();
+    }
+
+    /** The activities of a type, or of all of them. */
+    async onActivityType(ev) {
+        this.state.activityTypeId = parseInt(ev.target.value) || false;
         await this.load();
     }
 
@@ -222,8 +237,14 @@ export class ProjectTaskTouch extends Component {
             // The nearest deadline first (the ones without one, last), then the highest priority
             orderBy: KANBAN_ORDER,
             // touch_states: the columns shown even if empty (see project.task); touch_reload, to
-            // load it again after a change in a dialog
-            context: { touch_states: states, touch_reload: this.kanbanReloads },
+            // load it again after a change in a dialog; subtask_action, the closed subtasks too
+            // (Odoo hides the subtasks, seen on their task, but the one of an open task closed
+            // would be nowhere)
+            context: {
+                touch_states: states,
+                touch_reload: this.kanbanReloads,
+                subtask_action: Boolean(states?.some((state) => CLOSED_STATES.includes(state))),
+            },
             display: { controlPanel: false },
             selectRecord: (resId) => this.onOpenTask(resId),
             ...(isKanban ? {} : { allowSelectors: false }),
@@ -276,6 +297,25 @@ export class ProjectTaskTouch extends Component {
         }, { onClose: () => this.load() });
     }
 
+    /** The activity, in its form as the chatter opens it (its name, type, date, person,
+     * note...): as an action, so that its buttons (Save, Mark Done, Delete) close it. */
+    onEditActivity(activity) {
+        this.action.doAction({
+            type: "ir.actions.act_window",
+            name: activity.summary || activity.type,
+            res_model: "mail.activity",
+            view_mode: "form",
+            views: [[false, "form"]],
+            target: "new",
+            res_id: activity.id,
+            context: {
+                default_res_model: activity.res_model,
+                default_res_id: activity.res_id,
+                dialog_size: "medium",
+            },
+        }, { onClose: () => this.load() });
+    }
+
     /** The popover of the chatter to mark it done: its feedback, and done or done and the next
      * one scheduled with the standard wizard. */
     onActivityDone(activity, ev) {
@@ -297,7 +337,7 @@ export class ProjectTaskTouch extends Component {
     }
 
     // ------------------------------------------------------------------
-    // New task and new file
+    // New task and new deadline
     // ------------------------------------------------------------------
 
     /** A new task: of the project filtered, or of one to choose. */
@@ -306,7 +346,7 @@ export class ProjectTaskTouch extends Component {
         this.startCreating("task", project || null);
     }
 
-    /** A new file: from the template filtered, or from one to choose. */
+    /** A new deadline: from the template filtered, or from one to choose. */
     onNewProject() {
         const template = this.state.data.templates.find((template) => template.id === this.state.templateId);
         this.startCreating("project", template || null);
@@ -345,7 +385,7 @@ export class ProjectTaskTouch extends Component {
     async onCreate() {
         const creating = this.state.creating;
         if (!creating.name.trim()) {
-            this.notification.add(creating.kind === "task" ? _t("Write the name of the task.") : _t("Write the name of the file."), { type: "warning" });
+            this.notification.add(creating.kind === "task" ? _t("Write the name of the task.") : _t("Write the name of the deadline."), { type: "warning" });
             return;
         }
         const date = creating.date || false;
@@ -362,7 +402,7 @@ export class ProjectTaskTouch extends Component {
         } else {
             const project = await this.run("create_project", [creating.parent.id, creating.name, date]);
             if (project) {
-                this.notification.add(_t("File %s created.", project.name), { type: "success" });
+                this.notification.add(_t("Deadline %s created.", project.name), { type: "success" });
                 // Shown alone, with its tasks copied from the template
                 this.state.data.projects.push(project);
                 this.state.data.projects.sort((a, b) => a.name.localeCompare(b.name));

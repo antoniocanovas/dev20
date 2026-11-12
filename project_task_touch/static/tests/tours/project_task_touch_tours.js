@@ -212,6 +212,26 @@ registry.category("web_tour.tours").add("project_task_touch_tour", {
             trigger: ".o_project_task_touch_column_overdue",
         },
         {
+            content: "The activity itself, in the form of the chatter",
+            trigger: ".o_project_task_touch_activity:contains(Tour Call) .o_project_task_touch_activity_edit",
+            run: "click",
+        },
+        {
+            content: "Its box to show it here, with its label",
+            trigger: ".modal .o_project_task_touch_activity_touch_ok:has(.o_field_widget[name=touch_ok] input:checked) label:contains(Show in Deadlines)",
+        },
+        {
+            trigger: ".modal .o_field_widget[name=summary] input",
+            run: "edit Tour Call Edited",
+        },
+        {
+            trigger: ".modal .modal-footer button[name=action_close_dialog]:visible",
+            run: "click",
+        },
+        {
+            trigger: "body:not(:has(.modal)) .o_project_task_touch_activity_name:contains(Tour Call Edited)",
+        },
+        {
             content: "Done with the popover of the chatter: its feedback",
             trigger: ".o_project_task_touch_activity:contains(Tour Call) .o_project_task_touch_activity_done",
             run: "click",

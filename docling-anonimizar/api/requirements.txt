@@ -1,0 +1,6 @@
+fastapi==0.162.5
+pypdf[crypto]==7.0.1
+uvicorn==0.54.0
+presidio-analyzer==2.2.366
+https://github.com/explosion/spacy-models/releases/download/es_core_news_md-3.8.0/es_core_news_md-3.8.0-py3-none-any.whl
+python-multipart==0.0.20

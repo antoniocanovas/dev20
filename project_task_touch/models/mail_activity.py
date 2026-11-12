@@ -6,7 +6,7 @@ class MailActivity(models.Model):
 
     # True by default on the models chosen in the company (see res.company)
     touch_ok = fields.Boolean(
-        string="Show in Files", compute='_compute_touch_ok', store=True, readonly=False, precompute=True,
+        string="Show in Deadlines", compute='_compute_touch_ok', store=True, readonly=False, precompute=True,
         index='btree_not_null',
     )
 

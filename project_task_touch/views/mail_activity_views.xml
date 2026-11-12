@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Last of the details, with its label: the type above has none (badges) -->
     <record id="mail_activity_view_form_popup_project_task_touch" model="ir.ui.view">
         <field name="name">mail.activity.form.popup.project_task_touch</field>
         <field name="model">mail.activity</field>
         <field name="inherit_id" ref="mail.mail_activity_view_form_popup"/>
         <field name="arch" type="xml">
-            <field name="activity_type_id" position="after">
-                <field name="touch_ok"/>
-            </field>
+            <div name="activity_details" position="inside">
+                <div class="d-flex align-items-center mb-2 gap-2 o_project_task_touch_activity_touch_ok">
+                    <field name="touch_ok" nolabel="1"/>
+                    <label for="touch_ok" class="mb-0"/>
+                </div>
+            </div>
         </field>
     </record>
 

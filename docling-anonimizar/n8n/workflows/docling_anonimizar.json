@@ -1,0 +1,847 @@
+{
+ "id": "DoclingAnonim001",
+ "name": "Docling - Convertir y anonimizar",
+ "nodes": [
+  {
+   "id": "DoclingAnonim001-00",
+   "name": "Subir documento",
+   "type": "n8n-nodes-base.formTrigger",
+   "typeVersion": 2.4,
+   "position": [
+    0,
+    0
+   ],
+   "parameters": {
+    "authentication": "basicAuth",
+    "formTitle": "Convertir PDF con docling",
+    "formDescription": "Sube un PDF (también escaneado). Se convierte a texto en tramos de 25 páginas, así que admite documentos largos: cuenta con unos minutos por cada 100 páginas. Al terminar se descarga un fichero Markdown.",
+    "formFields": {
+     "values": [
+      {
+       "fieldLabel": "Documento PDF",
+       "fieldName": "documento",
+       "fieldType": "file",
+       "multipleFiles": false,
+       "acceptFileTypes": ".pdf",
+       "requiredField": true
+      },
+      {
+       "fieldLabel": "¿Anonimizar el documento?",
+       "fieldName": "anonimizar",
+       "fieldType": "radio",
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Sí"
+         },
+         {
+          "option": "No"
+         }
+        ]
+       },
+       "defaultValue": "Sí",
+       "requiredField": true
+      }
+     ]
+    },
+    "responseMode": "onReceived",
+    "options": {
+     "path": "docling-anonimizar",
+     "buttonLabel": "Continuar",
+     "appendAttribution": false
+    }
+   },
+   "webhookId": "docling-anonimizar",
+   "credentials": {
+    "httpBasicAuth": {
+     "id": "AlbIaBasicAuth01",
+     "name": "Albaranes IA - Basic Auth"
+    }
+   }
+  },
+  {
+   "id": "DoclingAnonim001-01",
+   "name": "Trocear PDF",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    220,
+    0
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "http://ia-support_anonimizador:8000/trocear?paginas_por_tramo=25",
+    "sendBody": true,
+    "contentType": "multipart-form-data",
+    "bodyParameters": {
+     "parameters": [
+      {
+       "parameterType": "formBinaryData",
+       "name": "pdf",
+       "inputDataFieldName": "documento"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 300000
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "DoclingAnonim001-02",
+   "name": "¿PDF legible?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    440,
+    0
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ Number($json.paginas) > 0 }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ]
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "DoclingAnonim001-03",
+   "name": "PDF no legible",
+   "type": "n8n-nodes-base.form",
+   "typeVersion": 2.4,
+   "position": [
+    660,
+    200
+   ],
+   "parameters": {
+    "operation": "completion",
+    "respondWith": "text",
+    "completionTitle": "No se ha podido leer el PDF",
+    "completionMessage": "El fichero no parece un PDF válido (o está protegido con contraseña). Prueba con otro.",
+    "options": {}
+   },
+   "webhookId": "docling-anonimizar-PDF no legible"
+  },
+  {
+   "id": "DoclingAnonim001-04",
+   "name": "¿Anonimizar?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    660,
+    0
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $('Subir documento').first().json.anonimizar === 'Sí' }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ]
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "DoclingAnonim001-05",
+   "name": "Qué eliminar",
+   "type": "n8n-nodes-base.form",
+   "typeVersion": 2.4,
+   "position": [
+    880,
+    -120
+   ],
+   "parameters": {
+    "operation": "page",
+    "formFields": {
+     "values": [
+      {
+       "fieldLabel": "Términos concretos a eliminar (uno por línea)",
+       "fieldName": "terminos",
+       "fieldType": "textarea",
+       "placeholder": "Nombres de clientes, proyectos, marcas, matrículas...\nSe buscan sin distinguir mayúsculas ni tildes."
+      },
+      {
+       "fieldLabel": "Datos personales a detectar",
+       "fieldName": "categorias",
+       "fieldType": "checkbox",
+       "fieldOptions": {
+        "values": [
+         {
+          "option": "Nombres de personas"
+         },
+         {
+          "option": "Teléfonos"
+         },
+         {
+          "option": "Emails"
+         },
+         {
+          "option": "DNI / NIE / CIF / pasaporte"
+         },
+         {
+          "option": "Cuentas bancarias y tarjetas"
+         },
+         {
+          "option": "Direcciones postales"
+         },
+         {
+          "option": "Lugares (ciudades, provincias...)"
+         },
+         {
+          "option": "Organizaciones y empresas"
+         },
+         {
+          "option": "Webs e IPs"
+         }
+        ]
+       },
+       "defaultValue": "Nombres de personas,Teléfonos,Emails,DNI / NIE / CIF / pasaporte,Cuentas bancarias y tarjetas,Direcciones postales"
+      }
+     ]
+    },
+    "options": {
+     "formTitle": "Qué anonimizar",
+     "formDescription": "Cada dato se sustituye por una etiqueta estable: la misma persona es siempre [PERSONA_1], el mismo teléfono [TELEFONO_2]... Los términos concretos se sustituyen por [ELIMINADO]. La detección es automática y sin IA generativa: revisa el resultado antes de compartirlo.",
+     "buttonLabel": "Convertir"
+    }
+   },
+   "webhookId": "docling-anonimizar-que-eliminar"
+  },
+  {
+   "id": "DoclingAnonim001-06",
+   "name": "Opciones de anonimización",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1100,
+    -120
+   ],
+   "parameters": {
+    "jsCode": "const r = $input.first().json;\nconst MAPA = {\"Nombres de personas\": \"personas\", \"Teléfonos\": \"telefonos\", \"Emails\": \"emails\", \"DNI / NIE / CIF / pasaporte\": \"documentos\", \"Cuentas bancarias y tarjetas\": \"bancarios\", \"Direcciones postales\": \"direcciones\", \"Lugares (ciudades, provincias...)\": \"lugares\", \"Organizaciones y empresas\": \"organizaciones\", \"Webs e IPs\": \"web\"};\nconst sel = Array.isArray(r.categorias) ? r.categorias : String(r.categorias || '').split(',');\nconst terminos = String(r.terminos || '').split(/\\r?\\n|;/).map((t) => t.trim()).filter(Boolean);\nreturn [{ json: { anonimizar: true, terminos, categorias: sel.map((s) => MAPA[s.trim()]).filter(Boolean) } }];"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-07",
+   "name": "Sin anonimizar",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    880,
+    120
+   ],
+   "parameters": {
+    "jsCode": "return [{ json: { anonimizar: false, terminos: [], categorias: [] } }];"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-08",
+   "name": "Sondear texto (sin OCR)",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    1320,
+    0
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "=http://ia-support_anonimizador:8000/trozos/{{ $('Trocear PDF').first().json.id }}/1/docling?sincrono=true",
+    "options": {
+     "timeout": 300000
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ to_formats: ['md'], do_ocr: false, image_export_mode: 'placeholder', page_range: [1, 5] }) }}"
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "DoclingAnonim001-09",
+   "name": "Preparar tramos",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1540,
+    0
+   ],
+   "parameters": {
+    "jsCode": "// Un item por tramo, ya troceado y guardado por el anonimizador: docling lo descarga por URL.\nconst { paginas, tramos: trozos } = $('Trocear PDF').first().json;\nconst md = $input.first().json?.document?.md_content || '';\nconst texto = md.replace(/<!--[^>]*-->/g, '').replace(/\\s+/g, '').length;\n// Si el sondeo falla, OCR: tardar de más es mejor que devolver un documento en blanco.\nconst necesita_ocr = !md || texto < 200;\nreturn trozos.map((t, i) => ({ json: { tramo: i + 1, page_start: t.page_start, page_end: t.page_end,\n  paginas, necesita_ocr, id: $('Trocear PDF').first().json.id } }));"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-10",
+   "name": "Loop tramos",
+   "type": "n8n-nodes-base.splitInBatches",
+   "typeVersion": 3,
+   "position": [
+    1980,
+    0
+   ],
+   "parameters": {
+    "options": {}
+   }
+  },
+  {
+   "id": "DoclingAnonim001-11",
+   "name": "Enviar tramo a docling",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    2200,
+    120
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "=http://ia-support_anonimizador:8000/trozos/{{ $json.id }}/{{ $json.tramo }}/docling",
+    "options": {
+     "timeout": 300000
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ to_formats: ['md'], do_ocr: $json.necesita_ocr === true, image_export_mode: 'placeholder' }) }}"
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "DoclingAnonim001-12",
+   "name": "Esperar docling",
+   "type": "n8n-nodes-base.wait",
+   "typeVersion": 1.1,
+   "position": [
+    2420,
+    120
+   ],
+   "parameters": {
+    "amount": 15
+   },
+   "webhookId": "docling-anonimizar-esperar"
+  },
+  {
+   "id": "DoclingAnonim001-13",
+   "name": "Comprobar estado",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    2640,
+    120
+   ],
+   "parameters": {
+    "method": "GET",
+    "url": "=http://ia-support_docling:5001/v1/status/poll/{{ $('Enviar tramo a docling').item.json.task_id }}",
+    "options": {
+     "timeout": 60000
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "DoclingAnonim001-14",
+   "name": "Evaluar estado",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2860,
+    120
+   ],
+   "parameters": {
+    "jsCode": "const envio = $('Enviar tramo a docling').item.json;\nconst tries = ($('Esperar docling').item.json.tries || 0) + 1;\nconst status = $json.task_status;\nconst sin_tarea = !envio.task_id;  // docling rechazó el envío\nreturn [{ json: {\n  task_status: status, tries, sin_tarea,\n  agotado: tries >= 80 && status !== 'success' && status !== 'failure',\n  done: sin_tarea || status === 'success' || status === 'failure' || tries >= 80,\n  error: sin_tarea ? (envio.error?.message || JSON.stringify(envio).slice(0, 300)) : null,\n} }];"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-15",
+   "name": "¿Terminado?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    3080,
+    120
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $json.done }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ]
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "DoclingAnonim001-16",
+   "name": "Obtener resultado",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    3300,
+    40
+   ],
+   "parameters": {
+    "method": "GET",
+    "url": "=http://ia-support_docling:5001/v1/result/{{ $('Enviar tramo a docling').item.json.task_id }}",
+    "options": {
+     "timeout": 120000
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "DoclingAnonim001-17",
+   "name": "Guardar tramo",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3520,
+    40
+   ],
+   "parameters": {
+    "jsCode": "const t = $('Loop tramos').item.json;\nconst ev = $('Evaluar estado').item.json;\nconst r = $json;\nconst ok = r.status === 'success' || r.status === 'partial_success';\nlet md = ok ? (r.document?.md_content || '') : '';\nmd = md.replace(/!\\[[^\\]]*\\]\\(data:[^)]*\\)/g, '').replace(/<img[^>]*src=\"data:[^\"]*\"[^>]*>/g, '');\nlet motivo = null;\nif (!ok) {\n  motivo = ev.sin_tarea ? `docling rechazó el envío: ${ev.error}`\n    : ev.agotado ? 'docling no terminó a tiempo'\n    : (r.errors?.map((e) => e.error_message || e.message).join('; ') || r.error?.message || `estado ${r.status || ev.task_status}`);\n}\nreturn [{ json: { tramo: t.tramo, page_start: t.page_start, page_end: t.page_end,\n  ok, md_content: md, motivo, segundos: r.processing_time ?? null } }];"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-18",
+   "name": "Combinar tramos",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2200,
+    -160
+   ],
+   "parameters": {
+    "jsCode": "const tramos = $input.all().map((i) => i.json).sort((a, b) => a.page_start - b.page_start);\nconst opc = $('Opciones de anonimización').isExecuted\n  ? $('Opciones de anonimización').first().json : { anonimizar: false, terminos: [], categorias: [] };\nconst md = tramos.map((t) => t.ok\n  ? `<!-- páginas ${t.page_start}-${t.page_end} -->\\n\\n${t.md_content}`\n  : `<!-- páginas ${t.page_start}-${t.page_end}: FALTAN -->`).join('\\n\\n');\nconst fallidos = tramos.filter((t) => !t.ok);\nreturn [{ json: { ...opc, texto: md, fallidos, paginas: $('Trocear PDF').first().json.paginas,\n  num_tramos: tramos.length, ocr: $('Preparar tramos').first().json.necesita_ocr } }];"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-19",
+   "name": "Borrar tramos",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    2420,
+    -340
+   ],
+   "parameters": {
+    "method": "DELETE",
+    "url": "=http://ia-support_anonimizador:8000/trozos/{{ $('Trocear PDF').first().json.id }}",
+    "options": {
+     "timeout": 60000
+    }
+   },
+   "onError": "continueRegularOutput"
+  },
+  {
+   "id": "DoclingAnonim001-20",
+   "name": "¿Anonimizar texto?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    2420,
+    -160
+   ],
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "loose",
+      "version": 2
+     },
+     "combinator": "and",
+     "conditions": [
+      {
+       "id": "c1",
+       "leftValue": "={{ $('Combinar tramos').first().json.anonimizar === true && $('Combinar tramos').first().json.texto.length > 0 }}",
+       "rightValue": "",
+       "operator": {
+        "type": "boolean",
+        "operation": "true",
+        "singleValue": true
+       }
+      }
+     ]
+    },
+    "looseTypeValidation": true,
+    "options": {}
+   }
+  },
+  {
+   "id": "DoclingAnonim001-21",
+   "name": "Anonimizar",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.2,
+   "position": [
+    2640,
+    -260
+   ],
+   "parameters": {
+    "method": "POST",
+    "url": "http://ia-support_anonimizador:8000/anonimizar",
+    "options": {
+     "timeout": 900000
+    },
+    "sendBody": true,
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify((({ texto, terminos, categorias }) => ({ texto, terminos, categorias }))($('Combinar tramos').first().json)) }}"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-22",
+   "name": "Componer resultado",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2860,
+    -160
+   ],
+   "parameters": {
+    "jsCode": "const c = $('Combinar tramos').first().json;\nconst a = $('Anonimizar').isExecuted ? $('Anonimizar').first().json : null;\nconst nombre = ($('Subir documento').first().json.documento?.filename || 'documento.pdf').replace(/\\.pdf$/i, '');\nconst avisos = c.fallidos.map((t) => `> **Atención:** faltan las páginas ${t.page_start}-${t.page_end} (${t.motivo}).`);\nconst contenido = (avisos.length ? avisos.join('\\n') + '\\n\\n' : '') + (a ? a.texto : c.texto);\nconst partes = [`${c.paginas} páginas en ${c.num_tramos} tramos de 25` + (c.ocr ? ', con OCR' : '') + '.'];\nif (a) {\n  const r = Object.entries(a.resumen).map(([k, n]) => `${k.toLowerCase()}: ${n}`).join(', ');\n  partes.push(a.reemplazos ? `Anonimizado: ${a.reemplazos} sustituciones (${r}).` : 'Anonimizado: no se ha encontrado nada que sustituir.');\n}\nif (c.fallidos.length) partes.push(`ATENCIÓN: faltan ${c.fallidos.length} tramo(s), están indicados al principio del fichero.`);\nconst fichero = nombre + (a ? '_anonimizado' : '') + '.md';\n// Página final con botón de descarga. NO se usa \"Return Binary File\" del nodo Form: n8n sirve la\n// página con CSP sandbox y Chrome bloquea la descarga automática (sin clic del usuario) sin avisar.\nconst esc = (t) => String(t).replace(/[&<>\"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', \"'\": '&#39;' }[c]));\nconst b64 = Buffer.from(contenido, 'utf8').toString('base64');\n// Fragmento: n8n lo inserta dentro del <body> de su plantilla (form-trigger-completion).\nconst html = `<style>\n body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f5f5f7;color:#1d1d1f;margin:0;padding:24px 16px}\n .caja{max-width:820px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 1px 4px rgba(0,0,0,.08)}\n h1{font-size:22px;margin:0 0 8px} p{line-height:1.5;margin:0 0 20px;color:#444}\n a.boton{display:inline-block;background:#0b6bcb;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600}\n a.boton:hover{background:#095aa8}\n details{margin-top:24px} summary{cursor:pointer;color:#0b6bcb}\n pre{white-space:pre-wrap;word-break:break-word;background:#fafafa;border:1px solid #e5e5e5;border-radius:8px;padding:12px;font-size:12px;max-height:420px;overflow:auto}\n</style><div class=\"caja\">\n<h1>Documento listo</h1><p>${esc(partes.join(' '))}</p>\n<a class=\"boton\" download=\"${esc(fichero)}\" href=\"data:text/markdown;charset=utf-8;base64,${b64}\">Descargar ${esc(fichero)}</a>\n<details><summary>Ver el principio del texto</summary><pre>${esc(contenido.slice(0, 6000))}${contenido.length > 6000 ? '\\n…' : ''}</pre></details>\n</div>`;\nreturn [{ json: { fichero, mensaje: partes.join(' '), html } }];"
+   }
+  },
+  {
+   "id": "DoclingAnonim001-23",
+   "name": "Descargar",
+   "type": "n8n-nodes-base.form",
+   "typeVersion": 2.4,
+   "position": [
+    3080,
+    -160
+   ],
+   "parameters": {
+    "operation": "completion",
+    "respondWith": "showText",
+    "responseText": "={{ $json.html }}"
+   },
+   "webhookId": "docling-anonimizar-descargar"
+  }
+ ],
+ "connections": {
+  "Subir documento": {
+   "main": [
+    [
+     {
+      "node": "Trocear PDF",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Trocear PDF": {
+   "main": [
+    [
+     {
+      "node": "¿PDF legible?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "¿PDF legible?": {
+   "main": [
+    [
+     {
+      "node": "¿Anonimizar?",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "PDF no legible",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "¿Anonimizar?": {
+   "main": [
+    [
+     {
+      "node": "Qué eliminar",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Sin anonimizar",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Qué eliminar": {
+   "main": [
+    [
+     {
+      "node": "Opciones de anonimización",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Opciones de anonimización": {
+   "main": [
+    [
+     {
+      "node": "Sondear texto (sin OCR)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Sin anonimizar": {
+   "main": [
+    [
+     {
+      "node": "Sondear texto (sin OCR)",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Sondear texto (sin OCR)": {
+   "main": [
+    [
+     {
+      "node": "Preparar tramos",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Preparar tramos": {
+   "main": [
+    [
+     {
+      "node": "Loop tramos",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Loop tramos": {
+   "main": [
+    [
+     {
+      "node": "Combinar tramos",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Enviar tramo a docling",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Enviar tramo a docling": {
+   "main": [
+    [
+     {
+      "node": "Esperar docling",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Esperar docling": {
+   "main": [
+    [
+     {
+      "node": "Comprobar estado",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Comprobar estado": {
+   "main": [
+    [
+     {
+      "node": "Evaluar estado",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Evaluar estado": {
+   "main": [
+    [
+     {
+      "node": "¿Terminado?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "¿Terminado?": {
+   "main": [
+    [
+     {
+      "node": "Obtener resultado",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Esperar docling",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Obtener resultado": {
+   "main": [
+    [
+     {
+      "node": "Guardar tramo",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Guardar tramo": {
+   "main": [
+    [
+     {
+      "node": "Loop tramos",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Combinar tramos": {
+   "main": [
+    [
+     {
+      "node": "Borrar tramos",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "¿Anonimizar texto?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "¿Anonimizar texto?": {
+   "main": [
+    [
+     {
+      "node": "Anonimizar",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Componer resultado",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Anonimizar": {
+   "main": [
+    [
+     {
+      "node": "Componer resultado",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Componer resultado": {
+   "main": [
+    [
+     {
+      "node": "Descargar",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  }
+ },
+ "active": false,
+ "pinData": {},
+ "settings": {
+  "executionOrder": "v1",
+  "binaryMode": "separate",
+  "saveDataSuccessExecution": "none",
+  "saveManualExecutions": false
+ }
+}

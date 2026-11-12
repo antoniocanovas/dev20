@@ -7,7 +7,7 @@
         <field name="inherit_id" ref="base.view_company_form"/>
         <field name="arch" type="xml">
             <xpath expr="//notebook/page[@name='general_info']" position="after">
-                <page name="project_task_touch" string="Files">
+                <page name="project_task_touch" string="Deadlines">
                     <group>
                         <field name="touch_activity_model_ids" widget="many2many_tags"
                                options="{'no_create': True}"/>

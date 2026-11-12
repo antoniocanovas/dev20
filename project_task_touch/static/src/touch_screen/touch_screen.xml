@@ -13,9 +13,9 @@
                 <a t-else="" href="#" title="Odoo" aria-label="Odoo" class="oi fs-2 mx-2 text-body o_project_task_touch_odoo_home"
                    data-icon="apps" t-on-click.prevent="this.onOdooHome"/>
                 <div class="flex-grow-1 min-w-0 fs-4 fw-bold text-truncate">
-                    Files
+                    Deadlines
                     <t t-if="this.state.creating">
-                        · <t t-if="this.state.creating.kind === 'task'">New task</t><t t-else="">New file</t>
+                        · <t t-if="this.state.creating.kind === 'task'">New task</t><t t-else="">New deadline</t>
                         <t t-if="this.state.creating.parent"> · <span class="o_project_task_touch_parent" t-out="this.state.creating.parent.name"/></t>
                     </t>
                 </div>
@@ -26,8 +26,8 @@
                         <i class="oi" data-icon="add"/><span class="d-none d-sm-inline"> New task</span>
                     </button>
                     <button t-if="this.state.data.can_create_project" class="btn btn-primary btn-lg o_project_task_touch_new_project"
-                            title="New file" aria-label="New file" t-on-click="this.onNewProject">
-                        <i class="oi" data-icon="create_new_folder"/><span class="d-none d-sm-inline"> New file</span>
+                            title="New deadline" aria-label="New deadline" t-on-click="this.onNewProject">
+                        <i class="oi" data-icon="create_new_folder"/><span class="d-none d-sm-inline"> New deadline</span>
                     </button>
                     <a t-if="this.canInstall()" href="#" role="button"
                        title="Install the app on this device" aria-label="Install the app on this device"
@@ -51,6 +51,13 @@
                 <i class="oi fs-3" t-att-data-icon="mode.icon"/>
                 <span class="fs-5 fw-bold" t-out="mode.name"/>
                 <span class="badge text-bg-light fs-6 o_project_task_touch_count" t-out="this.state.counts[mode.key]"/>
+            </button>
+            <!-- On the row of the two options, to leave room to the filters; only its icon on a phone -->
+            <button t-attf-class="btn btn-lg d-flex align-items-center gap-2 px-3 px-sm-4 py-3 o_project_task_touch_closed {{ this.state.closed ? 'btn-primary' : 'btn-secondary' }}"
+                    title="Show the tasks or activities done (or cancelled)" aria-label="Show the tasks or activities done (or cancelled)"
+                    t-on-click="this.onToggleClosed">
+                <i class="oi fs-3" data-icon="task_alt"/>
+                <span class="d-none d-sm-inline fs-5 fw-bold">Closed</span>
             </button>
         </div>
         <div class="d-flex flex-wrap gap-2 mb-3">
@@ -84,14 +91,16 @@
                     </button>
                 </div>
             </t>
-            <button t-attf-class="btn btn-lg o_project_task_touch_closed {{ this.state.closed ? 'btn-primary' : 'btn-secondary' }}"
-                    title="Show the tasks or activities done (or cancelled)" t-on-click="this.onToggleClosed">
-                <i class="oi" data-icon="task_alt"/> Closed
-            </button>
+            <select t-else="" class="form-select form-select-lg o_project_task_touch_filter o_project_task_touch_activity_type" title="Activity type"
+                    t-on-change="this.onActivityType">
+                <option value="" t-att-selected="!this.state.activityTypeId">All types</option>
+                <option t-foreach="this.state.activityTypes" t-as="activityType" t-key="activityType.id"
+                        t-att-value="activityType.id" t-att-selected="activityType.id === this.state.activityTypeId" t-out="activityType.name"/>
+            </select>
         </div>
         <t t-if="this.state.mode === 'tasks'">
             <div t-if="!this.state.data.projects.length" class="alert alert-warning o_project_task_touch_no_projects">
-                There is no project in Files: mark <strong>Show in Files</strong> in the settings of the projects or templates.
+                There is no project in Deadlines: mark <strong>Show in Deadlines</strong> in the settings of the projects or templates.
             </div>
             <!-- The kanban of the tasks, with the filters of the screen (kanbanVersion: shown again
                  with its new props) -->
@@ -131,6 +140,12 @@
                                     <span class="small text-truncate me-auto">
                                         <i t-if="activity.user" class="oi me-1" data-icon="person"/><t t-out="activity.user"/>
                                     </span>
+                                    <!-- The activity itself (the rest of the card opens its document) -->
+                                    <button t-if="!activity.date_done" class="btn btn-secondary o_project_task_touch_activity_edit"
+                                            title="Edit the activity" aria-label="Edit the activity"
+                                            t-on-click.stop="() => this.onEditActivity(activity)">
+                                        <i class="oi" data-icon="edit"/>
+                                    </button>
                                     <button t-if="!activity.date_done" class="btn btn-success o_project_task_touch_activity_done"
                                             t-on-click.stop="(ev) => this.onActivityDone(activity, ev)">
                                         <i class="oi" data-icon="check"/> Done
@@ -145,17 +160,17 @@
         </div>
     </t>
 
-    <!-- A new task or a new file: first its project or template, then its name and date -->
+    <!-- A new task or a new deadline: first its project or template, then its name and date -->
     <t t-name="project_task_touch.TouchScreenCreate">
         <t t-set="creating" t-value="this.state.creating"/>
         <t t-if="!creating.parent">
             <div class="fs-5 mb-3">
                 <t t-if="creating.kind === 'task'">Choose the project of the task</t>
-                <t t-else="">Choose the template of the file</t>
+                <t t-else="">Choose the template of the deadline</t>
             </div>
             <div t-if="!this.creatingParents.length" class="alert alert-info o_project_task_touch_no_parents">
                 <t t-if="creating.kind === 'task'">There is no project to choose.</t>
-                <t t-else="">There is no template to choose: mark <strong>Show in Files</strong> in the settings of the templates.</t>
+                <t t-else="">There is no template to choose: mark <strong>Show in Deadlines</strong> in the settings of the templates.</t>
             </div>
             <div class="o_project_task_touch_grid">
                 <button t-foreach="this.creatingParents" t-as="parent" t-key="parent.id"
@@ -167,7 +182,7 @@
         </t>
         <div t-else="" class="d-flex flex-column gap-2 o_project_task_touch_form">
             <label class="form-label mb-0">
-                <t t-if="creating.kind === 'task'">Name of the task</t><t t-else="">Name of the file</t>
+                <t t-if="creating.kind === 'task'">Name of the task</t><t t-else="">Name of the deadline</t>
             </label>
             <input type="text" class="form-control form-control-lg o_project_task_touch_new_name" autocomplete="off"
                    t-att-value="creating.name" t-on-input="this.onCreatingName" t-on-keydown="this.onCreatingKeydown"/>
@@ -181,7 +196,7 @@
                         t-on-click="this.onCancelCreating">Cancel</button>
                 <button class="btn btn-primary btn-lg flex-grow-1 o_project_task_touch_create" t-att-disabled="this.state.sending"
                         t-on-click="this.onCreate">
-                    <t t-if="creating.kind === 'task'">Create the task</t><t t-else="">Create the file</t>
+                    <t t-if="creating.kind === 'task'">Create the task</t><t t-else="">Create the deadline</t>
                 </button>
             </div>
         </div>
