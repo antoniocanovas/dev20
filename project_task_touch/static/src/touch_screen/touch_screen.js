@@ -36,7 +36,7 @@ const SEARCH_DELAY = 300;
  * The tasks are filtered by the template the project was created from, then by project, and a
  * single search box looks up the task, its project and the people assigned.
  *
- * Two buttons create: a new task (a project, then its name and deadline) and a new deadline (a
+ * Two buttons create: a new task (a project, then its name and deadline) and a new project (a
  * project created from a template, then its name and start date).
  */
 export class ProjectTaskTouch extends Component {
@@ -77,7 +77,7 @@ export class ProjectTaskTouch extends Component {
             loading: false,
             sending: false,
             // Something being created: { kind: "task" | "project", parent, name, date }, its
-            // parent (the project of the task, the template of the deadline) chosen first
+            // parent (the project of the task, the template of the project) chosen first
             creating: null,
         });
         this.searchTimeout = null;
@@ -337,7 +337,7 @@ export class ProjectTaskTouch extends Component {
     }
 
     // ------------------------------------------------------------------
-    // New task and new deadline
+    // New task and new project
     // ------------------------------------------------------------------
 
     /** A new task: of the project filtered, or of one to choose. */
@@ -346,7 +346,7 @@ export class ProjectTaskTouch extends Component {
         this.startCreating("task", project || null);
     }
 
-    /** A new deadline: from the template filtered, or from one to choose. */
+    /** A new project: from the template filtered, or from one to choose. */
     onNewProject() {
         const template = this.state.data.templates.find((template) => template.id === this.state.templateId);
         this.startCreating("project", template || null);
@@ -385,7 +385,7 @@ export class ProjectTaskTouch extends Component {
     async onCreate() {
         const creating = this.state.creating;
         if (!creating.name.trim()) {
-            this.notification.add(creating.kind === "task" ? _t("Write the name of the task.") : _t("Write the name of the deadline."), { type: "warning" });
+            this.notification.add(creating.kind === "task" ? _t("Write the name of the task.") : _t("Write the name of the project."), { type: "warning" });
             return;
         }
         const date = creating.date || false;
@@ -402,7 +402,7 @@ export class ProjectTaskTouch extends Component {
         } else {
             const project = await this.run("create_project", [creating.parent.id, creating.name, date]);
             if (project) {
-                this.notification.add(_t("Deadline %s created.", project.name), { type: "success" });
+                this.notification.add(_t("Project %s created.", project.name), { type: "success" });
                 // Shown alone, with its tasks copied from the template
                 this.state.data.projects.push(project);
                 this.state.data.projects.sort((a, b) => a.name.localeCompare(b.name));

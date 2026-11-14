@@ -90,8 +90,8 @@ msgstr "Elige el proyecto de la tarea"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "Choose the template of the deadline"
-msgstr "Elige la plantilla del vencimiento"
+msgid "Choose the template of the project"
+msgstr "Elige la plantilla del proyecto"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -107,8 +107,8 @@ msgstr "Compañía"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "Create the deadline"
-msgstr "Crear el vencimiento"
+msgid "Create the project"
+msgstr "Crear el proyecto"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -158,8 +158,8 @@ msgstr "Vencimientos"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
-msgid "Deadline %s created."
-msgstr "Vencimiento %s creado."
+msgid "Project %s created."
+msgstr "Proyecto %s creado."
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -250,8 +250,8 @@ msgstr "Modelos de las actividades de vencimientos"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "Name of the deadline"
-msgstr "Nombre del vencimiento"
+msgid "Name of the project"
+msgstr "Nombre del proyecto"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -262,8 +262,8 @@ msgstr "Nombre de la tarea"
 #. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.xml:0
-msgid "New deadline"
-msgstr "Nuevo vencimiento"
+msgid "New project"
+msgstr "Nuevo proyecto"
 
 #. module: project_task_touch
 #. odoo-javascript
@@ -388,8 +388,8 @@ msgstr "El proyecto no se muestra en Vencimientos."
 #. module: project_task_touch
 #. odoo-python
 #: code:addons/project_task_touch/models/project_task_touch.py:0
-msgid "The task is not of a deadline."
-msgstr "La tarea no es de un vencimiento."
+msgid "The task is not of a project shown here."
+msgstr "La tarea no es de un proyecto de Vencimientos."
 
 #. module: project_task_touch
 #. odoo-python
@@ -426,8 +426,8 @@ msgstr "Sin plantilla"
 #. odoo-python
 #: code:addons/project_task_touch/models/project_task_touch.py:0
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
-msgid "Write the name of the deadline."
-msgstr "Escribe el nombre del vencimiento."
+msgid "Write the name of the project."
+msgstr "Escribe el nombre del proyecto."
 
 #. module: project_task_touch
 #. odoo-python

@@ -128,7 +128,7 @@ class ProjectTaskTouch(models.AbstractModel):
 
     @api.model
     def get_subtasks(self, task_id):
-        """ The open subtasks of a task of a deadline, to close them from the list of the screen. """
+        """ The open subtasks of a task of a project shown, to close them from the list of the screen. """
         task = self._browse_file_task(task_id)
         subtasks = task.child_ids.filtered(lambda subtask: subtask.state not in CLOSED_STATES)
         return [{
@@ -160,7 +160,7 @@ class ProjectTaskTouch(models.AbstractModel):
             raise ValidationError(self.env._("Invalid task."))
         task = self.env['project.task'].browse(task_id).exists()
         if not task or not task.project_id.touch_ok:
-            raise UserError(self.env._("The task is not of a deadline."))
+            raise UserError(self.env._("The task is not of a project shown here."))
         return task
 
     def _to_deadline(self, date):
@@ -179,7 +179,7 @@ class ProjectTaskTouch(models.AbstractModel):
 
     @api.model
     def create_project(self, template_id, name, date=False):
-        """ A new deadline: a project created from a template marked to be shown, starting on `date`.
+        """ A new project: a project created from a template marked to be shown, starting on `date`.
 
         :return: the new project, as in get_screen_data
         """
@@ -191,7 +191,7 @@ class ProjectTaskTouch(models.AbstractModel):
             raise UserError(self.env._("The template is not shown in Deadlines."))
         name = (name or '').strip()
         if not name:
-            raise UserError(self.env._("Write the name of the deadline."))
+            raise UserError(self.env._("Write the name of the project."))
         values = {'name': name}
         if date:
             # Its end and the deadlines of its tasks, from it (see project.project)

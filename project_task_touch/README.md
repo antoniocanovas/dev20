@@ -23,7 +23,7 @@ Aplicación **Vencimientos** con la experiencia táctil de `scrap_touch`. Junta 
     - Con *Cerradas*, las subtareas cerradas salen también como tarjetas (contexto estándar `subtask_action`): si no, la de una tarea abierta no se vería en ningún sitio.
     - Al cambiar el estado desde la tarjeta, la tarea pasa a su columna en el momento (`js_class` `project_task_touch_kanban`, que recarga la kanban tras guardar).
     - No hay creación rápida en las columnas: se usa *Nueva tarea*. La tarea se abre en un diálogo.
-    - Botones **Kanban / Lista**, como el selector de vistas de Odoo. La lista es la estándar de tareas (`project_task_view_list_touch`, heredada de `project.view_task_tree2`), sin agrupar, con el mismo orden, filtros y buscador, y con la columna *Fecha límite* visible por defecto. La vista elegida se recuerda en cada dispositivo (`localStorage`).
+    - Botones **Kanban / Lista**, como el selector de vistas de Odoo, en la barra de arriba a la derecha de *Nuevo proyecto* (solo en Tareas), tras una línea vertical y con contorno para no confundirlos con los de crear. La lista es la estándar de tareas (`project_task_view_list_touch`, heredada de `project.view_task_tree2`), sin agrupar, con el mismo orden, filtros y buscador, y con la columna *Fecha límite* visible por defecto. La vista elegida se recuerda en cada dispositivo (`localStorage`).
     - **Subtareas en la lista**: junto al nombre, un botón con las cerradas/total (o **+** si no tiene) abre bajo la fila sus subtareas abiertas: ✓ para cerrarlas, un desplegable para cambiar su estado y un cuadro para añadir otra (con su proyecto y sus personas), como el contador de subtareas de la kanban. Widget `project_task_touch_name_subtasks` y métodos `get_subtasks` / `create_subtask`.
     - **Dependencias**: salen todas las tareas; las que dependen de otras abiertas están *En espera* (reloj de arena) y Odoo las pasa solas a *En curso* al cerrar aquellas.
   - **Actividades**: las marcadas, en columnas Vencidas / Hoy / Planificadas. La tarjeta abre el documento.
@@ -34,8 +34,8 @@ Aplicación **Vencimientos** con la experiencia táctil de `scrap_touch`. Junta 
 - **Tipo de actividad** (en Actividades): *Todos los tipos* o uno de los tipos de las actividades marcadas (abiertas o hechas). Se aplica al momento, a las abiertas y a las cerradas, y al contador del botón *Actividades*. `get_activities` devuelve los tipos (`_get_activity_types`).
 - **Buscador**: busca en la tarea, el proyecto, el cliente (`partner_id`), las etiquetas y la persona asignada. En Actividades busca en el resumen, el tipo, el documento y la persona asignada.
 - **Nueva tarea**: se elige el proyecto (o se usa el filtrado) y después el nombre y la fecha límite.
-- **Nuevo vencimiento**: se elige la plantilla (o se usa la filtrada) y después el nombre y la fecha de inicio. Crea el proyecto con `action_create_from_template`, con sus tareas, y lo deja filtrado.
-- **Fechas límite desde la plantilla** (también al crear desde Proyecto): Odoo no copia la fecha límite de las tareas. Este módulo la pone en cada tarea y subtarea con el mismo desfase que tiene en la plantilla desde su fecha de inicio (o, si no la tiene, desde su fecha límite más temprana), contado desde el inicio del vencimiento. Si la plantilla no tiene fechas planificadas, el vencimiento termina con su última fecha límite; si las tiene, dura lo mismo que ella (lo hace Odoo). `project.project._touch_copy_deadlines`.
+- **Nuevo proyecto** (antes *Nuevo vencimiento*; todo el proceso habla ya de *proyecto*: elegir la plantilla del proyecto, nombre, *Crear el proyecto*, *Proyecto X creado*): se elige la plantilla (o se usa la filtrada) y después el nombre y la fecha de inicio. Crea el proyecto con `action_create_from_template`, con sus tareas, y lo deja filtrado.
+- **Fechas límite desde la plantilla** (también al crear desde Proyecto): Odoo no copia la fecha límite de las tareas. Este módulo la pone en cada tarea y subtarea con el mismo desfase que tiene en la plantilla desde su fecha de inicio (o, si no la tiene, desde su fecha límite más temprana), contado desde el inicio del proyecto. Si la plantilla no tiene fechas planificadas, el proyecto termina con su última fecha límite; si las tiene, dura lo mismo que ella (lo hace Odoo). `project.project._touch_copy_deadlines`.
 
 ## Tests
 
@@ -74,7 +74,7 @@ Hasta `scrap_crm` 20.0.1.2.0, su campo `datetime_deadline` (de v17) sustituía e
 
 ## Pantallas pequeñas (2026-11-12)
 
-Revisado en un móvil (390 px) y en una tableta (820 px) con Chrome sin interfaz: ninguna pantalla hace scroll lateral. Sin revisar así todavía: *Cerradas* en la fila de Tareas/Actividades y el selector de tipo de actividad.
-- En el móvil, *Nueva tarea*, *Nuevo vencimiento* y *Cerradas* son solo iconos, la plantilla y el proyecto comparten fila y las columnas de Actividades van una debajo de otra.
+Revisado en un móvil (390 px) y en una tableta (820 px) con Chrome sin interfaz: ninguna pantalla hace scroll lateral. Sin revisar así todavía: *Cerradas* en la fila de Tareas/Actividades, el selector de tipo de actividad y Kanban/Lista en la barra de arriba.
+- En el móvil, *Nueva tarea*, *Nuevo proyecto* y *Cerradas* son solo iconos, la plantilla y el proyecto comparten fila y las columnas de Actividades van una debajo de otra.
 - En la lista, *Título* tiene al menos 240 px y el botón de subtareas no se corta nunca: se recorta el nombre. La regla CSS es más específica que la de la lista de Odoo, que pone los campos en línea.
 - La kanban en el móvil es la estándar: una columna por pantalla, que se pasa deslizando, y sin arrastrar (Odoo no lo permite en pantallas pequeñas). Para cambiar de estado, el selector de la tarjeta.

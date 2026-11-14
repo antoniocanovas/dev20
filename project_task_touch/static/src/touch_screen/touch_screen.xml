@@ -15,7 +15,7 @@
                 <div class="flex-grow-1 min-w-0 fs-4 fw-bold text-truncate">
                     Deadlines
                     <t t-if="this.state.creating">
-                        · <t t-if="this.state.creating.kind === 'task'">New task</t><t t-else="">New deadline</t>
+                        · <t t-if="this.state.creating.kind === 'task'">New task</t><t t-else="">New project</t>
                         <t t-if="this.state.creating.parent"> · <span class="o_project_task_touch_parent" t-out="this.state.creating.parent.name"/></t>
                     </t>
                 </div>
@@ -26,9 +26,22 @@
                         <i class="oi" data-icon="add"/><span class="d-none d-sm-inline"> New task</span>
                     </button>
                     <button t-if="this.state.data.can_create_project" class="btn btn-primary btn-lg o_project_task_touch_new_project"
-                            title="New deadline" aria-label="New deadline" t-on-click="this.onNewProject">
-                        <i class="oi" data-icon="create_new_folder"/><span class="d-none d-sm-inline"> New deadline</span>
+                            title="New project" aria-label="New project" t-on-click="this.onNewProject">
+                        <i class="oi" data-icon="create_new_folder"/><span class="d-none d-sm-inline"> New project</span>
                     </button>
+                    <!-- Kanban or list, as the switcher of Odoo: after a line, outlined, not to be taken
+                         for the buttons to create -->
+                    <t t-if="this.state.mode === 'tasks'">
+                        <div class="vr mx-1 mx-sm-2 o_project_task_touch_views_separator"/>
+                        <div class="btn-group o_project_task_touch_views" role="group">
+                            <button t-foreach="this.taskViews" t-as="view" t-key="view.type"
+                                    t-attf-class="btn btn-lg o_project_task_touch_view_{{ view.type }} {{ view.type === this.state.viewType ? 'btn-secondary' : 'btn-outline-secondary' }}"
+                                    t-att-title="view.name" t-att-aria-label="view.name"
+                                    t-on-click="() => this.onTaskView(view.type)">
+                                <i class="oi oi-fw" t-att-data-icon="view.icon"/>
+                            </button>
+                        </div>
+                    </t>
                     <a t-if="this.canInstall()" href="#" role="button"
                        title="Install the app on this device" aria-label="Install the app on this device"
                        class="btn btn-secondary btn-lg d-flex align-items-center oi o_project_task_touch_pwa_install"
@@ -81,15 +94,6 @@
                     <option t-foreach="this.projects" t-as="project" t-key="project.id"
                             t-att-value="project.id" t-att-selected="project.id === this.state.projectId" t-out="project.name"/>
                 </select>
-                <!-- Kanban or list, as the switcher of Odoo -->
-                <div class="btn-group o_project_task_touch_views" role="group">
-                    <button t-foreach="this.taskViews" t-as="view" t-key="view.type"
-                            t-attf-class="btn btn-lg o_project_task_touch_view_{{ view.type }} {{ view.type === this.state.viewType ? 'btn-primary' : 'btn-secondary' }}"
-                            t-att-title="view.name" t-att-aria-label="view.name"
-                            t-on-click="() => this.onTaskView(view.type)">
-                        <i class="oi oi-fw" t-att-data-icon="view.icon"/>
-                    </button>
-                </div>
             </t>
             <select t-else="" class="form-select form-select-lg o_project_task_touch_filter o_project_task_touch_activity_type" title="Activity type"
                     t-on-change="this.onActivityType">
@@ -160,13 +164,13 @@
         </div>
     </t>
 
-    <!-- A new task or a new deadline: first its project or template, then its name and date -->
+    <!-- A new task or a new project: first its project or template, then its name and date -->
     <t t-name="project_task_touch.TouchScreenCreate">
         <t t-set="creating" t-value="this.state.creating"/>
         <t t-if="!creating.parent">
             <div class="fs-5 mb-3">
                 <t t-if="creating.kind === 'task'">Choose the project of the task</t>
-                <t t-else="">Choose the template of the deadline</t>
+                <t t-else="">Choose the template of the project</t>
             </div>
             <div t-if="!this.creatingParents.length" class="alert alert-info o_project_task_touch_no_parents">
                 <t t-if="creating.kind === 'task'">There is no project to choose.</t>
@@ -182,7 +186,7 @@
         </t>
         <div t-else="" class="d-flex flex-column gap-2 o_project_task_touch_form">
             <label class="form-label mb-0">
-                <t t-if="creating.kind === 'task'">Name of the task</t><t t-else="">Name of the deadline</t>
+                <t t-if="creating.kind === 'task'">Name of the task</t><t t-else="">Name of the project</t>
             </label>
             <input type="text" class="form-control form-control-lg o_project_task_touch_new_name" autocomplete="off"
                    t-att-value="creating.name" t-on-input="this.onCreatingName" t-on-keydown="this.onCreatingKeydown"/>
@@ -196,7 +200,7 @@
                         t-on-click="this.onCancelCreating">Cancel</button>
                 <button class="btn btn-primary btn-lg flex-grow-1 o_project_task_touch_create" t-att-disabled="this.state.sending"
                         t-on-click="this.onCreate">
-                    <t t-if="creating.kind === 'task'">Create the task</t><t t-else="">Create the deadline</t>
+                    <t t-if="creating.kind === 'task'">Create the task</t><t t-else="">Create the project</t>
                 </button>
             </div>
         </div>
