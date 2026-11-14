@@ -255,5 +255,22 @@ registry.category("web_tour.tours").add("project_task_touch_tour", {
         {
             trigger: ".o_project_task_touch_column_done .o_project_task_touch_activity:contains(Tour Call) .o_project_task_touch_activity_feedback:contains(Tour feedback)",
         },
+        {
+            content: "The closed tasks, the last closed first",
+            trigger: ".o_project_task_touch_mode_tasks",
+            run: "click",
+        },
+        {
+            trigger: ".o_kanban_record:contains(Tour First Closed), .o_data_row:contains(Tour First Closed)",
+            run() {
+                const names = [...document.querySelectorAll(".o_kanban_record, .o_data_row")]
+                    .map((record) => record.textContent)
+                    .map((text) => ["Tour Last Closed", "Tour First Closed"].find((name) => text.includes(name)))
+                    .filter(Boolean);
+                if (JSON.stringify(names) !== JSON.stringify(["Tour Last Closed", "Tour First Closed"])) {
+                    throw new Error(`Wrong order of the closed tasks: ${names.join(", ")}`);
+                }
+            },
+        },
     ],
 });

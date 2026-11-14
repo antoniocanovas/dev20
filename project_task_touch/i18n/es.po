@@ -34,6 +34,11 @@ msgid "Activity"
 msgstr "Actividad"
 
 #. module: project_task_touch
+#: model:ir.model.fields,field_description:project_task_touch.field_project_task__touch_date_closed
+msgid "Closed on"
+msgstr "Cerrada el"
+
+#. module: project_task_touch
 #. odoo-javascript
 #: code:addons/project_task_touch/static/src/touch_screen/touch_screen.js:0
 msgid "Activity, document or person assigned"

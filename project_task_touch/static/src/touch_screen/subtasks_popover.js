@@ -7,9 +7,7 @@ import {
     ProjectTaskNameWithSubtaskCountCharField,
     projectTaskNameWithSubtaskCountCharField,
 } from "@project/components/project_task_name_with_subtask_count_char_field/project_task_name_with_subtask_count_char_field";
-
-const MODEL = "project.task.touch";
-const CLOSED_STATES = ["1_done", "1_canceled"];
+import { CLOSED_STATES, MODEL } from "@project_task_touch/touch_screen/touch_screen";
 
 /**
  * The open subtasks of a task, under its row of the list: closed with a touch (done) or changed
@@ -35,21 +33,28 @@ export class SubtasksPopover extends Component {
         this.state.subtasks = await this.orm.call(MODEL, "get_subtasks", [this.props.taskId]);
     }
 
-    async setState(subtask, state) {
+    /** One change at a time, then the subtasks and the task loaded again. */
+    async send(change) {
         if (this.state.sending) {
             return;
         }
         this.state.sending = true;
         try {
-            await this.orm.write("project.task", [subtask.id], { state });
-            if (CLOSED_STATES.includes(state)) {
-                this.notification.add(_t("%s closed.", subtask.name), { type: "success" });
-            }
+            await change();
             await this.load();
             await this.props.onChanged();
         } finally {
             this.state.sending = false;
         }
+    }
+
+    setState(subtask, state) {
+        return this.send(async () => {
+            await this.orm.write("project.task", [subtask.id], { state });
+            if (CLOSED_STATES.includes(state)) {
+                this.notification.add(_t("%s closed.", subtask.name), { type: "success" });
+            }
+        });
     }
 
     onNameInput(ev) {
@@ -62,20 +67,12 @@ export class SubtasksPopover extends Component {
         }
     }
 
-    async onAdd() {
+    onAdd() {
         const name = this.state.name.trim();
-        if (!name || this.state.sending) {
-            return;
-        }
-        this.state.sending = true;
-        try {
+        return name && this.send(async () => {
             await this.orm.call(MODEL, "create_subtask", [this.props.taskId, name]);
             this.state.name = "";
-            await this.load();
-            await this.props.onChanged();
-        } finally {
-            this.state.sending = false;
-        }
+        });
     }
 }
 

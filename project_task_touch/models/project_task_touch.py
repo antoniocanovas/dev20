@@ -78,11 +78,11 @@ class ProjectTaskTouch(models.AbstractModel):
             False for all of them
         """
         states = CLOSED_STATES if closed else TASK_STATES
-        domain = self._get_task_domain(query, template_id, project_id) & Domain('state', 'in', states)
+        task_domain = self._get_task_domain(query, template_id, project_id)
         return {
-            'domain': list(domain),
+            'domain': list(task_domain & Domain('state', 'in', states)),
             'states': list(states),
-            'counts': self._get_counts(query, template_id, project_id, activity_type_id),
+            'counts': self._get_counts(query, template_id, project_id, activity_type_id, task_domain),
         }
 
     def _get_task_domain(self, query, template_id, project_id):
@@ -116,9 +116,7 @@ class ProjectTaskTouch(models.AbstractModel):
             Domain(self._get_project_domain()) & Domain('id', '=', project_id))
         if not project:
             raise UserError(self.env._("The project is not shown in Deadlines."))
-        name = (name or '').strip()
-        if not name:
-            raise UserError(self.env._("Write the name of the task."))
+        name = self._check_name(name, self.env._("Write the name of the task."))
         task = self.env['project.task'].create({
             'project_id': project.id,
             'name': name,
@@ -142,9 +140,7 @@ class ProjectTaskTouch(models.AbstractModel):
     def create_subtask(self, task_id, name):
         """ A new subtask, as the ones added on the kanban: of its project, with its people. """
         task = self._browse_file_task(task_id)
-        name = (name or '').strip()
-        if not name:
-            raise UserError(self.env._("Write the name of the subtask."))
+        name = self._check_name(name, self.env._("Write the name of the subtask."))
         sequences = task.child_ids.mapped('sequence')
         subtask = self.env['project.task'].create({
             'name': name,
@@ -162,6 +158,12 @@ class ProjectTaskTouch(models.AbstractModel):
         if not task or not task.project_id.touch_ok:
             raise UserError(self.env._("The task is not of a project shown here."))
         return task
+
+    def _check_name(self, name, message):
+        """ The name, without spaces around it; `message` if there is none. """
+        if not (name := (name or '').strip()):
+            raise UserError(message)
+        return name
 
     def _to_deadline(self, date):
         """ The deadline of a task (a datetime) on a day: at noon of the user, so that it is on
@@ -189,9 +191,7 @@ class ProjectTaskTouch(models.AbstractModel):
             [('id', '=', template_id), ('is_template', '=', True), ('touch_ok', '=', True)])
         if not template:
             raise UserError(self.env._("The template is not shown in Deadlines."))
-        name = (name or '').strip()
-        if not name:
-            raise UserError(self.env._("Write the name of the project."))
+        name = self._check_name(name, self.env._("Write the name of the project."))
         values = {'name': name}
         if date:
             # Its end and the deadlines of its tasks, from it (see project.project)
@@ -210,14 +210,14 @@ class ProjectTaskTouch(models.AbstractModel):
         the types to filter with.
 
         :param closed: the ones done instead (archived by Odoo with their date and feedback),
-            the last done first
+            the last done first (their date has no time: then, the last archived)
         :param activity_type_id: id of an activity type, or False for all of them
         """
         domain = self._get_activity_domain(query, activity_type_id)
         if closed:
             activities = self.env['mail.activity'].search(
                 domain & Domain('active', '=', False) & Domain('date_done', '!=', False),
-                limit=LIMIT, order='date_done desc, id desc')
+                limit=LIMIT, order='date_done desc, write_date desc, id desc')
         else:
             activities = self.env['mail.activity'].search(domain, limit=LIMIT, order='date_deadline asc, id asc')
         return {
@@ -274,8 +274,8 @@ class ProjectTaskTouch(models.AbstractModel):
 
     # ------------------------------------------------------------------
 
-    def _get_counts(self, query, template_id, project_id, activity_type_id=False):
-        domain = self._get_task_domain(query, template_id, project_id)
+    def _get_counts(self, query, template_id, project_id, activity_type_id=False, task_domain=None):
+        domain = task_domain if task_domain is not None else self._get_task_domain(query, template_id, project_id)
         return {
             'tasks': self.env['project.task'].search_count(domain & Domain('state', 'in', TASK_STATES)),
             'activities': self.env['mail.activity'].search_count(self._get_activity_domain(query, activity_type_id)),

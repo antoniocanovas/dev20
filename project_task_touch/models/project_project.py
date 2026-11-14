@@ -36,8 +36,7 @@ class ProjectProject(models.Model):
         if len(originals) != len(copies):
             return
         mapping, _dependencies = originals._create_task_mapping(copies)
-        deadlines = {task_id: original.date_deadline for task_id in mapping
-                     for original in [Task.browse(task_id)] if original.date_deadline}
+        deadlines = {original.id: original.date_deadline for original in Task.browse(list(mapping)) if original.date_deadline}
         if deadlines:
             reference = (
                 datetime.combine(self.date_start, time.min) if self.date_start

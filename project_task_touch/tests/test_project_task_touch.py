@@ -1,6 +1,9 @@
-from datetime import date
+from datetime import date, datetime
+
+from freezegun import freeze_time
 
 from odoo import fields
+from odoo.addons.project_task_touch.hooks import fill_touch_date_closed
 from odoo.exceptions import UserError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
@@ -166,3 +169,45 @@ class TestProjectTaskTouch(TransactionCase):
         self.assertTrue(closed[0]['date_done'])
         self.assertEqual([data['summary'] for data in self.Touch.get_activities(closed=True, activity_type_id=call_type.id)['activities']], ['Touch Call'])
         self.assertIn(call_type.id, [data['id'] for data in self.Touch.get_activities()['activity_types']], "Still among the types: done")
+
+    def test_closed_tasks_last_closed_first(self):
+        """ The closed tasks, the last closed first, as the screen orders them. """
+        Task = self.env['project.task']
+        first, second = Task.create([{'name': f'Touch Closed {n}', 'project_id': self.project.id} for n in (1, 2)])
+        with freeze_time('2026-11-10 10:00:00'):
+            second.state = '1_done'
+            self.env.flush_all()
+        with freeze_time('2026-11-10 11:00:00'):
+            first.state = '1_canceled'
+            self.env.flush_all()
+        self.assertEqual(first.touch_date_closed, datetime(2026, 11, 10, 11))
+        closed = Task.search(self.Touch.get_tasks(closed=True)['domain'], order='touch_date_closed desc, id desc')
+        self.assertEqual(closed[:2], first + second, "The last closed first, though created before")
+        with freeze_time('2026-11-12 09:00:00'):
+            second.state = '1_canceled'
+            self.env.flush_all()
+        self.assertEqual(second.touch_date_closed, datetime(2026, 11, 10, 10), "Still closed: its date kept")
+        second.state = '01_in_progress'
+        self.assertFalse(second.touch_date_closed, "Open again")
+        # The ones closed before the install, from the date they ended
+        first.date_end = datetime(2026, 1, 5, 8)
+        self.env.flush_all()
+        self.env.cr.execute("UPDATE project_task SET touch_date_closed = NULL WHERE id = %s", [first.id])
+        fill_touch_date_closed(self.env.cr)
+        first.invalidate_recordset(['touch_date_closed'])
+        self.assertEqual(first.touch_date_closed, datetime(2026, 1, 5, 8))
+
+    def test_closed_activities_last_done_first(self):
+        """ Done on the same day (a date without time): the last done first, though created before. """
+        self.env.company.touch_activity_model_ids = self.env['ir.model']._get('res.partner')
+        partner = self.env['res.partner'].create({'name': 'Touch Partner'})
+        older = partner.activity_schedule(summary='Touch Older')
+        newer = partner.activity_schedule(summary='Touch Newer')
+        newer.action_feedback(feedback='First done')
+        self.env.flush_all()
+        # Each one done in its own request in real life: the first done, earlier
+        self.env.cr.execute("UPDATE mail_activity SET write_date = write_date - interval '1 hour' WHERE id = %s", [newer.id])
+        self.env.invalidate_all()
+        older.action_feedback(feedback='Last done')
+        closed = self.Touch.get_activities(closed=True)['activities']
+        self.assertEqual([data['summary'] for data in closed][:2], ['Touch Older', 'Touch Newer'])

@@ -1,3 +1,5 @@
+from freezegun import freeze_time
+
 from odoo.tests import HttpCase, new_test_user, tagged
 
 
@@ -21,6 +23,15 @@ class TestProjectTaskTouchUi(HttpCase):
         other = Project.create({'name': 'Tour Other', 'touch_ok': True})
         cls.env['project.task'].create({'name': 'Tour Other Task', 'project_id': other.id})
         cls.env['project.task'].create({'name': 'Tour Subtask', 'project_id': cls.project.id, 'parent_id': existing.id})
+        # Closed: the last closed first, though created before
+        last_closed, first_closed = Task.create([
+            {'name': 'Tour Last Closed', 'project_id': cls.project.id},
+            {'name': 'Tour First Closed', 'project_id': cls.project.id},
+        ])
+        for task, moment in ((first_closed, '2026-11-01 10:00:00'), (last_closed, '2026-11-02 10:00:00')):
+            with freeze_time(moment):
+                task.state = '1_done'
+                cls.env.flush_all()
         cls.activity = existing.activity_schedule(summary='Tour Call')
         cls.activity.touch_ok = True
         new_test_user(cls.env, login='touch_tour', name='Touch Tour', groups='project.group_project_manager')

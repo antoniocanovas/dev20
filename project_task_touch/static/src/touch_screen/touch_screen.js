@@ -11,20 +11,27 @@ import { View } from "@web/views/view";
 import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 import { standardActionServiceProps } from "@web/webclient/actions/action_plugin";
 
-const MODEL = "project.task.touch";
+export const MODEL = "project.task.touch";
 // Order of the tasks in the columns of the kanban
 const KANBAN_ORDER = [
     { name: "date_deadline", asc: true },
     { name: "priority", asc: false },
 ];
+// The tasks closed: the last closed first
+const CLOSED_ORDER = [
+    { name: "touch_date_closed", asc: false },
+    { name: "id", asc: false },
+];
 // The views of the tasks, as in the switcher of Odoo
 const TASK_VIEWS = ["kanban", "list"];
 // The states of the tasks closed (as CLOSED_STATES of project.task.touch)
-const CLOSED_STATES = ["1_done", "1_canceled"];
+export const CLOSED_STATES = ["1_done", "1_canceled"];
 // The view chosen, kept on this device
 const VIEW_KEY = "project_task_touch.view";
 // Time to wait after typing before searching
 const SEARCH_DELAY = 300;
+// The colours of the states of the activities
+const ACTIVITY_STATE_CLASSES = { overdue: "text-bg-danger", today: "text-bg-warning", planned: "text-bg-success" };
 
 /**
  * Deadlines (Vencimientos), on a touch screen as the one of CAT (scrap_touch).
@@ -74,13 +81,14 @@ export class ProjectTaskTouch extends Component {
             kanbanVersion: 0,
             activities: [],
             counts: { tasks: 0, activities: 0 },
-            loading: false,
             sending: false,
             // Something being created: { kind: "task" | "project", parent, name, date }, its
             // parent (the project of the task, the template of the project) chosen first
             creating: null,
         });
         this.searchTimeout = null;
+        // The last load asked for: the answers of the ones before are dropped
+        this.loadId = 0;
         this.focusName = false;
         // Props of the kanban of the tasks: replaced only when they change, as the kanban is
         // loaded again with each new value
@@ -119,27 +127,20 @@ export class ProjectTaskTouch extends Component {
 
     async load() {
         const { mode, query, templateId, projectId, closed, activityTypeId } = this.state;
-        this.state.loading = true;
-        try {
-            const args = [query, templateId, projectId, closed, activityTypeId];
-            const result = mode === "tasks"
-                ? await this.orm.call(MODEL, "get_tasks", args)
-                : await this.orm.call(MODEL, "get_activities", args);
-            // A later search may have answered first
-            if (mode === this.state.mode && query === this.state.query && templateId === this.state.templateId
-                && projectId === this.state.projectId && closed === this.state.closed
-                && activityTypeId === this.state.activityTypeId) {
-                if (mode === "tasks") {
-                    this.setKanbanProps(result.domain, result.states);
-                } else {
-                    this.state.activities = result.activities;
-                    this.state.activityTypes = result.activity_types;
-                }
-                this.state.counts = result.counts;
-            }
-        } finally {
-            this.state.loading = false;
+        const loadId = ++this.loadId;
+        const method = mode === "tasks" ? "get_tasks" : "get_activities";
+        const result = await this.orm.call(MODEL, method, [query, templateId, projectId, closed, activityTypeId]);
+        // A later search may have answered first
+        if (loadId !== this.loadId) {
+            return;
         }
+        if (mode === "tasks") {
+            this.setKanbanProps(result.domain, result.states);
+        } else {
+            this.state.activities = result.activities;
+            this.state.activityTypes = result.activity_types;
+        }
+        this.state.counts = result.counts;
     }
 
     async onMode(mode) {
@@ -225,6 +226,7 @@ export class ProjectTaskTouch extends Component {
     /** The props of the view of the tasks: the kanban by state or the list. */
     setKanbanProps(domain, states) {
         const isKanban = this.state.viewType === "kanban";
+        const closed = Boolean(states?.some((state) => CLOSED_STATES.includes(state)));
         this.kanbanProps = {
             resModel: "project.task",
             type: this.state.viewType,
@@ -234,8 +236,9 @@ export class ProjectTaskTouch extends Component {
             ],
             domain,
             groupBy: isKanban ? ["state"] : [],
-            // The nearest deadline first (the ones without one, last), then the highest priority
-            orderBy: KANBAN_ORDER,
+            // The nearest deadline first (the ones without one, last), then the highest priority;
+            // the closed ones, the last closed first
+            orderBy: closed ? CLOSED_ORDER : KANBAN_ORDER,
             // touch_states: the columns shown even if empty (see project.task); touch_reload, to
             // load it again after a change in a dialog; subtask_action, the closed subtasks too
             // (Odoo hides the subtasks, seen on their task, but the one of an open task closed
@@ -243,7 +246,7 @@ export class ProjectTaskTouch extends Component {
             context: {
                 touch_states: states,
                 touch_reload: this.kanbanReloads,
-                subtask_action: Boolean(states?.some((state) => CLOSED_STATES.includes(state))),
+                subtask_action: closed,
             },
             display: { controlPanel: false },
             selectRecord: (resId) => this.onOpenTask(resId),
@@ -267,11 +270,11 @@ export class ProjectTaskTouch extends Component {
 
     /** Its deadline as the one of the tasks: red when late, yellow today. */
     activityDeadlineClass(activity) {
-        return { overdue: "text-bg-danger", today: "text-bg-warning" }[activity.state] || "text-bg-light";
+        return (activity.state !== "planned" && ACTIVITY_STATE_CLASSES[activity.state]) || "text-bg-light";
     }
 
     activityStateClass(state) {
-        return { overdue: "text-bg-danger", today: "text-bg-warning", planned: "text-bg-success" }[state];
+        return ACTIVITY_STATE_CLASSES[state];
     }
 
     get activityColumns() {
@@ -388,33 +391,27 @@ export class ProjectTaskTouch extends Component {
             this.notification.add(creating.kind === "task" ? _t("Write the name of the task.") : _t("Write the name of the project."), { type: "warning" });
             return;
         }
-        const date = creating.date || false;
-        if (creating.kind === "task") {
-            const task = await this.run("create_task", [creating.parent.id, creating.name, date]);
-            if (task) {
-                this.notification.add(_t("Task %s created.", task.name), { type: "success" });
-                this.state.mode = "tasks";
-                this.state.closed = false;
-                // Loaded before closing, so that the kanban is shown once, with its filters
-                await this.load();
-                this.state.creating = null;
-            }
-        } else {
-            const project = await this.run("create_project", [creating.parent.id, creating.name, date]);
-            if (project) {
-                this.notification.add(_t("Project %s created.", project.name), { type: "success" });
-                // Shown alone, with its tasks copied from the template
-                this.state.data.projects.push(project);
-                this.state.data.projects.sort((a, b) => a.name.localeCompare(b.name));
-                this.state.templateId = project.template_id;
-                this.state.projectId = project.id;
-                this.state.mode = "tasks";
-                this.state.closed = false;
-                this.state.query = "";
-                await this.load();
-                this.state.creating = null;
-            }
+        const isTask = creating.kind === "task";
+        const record = await this.run(isTask ? "create_task" : "create_project", [creating.parent.id, creating.name, creating.date || false]);
+        if (!record) {
+            return;
         }
+        if (isTask) {
+            this.notification.add(_t("Task %s created.", record.name), { type: "success" });
+        } else {
+            this.notification.add(_t("Project %s created.", record.name), { type: "success" });
+            // Shown alone, with its tasks copied from the template
+            this.state.data.projects.push(record);
+            this.state.data.projects.sort((a, b) => a.name.localeCompare(b.name));
+            this.state.templateId = record.template_id;
+            this.state.projectId = record.id;
+            this.state.query = "";
+        }
+        this.state.mode = "tasks";
+        this.state.closed = false;
+        // Loaded before closing, so that the kanban is shown once, with its filters
+        await this.load();
+        this.state.creating = null;
     }
 
     onCancelCreating() {

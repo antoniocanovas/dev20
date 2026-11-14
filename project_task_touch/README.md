@@ -1,6 +1,6 @@
 # Vencimientos (`project_task_touch`)
 
-Aplicación **Vencimientos** con la experiencia táctil de `scrap_touch`. Junta las tareas de proyectos y las actividades. Depende solo de `project`. Antes se llamaba *Expedientes* (en inglés, *Files*); desde el 2026-11-12 el concepto es *Vencimientos* (*Deadlines*) en el menú, la pantalla, los campos y los mensajes. Los nombres técnicos (`create_files`, `demo_files.py`, `test_files`) y la ruta `/odoo/expedientes` se mantienen para no romper la app instalada en la tableta. Versión 20.0.1.0.0. Los datos de ejemplo (plantillas y vencimientos) están en `scrap_demo` (`demo_files.py`).
+Aplicación **Vencimientos** con la experiencia táctil de `scrap_touch`. Junta las tareas de proyectos y las actividades. Depende solo de `project`. En inglés, *Deadlines*. La ruta `/odoo/expedientes` y los nombres técnicos `create_files`, `demo_files.py` y `test_files` vienen del nombre inicial (*Expedientes*) y se mantienen para no romper la app instalada en la tableta. Versión 20.0.1.0.0. Los datos de ejemplo (plantillas y vencimientos) están en `scrap_demo` (`demo_files.py`).
 
 ## Parametrización
 
@@ -8,7 +8,7 @@ Aplicación **Vencimientos** con la experiencia táctil de `scrap_touch`. Junta 
   - En Odoo 20 no existe `project.template`: una plantilla es un proyecto con `is_template`, así que un mismo campo sirve para las dos cosas.
   - Un proyecto creado desde una plantilla marcada sale marcado: el campo se copia.
 - **Plantilla de origen** (`touch_template_id`): Odoo no guarda de qué plantilla sale un proyecto. Este módulo la apunta en `action_create_from_template`, que es lo que usa el filtro de plantilla. Los proyectos anteriores al módulo no la tienen y se ven en *Sin plantilla*.
-- **Actividad** (`mail.activity`, formulario emergente del chatter y del lápiz de la pantalla): *Mostrar en Vencimientos* (`touch_ok`), con su etiqueta, en la última fila de los detalles (después de la nota). Antes iba sin etiqueta junto a los tipos de actividad, que son insignias sin etiqueta.
+- **Actividad** (`mail.activity`, formulario emergente del chatter y del lápiz de la pantalla): *Mostrar en Vencimientos* (`touch_ok`), con su etiqueta, en la última fila de los detalles (después de la nota).
 - **Compañía** (pestaña *Vencimientos*): *Modelos de las actividades de vencimientos*, por ejemplo `hr.employee`. Las actividades nuevas de esos modelos salen con `touch_ok` marcado, y se puede desmarcar a mano.
 
 ## Pantalla (`/odoo/expedientes`)
@@ -34,8 +34,9 @@ Aplicación **Vencimientos** con la experiencia táctil de `scrap_touch`. Junta 
 - **Tipo de actividad** (en Actividades): *Todos los tipos* o uno de los tipos de las actividades marcadas (abiertas o hechas). Se aplica al momento, a las abiertas y a las cerradas, y al contador del botón *Actividades*. `get_activities` devuelve los tipos (`_get_activity_types`).
 - **Buscador**: busca en la tarea, el proyecto, el cliente (`partner_id`), las etiquetas y la persona asignada. En Actividades busca en el resumen, el tipo, el documento y la persona asignada.
 - **Nueva tarea**: se elige el proyecto (o se usa el filtrado) y después el nombre y la fecha límite.
-- **Nuevo proyecto** (antes *Nuevo vencimiento*; todo el proceso habla ya de *proyecto*: elegir la plantilla del proyecto, nombre, *Crear el proyecto*, *Proyecto X creado*): se elige la plantilla (o se usa la filtrada) y después el nombre y la fecha de inicio. Crea el proyecto con `action_create_from_template`, con sus tareas, y lo deja filtrado.
+- **Nuevo proyecto**: se elige la plantilla (o se usa la filtrada) y después el nombre y la fecha de inicio. Crea el proyecto con `action_create_from_template`, con sus tareas, y lo deja filtrado.
 - **Fechas límite desde la plantilla** (también al crear desde Proyecto): Odoo no copia la fecha límite de las tareas. Este módulo la pone en cada tarea y subtarea con el mismo desfase que tiene en la plantilla desde su fecha de inicio (o, si no la tiene, desde su fecha límite más temprana), contado desde el inicio del proyecto. Si la plantilla no tiene fechas planificadas, el proyecto termina con su última fecha límite; si las tiene, dura lo mismo que ella (lo hace Odoo). `project.project._touch_copy_deadlines`.
+- **Cerradas, la última cerrada primero**: Odoo no guarda cuándo se cierra una tarea (`date_end` solo cambia con etapas plegadas), así que `project.task.touch_date_closed` guarda el momento en que pasa a hecha o cancelada (se mantiene de hecha a cancelada y se borra si se reabre). El kanban y la lista de cerradas ordenan por ella. Las ya cerradas al instalar el módulo la toman de `date_end`, si no de la última actualización de etapa, si no de `write_date` (`hooks.py`, por SQL antes de que Odoo cree la columna). Las actividades hechas: `date_done` es solo fecha, así que desempatan por `write_date` (el momento en que se archivan).
 
 ## Tests
 
@@ -46,18 +47,18 @@ PYTHONPATH=<scratchpad>/pylib /Users/acanovas/pycharmprojects/venv312/bin/python
   --test-tags /project_task_touch --stop-after-init --http-port 8079 --gevent-port 8084
 ```
 
-2026-11-12 (tras pasar a *Vencimientos*): 12 tests, 0 fallos (11 de modelo, entre ellos el filtro por tipo de actividad con su contador, y 1 recorrido táctil: orden, subtareas en la lista, arrastre, cambio de estado en la tarjeta, búsqueda mientras se escribe y actividades, con el lápiz que edita una y su casilla con etiqueta). El recorrido necesita `websocket-client` (en `<scratchpad>/pylib`, instalado con `pip install --target`); sin él, el recorrido se salta y no sale como fallo. Con `-i scrap_demo --test-tags /scrap_crm,/scrap_demo,/project_task_touch`: 20 tests, 0 fallos.
+2026-11-14: 12 tests, 0 fallos. 11 de modelo (entre ellos el filtro por tipo de actividad con su contador y el orden de tareas y actividades cerradas) y 1 recorrido táctil: orden, subtareas en la lista, arrastre, cambio de estado en la tarjeta, búsqueda mientras se escribe, actividades (con el lápiz que edita una y su casilla con etiqueta) y orden de las tareas cerradas. El recorrido necesita `websocket-client` (en `<scratchpad>/pylib`, instalado con `pip install --target`); sin él, el recorrido se salta y no sale como fallo.
 
 Capturas en móvil y tableta: un script con Chrome sin interfaz por el protocolo DevTools (iniciar sesión con `requests` en `/web/session/authenticate`, pasar la cookie, `Emulation.setDeviceMetricsOverride`, `Page.captureScreenshot`). El Chrome del usuario no se deja redimensionar y Odoo no se deja meter en un iframe. Tras cambiar SCSS/JS hay que reiniciar el servidor: guarda el paquete de estilos en memoria.
 
-## Estado en cat20 (2026-11-12)
+## Estado en cat20 (2026-11-14)
 
-- Instalado y actualizado con todo lo anterior (`scrap_crm` 20.0.1.2.0, `scrap_demo` 20.0.1.2.0), incluido el cambio a *Vencimientos*, el selector de tipo de actividad, el lápiz de las actividades y la etiqueta de su casilla. El usuario arranca el servidor desde PyCharm: tras cada cambio de JS/XML de la pantalla hay que reiniciarlo.
-- Al pasar a *Vencimientos* hizo falta `-u project_task_touch --i18n-overwrite`: sin él, Odoo no sobrescribe las traducciones que ya había (el menú seguía en *Expedientes*). El nombre del módulo en Aplicaciones (`ir_module_module.shortdesc`) se corrigió a mano en la base.
-- Datos: proyecto *Peticiones de piezas (demo)* marcado y con fechas límite puestas a mano; las cuatro plantillas de `scrap_demo` y sus vencimientos, creados con `create_files` desde `odoo-bin shell` (el hook solo corre al instalar) y con fechas de inicio y fin y fechas límite; el usuario creó *Gerardo Muñoz* (plantilla *Formación de taller*), completado con las fechas de su plantilla.
-- Copias en `/Users/acanovas/pycharmprojects/backups/cat20_2026111*_*.dump`; la última, `cat20_20261112_1806_antes_tipo_actividad.dump` (antes, `cat20_20261112_1652_antes_vencimientos.dump`).
-- Actividades marcadas: las de `crm.lead`, `sale.order` y `purchase.order` (modelos elegidos en la compañía); hay 2 abiertas y 1 hecha.
-- Pendiente: probar en el navegador, tras reiniciar, el selector de tipo, el lápiz, la casilla con etiqueta y *Cerradas* en la fila de Tareas/Actividades (con subtareas cerradas); y que los vencimientos nuevos reciban las fechas de su plantilla.
+- Instalado y al día con todo lo anterior. El usuario arranca el servidor desde PyCharm: tras cada cambio de Python, JS o XML hay que reiniciarlo.
+- Si cambia el texto de una traducción que ya existe, hace falta `-u project_task_touch --i18n-overwrite`: sin él, Odoo no la sobrescribe.
+- Datos: proyecto *Peticiones de piezas (demo)* marcado y con fechas límite; las cuatro plantillas de `scrap_demo` y sus vencimientos, creados con `create_files` desde `odoo-bin shell` (el hook solo corre al instalar), con fechas de inicio, fin y límite; *Gerardo Muñoz* (plantilla *Formación de taller*), creado por el usuario.
+- Actividades marcadas: las de `crm.lead`, `sale.order` y `purchase.order` (modelos elegidos en la compañía).
+- Copias en `/Users/acanovas/pycharmprojects/backups/cat20_*.dump`; la última, `cat20_20261112_1806_antes_tipo_actividad.dump`.
+- Pendiente: probar en el navegador, tras reiniciar, el orden de *Cerradas* (la última cerrada primero) en Tareas y Actividades.
 
 ## Pendiente o por decidir
 
@@ -67,10 +68,6 @@ Capturas en móvil y tableta: un script con Chrome sin interfaz por el protocolo
 - La ruta sigue siendo `/odoo/expedientes` (la app instalada en la tableta arranca ahí); ofrecido pasarla a `/odoo/vencimientos`, sin respuesta.
 - El contador de *Tareas* incluye las subtareas abiertas, que en la kanban no salen como tarjetas.
 - Errata en la configuración de PyCharm del usuario: `-u ... crap_touch ...` en lugar de `scrap_touch`.
-
-## Fecha límite y `scrap_crm`
-
-Hasta `scrap_crm` 20.0.1.2.0, su campo `datetime_deadline` (de v17) sustituía en el formulario de la tarea a la *Fecha límite* estándar sin copiarse a `date_deadline`, y lo escrito no llegaba a la kanban ni a la lista. Desde esa versión el formulario usa la estándar y la migración pasó los datos (2026-11-11).
 
 ## Pantallas pequeñas (2026-11-12)
 
