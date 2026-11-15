@@ -145,6 +145,10 @@ export class TouchScreen extends Component {
             choosingLocation: false,
             locationSearch: "",
             locations: [],
+            // A part not foreseen in the bill of materials is being chosen
+            choosingExtra: false,
+            extraSearch: "",
+            extraProducts: [],
         });
         this.searchTimeout = null;
         this.nextLineKey = 1;
@@ -248,6 +252,8 @@ export class TouchScreen extends Component {
         }
         if (this.state.choosingLocation) {
             this.state.choosingLocation = false;
+        } else if (this.state.choosingExtra) {
+            this.state.choosingExtra = false;
         } else if (this.state.part) {
             this.state.part = null;
         } else if (this.state.dismantle) {
@@ -921,6 +927,7 @@ export class TouchScreen extends Component {
         this.state.dismantle = data;
         this.state.part = null;
         this.state.choosingLocation = false;
+        this.state.choosingExtra = false;
     }
 
     closeDismantle() {
@@ -928,6 +935,7 @@ export class TouchScreen extends Component {
         this.state.dismantle = null;
         this.state.part = null;
         this.state.choosingLocation = false;
+        this.state.choosingExtra = false;
     }
 
     async onCloseDismantle() {
@@ -935,9 +943,18 @@ export class TouchScreen extends Component {
         await this.refreshVehicle();
     }
 
-    onSelectPart(line) {
+    onSelectPart(line, extra = false) {
         const dismantle = this.state.dismantle;
+        if (!extra && line.cost_ok === false) {
+            // The cost of the vehicle is shared by the bill of materials: all of it, first
+            this.notification.add(
+                _t("The cost shares of the bill of materials add up to %s%%: they must add up to 100%% to dismantle.", line.cost_share_total),
+                { type: "danger" }
+            );
+            return;
+        }
         this.state.choosingLocation = false;
+        this.state.choosingExtra = false;
         // A waste: its quantity is typed as soon as it is chosen
         this.focusWasteQuantity = this.isDecontamination;
         this.state.part = {
@@ -949,7 +966,45 @@ export class TouchScreen extends Component {
             result: false,
             condition: false,
             location: { id: dismantle.location_id, name: dismantle.location_name },
+            // Not foreseen in the bill of materials: added to it when confirmed
+            extra,
         };
+    }
+
+    /** A part found while dismantling, not foreseen in the bill of materials: first the
+     * product, then as any other part. */
+    async onAddExtraPart() {
+        this.state.part = null;
+        this.state.choosingLocation = false;
+        this.state.choosingExtra = true;
+        this.state.extraSearch = "";
+        await this.loadExtraProducts();
+    }
+
+    onExtraSearchInput(ev) {
+        this.state.extraSearch = ev.target.value;
+        browser.clearTimeout(this.searchTimeout);
+        this.searchTimeout = browser.setTimeout(() => this.loadExtraProducts(), SEARCH_DELAY);
+    }
+
+    async loadExtraProducts() {
+        const vehicle = this.state.vehicle;
+        if (!vehicle || !this.state.choosingExtra) {
+            return;
+        }
+        const products = await this.orm.call(MODEL, "get_dismantle_products", [vehicle.id, this.state.extraSearch]);
+        if (this.state.vehicle === vehicle && this.state.choosingExtra) {
+            this.state.extraProducts = products;
+        }
+    }
+
+    onSelectExtraProduct(product) {
+        browser.clearTimeout(this.searchTimeout);
+        this.onSelectPart({ ...product, id: false, quantity: 1, operation: "" }, true);
+    }
+
+    onCancelExtra() {
+        this.state.choosingExtra = false;
     }
 
     /** Correct a waste marked, in the same panel: its quantity, its result and its location. */
@@ -973,7 +1028,9 @@ export class TouchScreen extends Component {
 
     onPartQuantity(delta) {
         const part = this.state.part;
-        part.quantity = Math.max(Math.min(part.quantity + delta, part.line.quantity), Math.min(1, part.line.quantity));
+        // A part not foreseen: as many as found
+        const max = part.extra ? Infinity : part.line.quantity;
+        part.quantity = Math.max(Math.min(part.quantity + delta, max), Math.min(1, part.line.quantity));
     }
 
     onPartOption(option) {
@@ -1073,6 +1130,15 @@ export class TouchScreen extends Component {
                 this.wasteQuantity > 0 ? this.wasteQuantity : 1,
                 part.result,
                 part.result === "discarded" ? part.location.id : false,
+            ]);
+        } else if (part.extra) {
+            data = await this.run("dismantle_extra_part", [
+                vehicle.id,
+                part.line.product_id,
+                part.quantity,
+                part.result,
+                part.condition || false,
+                part.result === "dismantled" ? part.location.id : false,
             ]);
         } else {
             data = await this.run("dismantle_part", [

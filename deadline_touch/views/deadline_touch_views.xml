@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="deadline_touch_action" model="ir.actions.client">
+        <field name="name">Deadlines</field>
+        <field name="tag">deadline_touch.screen</field>
+        <!-- Also the start of the Odoo app installed on the tablet -->
+        <field name="path">vencimientos</field>
+    </record>
+
+    <!-- The tasks of the screen: the kanban of the tasks, by state, without creating there
+         (with the button "New task" of the screen, that asks for the project) -->
+    <record id="project_task_view_kanban_touch" model="ir.ui.view">
+        <field name="name">project.task.kanban.touch</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_kanban"/>
+        <field name="mode">primary</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <kanban position="attributes">
+                <attribute name="js_class">deadline_touch_kanban</attribute>
+                <attribute name="default_group_by">state</attribute>
+                <attribute name="quick_create">0</attribute>
+                <attribute name="group_create">0</attribute>
+                <attribute name="group_delete">0</attribute>
+                <attribute name="group_edit">0</attribute>
+                <attribute name="sample">0</attribute>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- The tasks of the screen, as a list: the main list of the tasks, not grouped (the
+         state is a column), ordered as the kanban by the screen -->
+    <record id="project_task_view_list_touch" model="ir.ui.view">
+        <field name="name">project.task.list.touch</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_tree2"/>
+        <field name="mode">primary</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="default_group_by"></attribute>
+                <attribute name="multi_edit">0</attribute>
+                <attribute name="sample">0</attribute>
+            </list>
+            <!-- Its subtasks closed or added from the list, as on the kanban -->
+            <field name="name" position="attributes">
+                <attribute name="widget">deadline_touch_name_subtasks</attribute>
+                <!-- Wide enough to read it, also on a tablet or a phone (the list scrolls sideways) -->
+                <attribute name="width">[240]</attribute>
+            </field>
+            <!-- The deadline, shown by default: red when late, yellow today (relative_date) -->
+            <field name="date_deadline" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+        </field>
+    </record>
+
+    <!-- The activities of the screen, as a list: the list of the activities, with the buttons of
+         its cards (the pencil, and Done with the popover of the chatter); the row opens its
+         document. Done, the date and feedback instead of the deadline -->
+    <record id="mail_activity_view_list_touch" model="ir.ui.view">
+        <field name="name">mail.activity.list.touch</field>
+        <field name="model">mail.activity</field>
+        <field name="inherit_id" ref="mail.mail_activity_view_tree"/>
+        <field name="mode">primary</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="create">0</attribute>
+                <attribute name="multi_edit">0</attribute>
+            </list>
+            <!-- Done always asks for its feedback, one by one -->
+            <xpath expr="//header/button[@name='action_done']" position="replace"/>
+            <field name="summary" position="before">
+                <field name="res_model" column_invisible="1"/>
+                <field name="res_id" column_invisible="1"/>
+            </field>
+            <field name="activity_type_id" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+            <field name="res_model_name" position="attributes">
+                <attribute name="optional">show</attribute>
+            </field>
+            <field name="date_deadline" position="attributes">
+                <attribute name="column_invisible">context.get('touch_closed')</attribute>
+            </field>
+            <field name="date_done" position="attributes">
+                <attribute name="optional">show</attribute>
+                <attribute name="column_invisible">not context.get('touch_closed')</attribute>
+            </field>
+            <field name="feedback" position="attributes">
+                <attribute name="optional">show</attribute>
+                <attribute name="column_invisible">not context.get('touch_closed')</attribute>
+            </field>
+            <xpath expr="//list/button[@name='action_done']" position="replace">
+                <widget name="deadline_touch_activity_buttons" invisible="not active"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="deadline_touch_menu_root" name="Deadlines" action="deadline_touch_action"
+              web_icon="deadline_touch,static/description/icon.png"
+              groups="project.group_project_user" sequence="4"/>
+
+</odoo>

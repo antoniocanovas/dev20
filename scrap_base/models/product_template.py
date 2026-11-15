@@ -3,6 +3,7 @@ from datetime import timedelta
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
 
+from .mrp_bom import COST_SHARE_MARGIN
 from .purchase_order import UNBUILD_TYPES, normalize_plate
 from .res_company import VEHICLE_TYPES
 from .scrap_dismantle_line import DISMANTLE_RESULTS, PART_CONDITIONS
@@ -59,6 +60,11 @@ class ProductTemplate(models.Model):
     scrap_date = fields.Date(
         'Dismantled On', copy=False,
         help="Date the vehicle was dismantled; empty while it is pending.")
+    scrap_unbuild_id = fields.Many2one(
+        'mrp.unbuild', string="Disassembly Order", copy=False, readonly=True, index='btree_not_null',
+        help="Standard disassembly order of the vehicle or the subproduct: its parts and waste come "
+             "out of it and, once dismantled, it consumes the vehicle, so that the traceability "
+             "report goes from the vehicle to its parts and back.")
     scrap_origin_id = fields.Many2one(
         'product.template', string="Origin", copy=False, index='btree_not_null',
         help="What a subproduct was dismantled from at first: the vehicle or, when it was "
@@ -112,7 +118,19 @@ class ProductTemplate(models.Model):
     def write(self, vals):
         if vals.get('scrap_lot_name'):
             vals = dict(vals, scrap_lot_name=normalize_plate(vals['scrap_lot_name']))
-        return super().write(vals)
+        if 'scrap_date' not in vals:
+            return super().write(vals)
+        # Dismantled (with the buttons, or when nothing is left) or not anymore: the vehicle
+        # leaves the stock, or comes back, with its disassembly order
+        dismantled = {template: bool(template.scrap_date) for template in self}
+        res = super().write(vals)
+        for template in self.filtered(lambda template: bool(template.scrap_date) != dismantled[template]):
+            if template._scrap_uses_unbuild():
+                if template.scrap_date:
+                    template._scrap_finish_unbuild()
+                else:
+                    template._scrap_reopen_unbuild()
+        return res
 
     @api.depends('product_variant_ids.chassis')
     def _compute_chassis(self):
@@ -193,10 +211,154 @@ class ProductTemplate(models.Model):
         if self.scrap_date:
             raise UserError(self.env._("%s is already dismantled.", self.display_name))
 
+    def _scrap_uses_unbuild(self):
+        """ Whether it is dismantled with a disassembly order: a vehicle to dismantle or a
+        subproduct. """
+        self.ensure_one()
+        return not self.is_template and (self.scrap_unbuild_type == 'main' or self._scrap_is_subproduct())
+
+    def _scrap_get_unbuild(self):
+        """ The disassembly order of the vehicle (`mrp.unbuild`), created with its first part or
+        waste, or when it is dismantled without any. Its stock moves are not the ones of
+        `action_unbuild`, which dismantles the whole bill of materials at once and needs a
+        manufacturing order for the parts tracked by lot: the parts are marked one by one. """
+        self.ensure_one()
+        vehicle = self.sudo()
+        if not vehicle.scrap_unbuild_id:
+            company = vehicle.company_id or self.env.company
+            location = vehicle.scrap_location_id or self.env['stock.warehouse'].sudo().search(
+                [('company_id', '=', company.id)], limit=1).lot_stock_id
+            vehicle.scrap_unbuild_id = self.env['mrp.unbuild'].sudo().with_company(company).create({
+                'product_id': vehicle.product_variant_id.id,
+                'product_qty': 1,
+                'company_id': company.id,
+                'location_id': location.id,
+                'location_dest_id': location.id,
+            })
+        return vehicle.scrap_unbuild_id
+
+    def _scrap_finish_unbuild(self):
+        """ Dismantled: its disassembly order is done. The vehicle leaves the stock, consumed by
+        it from where it is (its serial number, the license plate), and its parts and waste are
+        linked to it, as `action_unbuild` does, for the traceability report. A vehicle not in
+        stock (as one created by hand) isn't consumed. """
+        self.ensure_one()
+        vehicle = self.sudo()
+        unbuild = vehicle._scrap_get_unbuild()
+        if unbuild.state == 'done':
+            return
+        company = unbuild.company_id
+        product = vehicle.product_variant_id.with_company(company)
+        quants = self.env['stock.quant'].sudo().search([
+            ('product_id', '=', product.id),
+            ('location_id.usage', '=', 'internal'),
+            ('company_id', '=', company.id),
+            ('quantity', '>', 0),
+        ])
+        # Its license plate, in its own location, first
+        quant = quants.sorted(lambda quant: (
+            quant.lot_id.name != vehicle.scrap_lot_name, quant.location_id != vehicle.scrap_location_id, quant.id))[:1]
+        vals = {'state': 'done'}
+        if quant:
+            quantity = min(1.0, quant.quantity)
+            source, destination = quant.location_id, product.property_stock_production
+            move = self.env['stock.move'].sudo().create({
+                'product_id': product.id,
+                'uom_id': product.uom_id.id,
+                'product_uom_qty': quantity,
+                'company_id': company.id,
+                'state': 'confirmed',
+                'location_id': source.id,
+                'location_dest_id': destination.id,
+                'origin': vehicle.display_name,
+                'consume_unbuild_id': unbuild.id,
+                'picked': True,
+                'move_line_ids': [fields.Command.create({
+                    'product_id': product.id,
+                    'uom_id': product.uom_id.id,
+                    'quantity': quantity,
+                    'location_id': source.id,
+                    'location_dest_id': destination.id,
+                    'company_id': company.id,
+                    'lot_id': quant.lot_id.id,
+                })],
+            })
+            move._action_done()
+            parts = vehicle.scrap_dismantle_line_ids.move_id.move_line_ids.filtered(lambda move_line: move_line.state == 'done')
+            move.move_line_ids.produce_line_ids = [fields.Command.set(parts.ids)]
+            vals.update(location_id=source.id, lot_ids=[fields.Command.set(quant.lot_id.ids)])
+        unbuild.write(vals)
+
+    def _scrap_reopen_unbuild(self):
+        """ Not dismantled anymore (a part undone, or the dismantling): the vehicle comes back
+        to where it was consumed from, and its disassembly order is again a draft. """
+        self.ensure_one()
+        unbuild = self.sudo().scrap_unbuild_id
+        if unbuild.state != 'done':
+            return
+        for move in unbuild.consume_line_ids.filtered(lambda move: (
+                move.state == 'done' and move.location_dest_id.usage == 'production' and not move.returned_move_ids)):
+            move.move_line_ids.produce_line_ids = [fields.Command.clear()]
+            self._scrap_reverse_move(move)
+        unbuild.state = 'draft'
+
     def _scrap_dismantle_pending_lines(self):
         """ The components of the bills of materials of the vehicle still to dismantle. """
         self.ensure_one()
         return self.sudo().bom_ids.bom_line_ids.filtered(lambda line: line.product_qty > 0)
+
+    def _scrap_check_cost_shares(self, bom):
+        """ The cost of the vehicle is shared by the lines of its bill of materials: they must add
+        up to 100% (with the parts already dismantled) to dismantle it. """
+        if not bom.scrap_cost_share_valid:
+            raise UserError(self.env._(
+                "The cost shares of the bill of materials of %(product)s add up to %(total)s%%: they "
+                "must add up to 100%% to dismantle it.",
+                product=self.display_name, total=round(bom.scrap_cost_share_total, 2)))
+
+    def _scrap_cost_base(self):
+        """ The real cost of the vehicle (or of the subproduct), shared by its parts: the value
+        of its first entry into the stock (its purchase, with its bill and landed costs, or its
+        share of the vehicle it was dismantled from), else its cost. """
+        self.ensure_one()
+        company = self.company_id or self.env.company
+        variant = self.product_variant_id.with_company(company)
+        moves = self.env['stock.move'].sudo().search([
+            ('product_id', '=', variant.id), ('state', '=', 'done'), ('company_id', '=', company.id),
+        ], order='date, id')
+        entry = moves.filtered(lambda move: move.is_in and not move.origin_returned_move_id)[:1]
+        quantity = entry._get_valued_qty() if entry else 0
+        if quantity:
+            return entry.value / quantity
+        return variant.standard_price
+
+    def _scrap_share_cost(self, bom, share):
+        """ The share of a part discarded or missing, to the parts still to dismantle of the bill
+        of materials, in proportion to theirs (the parts added while dismantling have none).
+
+        :return: the share lost: all of it when no part left to dismantle has a share
+        """
+        pending = bom.bom_line_ids.filtered(
+            lambda line: line.product_qty > 0 and not line.scrap_added and line.scrap_cost_share > 0)
+        total = sum(pending.mapped('scrap_cost_share'))
+        if not total:
+            return share
+        for line in pending:
+            line.scrap_cost_share += share * line.scrap_cost_share / total
+        return 0.0
+
+    def _scrap_take_back_cost(self, bom_line, share):
+        """ Undone a part discarded or missing, the share it gave to the parts still to dismantle
+        is taken back from them, in proportion to theirs. """
+        pending = bom_line.bom_id.bom_line_ids.filtered(
+            lambda line: line != bom_line and line.product_qty > 0 and not line.scrap_added and line.scrap_cost_share > 0)
+        total = sum(pending.mapped('scrap_cost_share'))
+        if total < share - COST_SHARE_MARGIN:
+            raise UserError(self.env._(
+                "%s can't be undone: the parts that took its share of the cost are already dismantled.",
+                bom_line.product_id.display_name))
+        for line in pending:
+            line.scrap_cost_share -= share * line.scrap_cost_share / total
 
     def _scrap_dismantle(self, bom_line, quantity, result, condition=False, location=False):
         """ The operator marks `quantity` of a component of the bill of materials of the vehicle
@@ -237,6 +399,8 @@ class ProductTemplate(models.Model):
             condition = False
             location = self.env['stock.location']
         company = self.company_id or self.env.company
+        if not bom_line.scrap_added:
+            self._scrap_check_cost_shares(bom_line.bom_id)
         component = bom_line.product_id
         if result == 'dismantled' and component.is_template:
             # A scrap template (as an engine to dismantle later): each unit becomes a product
@@ -251,6 +415,17 @@ class ProductTemplate(models.Model):
             quantities = [(product, 1.0) for product in products]
         else:
             quantities = [(component, quantity)]
+        # Its share of the cost of the vehicle, of the quantity marked, out of the line
+        share = bom_line.scrap_cost_share * quantity / bom_line.product_qty
+        bom_line.scrap_cost_share -= share
+        bom_line.product_qty -= quantity
+        lost = 0.0
+        if result == 'dismantled':
+            unit_cost = self._scrap_cost_base() * share / 100 / len(quantities)
+        else:
+            # Discarded or missing: its share to the parts still to dismantle
+            unit_cost = 0.0
+            lost = self._scrap_share_cost(bom_line.bom_id, share)
         lines = self.env['scrap.dismantle.line'].sudo().create([{
             'vehicle_id': self.id,
             'company_id': company.id,
@@ -263,14 +438,50 @@ class ProductTemplate(models.Model):
             'condition': condition,
             'location_dest_id': location.id,
             'user_id': self.env.user.id,
+            'cost_share': share / len(quantities),
+            'cost_lost': lost,
+            'cost': company.currency_id.round(unit_cost),
         } for product, product_quantity in quantities])
         if result in ('dismantled', 'discarded'):
             for line in lines:
                 line.move_id = self._scrap_dismantle_move(line)
-        bom_line.product_qty -= quantity
         if not self._scrap_dismantle_pending_lines():
             self._scrap_write_cat_dates({'scrap_date': fields.Date.context_today(self)})
         return lines.sudo(False)
+
+    def _scrap_dismantle_extra(self, product, quantity, result, condition=False, location=False):
+        """ A part found while dismantling, not foreseen in the bills of materials of the vehicle:
+        added to its own one (the template keeps its own), marked as added, and dismantled at
+        once as any other component. Undone, it is removed again.
+
+        :return: the parts marked, as `_scrap_dismantle`
+        """
+        self.ensure_one()
+        if not self.env.user.has_group('stock.group_stock_user'):
+            raise AccessError(self.env._("Only the inventory users can dismantle the vehicles."))
+        self.check_access('read')
+        self._scrap_check_can_dismantle()
+        vehicle = self.sudo()
+        product = product.sudo()
+        company = vehicle.company_id or self.env.company
+        if (not product.active or product.type != 'consu' or product.product_tmpl_id == vehicle
+                or product.company_id not in (company, self.env['res.company'])):
+            raise ValidationError(self.env._("%s can't be a part of the vehicle.", product.display_name))
+        if isinstance(quantity, bool) or quantity <= 0:
+            raise UserError(self.env._("The quantity must be positive."))
+        bom = vehicle.bom_ids[:1] or self.env['mrp.bom'].sudo().create({
+            'product_tmpl_id': vehicle.id,
+            'product_qty': 1,
+            'company_id': company.id,
+        })
+        bom_line = self.env['mrp.bom.line'].sudo().create({
+            'bom_id': bom.id,
+            'product_id': product.id,
+            'product_qty': quantity,
+            'uom_id': product.uom_id.id,
+            'scrap_added': True,
+        })
+        return self._scrap_dismantle(bom_line, quantity, result, condition, location)
 
     def _scrap_decontaminate(self, product, quantity, result, location=False):
         """ The operator takes a waste of the company out of the vehicle while decontaminating
@@ -377,19 +588,35 @@ class ProductTemplate(models.Model):
         if made_of_template and product.product_tmpl_id.with_context(active_test=False).scrap_dismantle_line_ids:
             raise UserError(self.env._(
                 "%s has parts marked: undo its dismantling first.", product.display_name))
+        move_lines = line.move_id.move_line_ids
         if line.move_id:
             self._scrap_reverse_dismantle_move(line)
         if made_of_template:
             self.env['account.analytic.distribution.model'].sudo().search([('product_id', '=', product.id)]).unlink()
             product.product_tmpl_id.active = False
-        bom_line.product_qty += line.quantity
+        quantity = line.quantity
+        share, lost = line.cost_share, line.cost_lost
+        if line.result != 'dismantled' and share - lost > 0:
+            self._scrap_take_back_cost(bom_line, share - lost)
         line.unlink()
-        if self.scrap_date:
+        if not bom_line.scrap_added:
+            bom_line.product_qty += quantity
+            bom_line.scrap_cost_share += share
+        elif not self.env['scrap.dismantle.line'].sudo().search_count([('bom_line_id', '=', bom_line.id)], limit=1):
+            # A part added while dismantling isn't again to dismantle: undone, it was not there
+            bom_line.unlink()
+        if self.scrap_date and self._scrap_dismantle_pending_lines():
             self._scrap_write_cat_dates({'scrap_date': False})
+        elif self.scrap_date:
+            # Still dismantled (a part added, undone): only out of its traceability
+            move_lines.sudo().consume_line_ids = [fields.Command.clear()]
 
     def _scrap_reverse_dismantle_move(self, line):
         """ The stock move of a part, back to where it came from. """
-        move = line.move_id
+        return self._scrap_reverse_move(line.move_id, line.display_name)
+
+    def _scrap_reverse_move(self, move, name=''):
+        """ A stock move back to where it came from, in the same disassembly order. """
         Quant = self.env['stock.quant'].sudo()
         if move.location_dest_id.usage == 'internal':
             for move_line in move.move_line_ids:
@@ -398,7 +625,7 @@ class ProductTemplate(models.Model):
                 if move_line.product_id.uom_id.compare(move_line.quantity_product_uom, available) > 0:
                     raise UserError(self.env._(
                         "%(part)s can't be undone: it isn't in %(location)s anymore.",
-                        part=line.display_name, location=move_line.location_dest_id.display_name))
+                        part=name or move.product_id.display_name, location=move_line.location_dest_id.display_name))
         reverse = self.env['stock.move'].sudo().create({
             'product_id': move.product_id.id,
             'uom_id': move.uom_id.id,
@@ -409,6 +636,8 @@ class ProductTemplate(models.Model):
             'location_dest_id': move.location_id.id,
             'origin': self.env._("Undone: %s", move.origin or ''),
             'origin_returned_move_id': move.id,
+            'unbuild_id': move.unbuild_id.id,
+            'consume_unbuild_id': move.consume_unbuild_id.id,
             'picked': True,
             'move_line_ids': [fields.Command.create({
                 'product_id': move_line.product_id.id,
@@ -492,7 +721,11 @@ class ProductTemplate(models.Model):
             'location_id': source.id,
             'location_dest_id': destination.id,
             'origin': self.display_name,
+            'unbuild_id': self._scrap_get_unbuild().id,
             'is_scrap': not entering,
+            # A part dismantled, its share of the cost of the vehicle; a waste, nothing
+            'scrap_valued': entering,
+            'scrap_value': line.cost,
             'picked': True,
             'move_line_ids': [fields.Command.create({
                 'product_id': product.id,
@@ -504,7 +737,16 @@ class ProductTemplate(models.Model):
                 'lot_id': lot.id,
             }) for lot, quantity in quantities],
         })
+        # Its cost, as Odoo does it with an average cost: the new one with the stock it had
+        manual_cost = entering and product.is_storable and product.cost_method == 'standard'
+        if manual_cost:
+            stock = max(product.qty_available, 0)
         move._action_done()
+        if manual_cost:
+            quantity = line.uom_id._compute_quantity(line.quantity, product.uom_id)
+            if stock + quantity > 0:
+                product.sudo().with_context(disable_auto_revaluation=True).standard_price = (
+                    (stock * product.standard_price + line.cost) / (stock + quantity))
         return move
 
     def action_scrap_complete_vehicle(self):

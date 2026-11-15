@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="scrap_gaia_report_view_list" model="ir.ui.view">
+        <field name="name">scrap.gaia.report.list</field>
+        <field name="model">scrap.gaia.report</field>
+        <field name="arch" type="xml">
+            <list decoration-muted="state == 'presented'">
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="picking_count" string="Deliveries"/>
+                <field name="weight_total" sum="Total"/>
+                <field name="presented_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'presented'" decoration-info="state == 'draft'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="scrap_gaia_report_view_form" model="ir.ui.view">
+        <field name="name">scrap.gaia.report.form</field>
+        <field name="model">scrap.gaia.report</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_compute" type="object" string="Compute" class="btn-primary"
+                            invisible="state != 'draft' or computed_date"/>
+                    <button name="action_compute" type="object" string="Compute again"
+                            invisible="state != 'draft' or not computed_date"
+                            confirm="The deliveries of the period are read again, with the weights they have now."/>
+                    <button name="action_present" type="object" string="Mark as Presented" class="btn-primary"
+                            invisible="state != 'draft' or not computed_date"/>
+                    <button name="%(scrap_gaia.action_report_scrap_gaia)d" type="action" string="PDF"
+                            icon="fa-file-pdf-o" invisible="not computed_date"/>
+                    <button name="action_download_xlsx" type="object" string="Excel"
+                            icon="fa-file-excel-o" invisible="not computed_date"/>
+                    <button name="action_draft" type="object" string="Back to Draft"
+                            invisible="state != 'presented'"
+                            confirm="It can be computed again and changed: present it again afterwards."/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_pickings" type="object" class="oe_stat_button" icon="fa-truck"
+                                invisible="not picking_count">
+                            <field name="picking_count" widget="statinfo" string="Deliveries"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="state == 'presented'"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_from" readonly="state == 'presented'"/>
+                            <field name="date_to" readonly="state == 'presented'"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="state == 'presented'"/>
+                        </group>
+                        <group>
+                            <field name="computed_date"/>
+                            <field name="presented_date" invisible="state != 'presented'"/>
+                            <label for="weight_total"/>
+                            <div class="o_row">
+                                <field name="weight_total"/>
+                                <span><field name="weight_uom_name"/></span>
+                            </div>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Weight by Material" name="totals">
+                            <field name="total_ids">
+                                <list>
+                                    <field name="scrap_material_id"/>
+                                    <field name="weight" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Weight by Delivery" name="lines">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="date_done"/>
+                                    <field name="picking_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="scrap_material_id"/>
+                                    <field name="weight" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="note">
+                            <field name="note" placeholder="Reference of the presentation, remarks..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="scrap_gaia_report_view_search" model="ir.ui.view">
+        <field name="name">scrap.gaia.report.search</field>
+        <field name="model">scrap.gaia.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="presented" string="Presented" domain="[('state', '=', 'presented')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="scrap_gaia_report_action" model="ir.actions.act_window">
+        <field name="name">GAIA Reports</field>
+        <field name="res_model">scrap.gaia.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create the GAIA report of a period</p>
+            <p>Usually a month: the deliveries of the products of the vehicle recycling and their
+               weight of each material, to download in PDF or Excel and present.</p>
+        </field>
+    </record>
+
+    <menuitem id="scrap_gaia_report_menu" action="scrap_gaia_report_action"
+              parent="sale.menu_sale_report" sequence="90"/>
+
+</odoo>

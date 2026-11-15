@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- The cost shares of the components of a bill of materials to dismantle -->
+    <record id="mrp_bom_form_view_inherit_scrap_base" model="ir.ui.view">
+        <field name="name">mrp.bom.form.inherit.scrap_base</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="after">
+                <field name="scrap_cost_ok" invisible="1"/>
+                <field name="scrap_cost_share_valid" invisible="1"/>
+                <div class="alert alert-warning o_scrap_cost_share_alert" role="alert"
+                     invisible="not scrap_cost_ok or scrap_cost_share_valid">
+                    The cost shares add up to <field name="scrap_cost_share_total" class="fw-bold" readonly="1"/>%:
+                    they must add up to 100% to dismantle.
+                </div>
+            </div>
+            <xpath expr="//field[@name='bom_line_ids']/list/field[@name='product_qty']" position="after">
+                <field name="scrap_cost_share" column_invisible="not parent.scrap_cost_ok"
+                       readonly="scrap_added" optional="show"/>
+                <field name="scrap_added" column_invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

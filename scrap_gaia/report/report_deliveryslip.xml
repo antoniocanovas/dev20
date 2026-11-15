@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- The weight of each material, for GAIA, after the products delivered -->
+    <template id="report_delivery_document_gaia" inherit_id="stock.report_delivery_document">
+        <xpath expr="//t[@t-set='backorders']" position="before">
+            <t t-set="gaia_lines" t-value="o.scrap_material_line_ids.filtered(lambda line: line.weight)"/>
+            <table t-if="o.picking_type_code == 'outgoing' and gaia_lines" class="table table-sm mt-4" name="scrap_gaia_table">
+                <thead>
+                    <tr>
+                        <th name="th_gaia_material"><strong>GAIA material</strong></th>
+                        <th name="th_gaia_weight" class="text-end"><strong>Weight</strong></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="gaia_lines" t-as="gaia_line">
+                        <td><span t-field="gaia_line.scrap_material_id">Ferrous</span></td>
+                        <td class="text-end">
+                            <span t-field="gaia_line.weight">10.00</span>
+                            <span t-out="o.scrap_weight_uom_name">kg</span>
+                        </td>
+                    </tr>
+                    <tr class="border-top">
+                        <td><strong>Total</strong></td>
+                        <td class="text-end">
+                            <strong t-out="sum(gaia_lines.mapped('weight'))" t-options="{'widget': 'float', 'decimal_precision': 'Stock Weight'}">10.00</strong>
+                            <strong t-out="o.scrap_weight_uom_name">kg</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+
+</odoo>

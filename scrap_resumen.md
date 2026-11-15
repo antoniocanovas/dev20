@@ -1,6 +1,6 @@
 # Reciclaje de vehículos (CAT) en Odoo 20: estado para retomar
 
-Actualizado: 2026-11-10. Módulos en `dev20`: `scrap_base`, `scrap_touch` y `scrap_demo` (también `scrap_crm` e `im_riocabo`, ya cerrados). El detalle funcional de cada uno está en su `README.md`; este fichero solo dice dónde estamos.
+Actualizado: 2026-11-15. Módulos en `dev20`: `scrap_base`, `scrap_touch`, `scrap_crm`, `scrap_repair`, `scrap_gaia` y `scrap_demo` (también `im_riocabo`, ya cerrado). El detalle funcional de cada uno está en su `README.md`; este fichero solo dice dónde estamos.
 
 ## Hecho (con tests en verde: 54 tests, incluido el recorrido táctil)
 
@@ -44,19 +44,25 @@ Actualizado: 2026-11-10. Módulos en `dev20`: `scrap_base`, `scrap_touch` y `scr
 
 - **Fecha límite de las tareas (2026-11-11):** `scrap_crm` 20.0.1.2.0 quita `datetime_deadline` y vuelve a la *Fecha límite* estándar (migración incluida). `scrap_demo` pone fechas relativas al día de instalación (-2, -1, 0, +1 y +3). Actualizado en cat20.
 
-- **Expedientes (2026-11-12):** app nueva `project_task_touch` (ver su README) y demo de expedientes en `scrap_demo` 20.0.1.2.0 (`demo_files.py`). Todo instalado en cat20.
+- **GAIA (2026-11-14):** módulo nuevo `scrap_gaia` (depende de `scrap_base`; ver su README). Materiales en Inventario → Configuración, % por material en el producto (copiados de la plantilla con el peso), kg por material en los albaranes de salida (editables; solo productos con tipo de desguace) y en el albarán impreso. Informe periódico en Ventas → Informes → Informes GAIA (periodos sin solape, solo albaranes de salida validados, PDF y Excel, borrador/presentado). `scrap_demo` depende de él y pone peso y % a sus plantillas. Instalado en cat20.
+- **cat20 al día (2026-11-15):** todo instalado y actualizado. Hecho a mano en la base, porque los datos de la demo son `noupdate`:
+  - porcentajes de coste de las plantillas (motor 30, asientos 10, carrocería 10 en turismo y furgoneta; motor 45, manillar 10, carrocería 10 en la moto);
+  - peso y % GAIA de las cinco plantillas, y de los vehículos y motores hechos de ellas, con los valores de la demo (también la plantilla Furgoneta y sus tres furgonetas, donde el usuario había probado otros valores);
+  - parámetro del sistema `report.url` = `http://127.0.0.1:8069`, necesario en el Mac para que wkhtmltopdf genere los PDF.
+  - Los vehículos que ya estaban en cat20 no tienen la línea *Carrocería / chatarra* (se copia de la plantilla al comprar).
+- **Vencimientos:** app genérica `deadline_touch` (ver su README), con su demo en `deadline_touch_demo`; `scrap_demo` ya no depende de ella. Todo instalado en cat20.
 
 ## Cómo probar
 
 ```
 cd /Users/acanovas/pycharmprojects/20odoo
 PYTHONPATH=<scratchpad>/pylib /Users/acanovas/pycharmprojects/venv312/bin/python odoo-bin \
-  -c /Users/acanovas/pycharmprojects/conf/odoo20com.conf -d <bd_prueba> -i scrap_demo \
-  --test-tags /scrap_touch,/scrap_base,/scrap_demo,/scrap_crm,/scrap_repair \
+  -c /Users/acanovas/pycharmprojects/conf/odoo20com.conf -d <bd_prueba> -i scrap_demo,scrap_gaia \
+  --test-tags /scrap_touch,/scrap_base,/scrap_demo,/scrap_crm,/scrap_repair,/scrap_gaia \
   --stop-after-init --http-port 8079 --gevent-port 8084
 ```
 
-- Último resultado (2026-11-11): **71 tests, 0 fallos** (scrap_base 34, scrap_touch 37 contados con sus tours, scrap_crm 10, scrap_repair 9, scrap_demo 3).
+- Último resultado (2026-11-15): **83 tests, 0 fallos**, con todos los módulos `scrap_*` (scrap_gaia 10).
 - El tour necesita `websocket-client`. En la sesión anterior estaba en `PYTHONPATH=<scratchpad>/pylib`; si falta, instalarlo en un directorio temporal y añadirlo a `PYTHONPATH`.
 - Para borrar una base de prueba, antes hay que cortar sus conexiones con `pg_terminate_backend`, porque el servidor del usuario mantiene conexiones del bus.
 - **Traducciones:** se exportan con `odoo-bin i18n export ... -o <m>.pot <m>` y se rellena `i18n/es.po` (había un script `make_es_po.py` en el scratchpad que ya no existirá: rehacerlo o editar el `.po` a mano). Un `-u` no sobrescribe una traducción que ya está en la base.
@@ -64,11 +70,12 @@ PYTHONPATH=<scratchpad>/pylib /Users/acanovas/pycharmprojects/venv312/bin/python
 ## Pendiente (no empezar sin que lo pida el usuario)
 
 - Fase de recepción.
-- Órdenes de desmontaje reales (`mrp.unbuild`).
 - Migración de datos desde v17. El usuario dijo «No quiero migración» de momento.
 - Posibles mejoras, no pedidas: editar una pieza ya desmontada, además de deshacerla.
 - Ofrecido y sin respuesta: que todo subproducto comprado para despiezar sea vendible al recibirlo (hoy solo se marcó MOTOR0001 a mano).
+- GAIA: el tipo *Para compra/venta* (vehículos reparados y vendidos enteros) cuenta para GAIA; preguntar si debe quedar fuera.
+- GAIA: no verificado en el navegador (pestañas del producto y del albarán, informe, descarga de PDF y Excel). En cat20 no hay aún albaranes de salida.
 
 ## Forma de trabajar
 
-En español, por fases y con pruebas reales, resúmenes breves, sin commits y sin acciones destructivas sin permiso (ver memoria `usuario-antonio`). Los módulos `scrap_*` aún no están en git: son ficheros sin seguimiento.
+En español, por fases y con pruebas reales, resúmenes breves, sin commits y sin acciones destructivas sin permiso (ver memoria `usuario-antonio`). Hay cambios sin commit en los módulos `scrap_*` (costes proporcionales, carrocería/chatarra en la demo) y `scrap_gaia` es nuevo, sin seguimiento. También está pendiente el renombrado `project_task_touch` → `deadline_touch` (en el índice con `git mv`). No hacer commit sin que lo pida el usuario.

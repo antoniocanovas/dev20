@@ -1,0 +1,12 @@
+id,name,model_id,group_id/id,operation,domain
+access_scrap_material_user,scrap.material.user,scrap.material,base.group_user,r,
+access_scrap_material_manager,scrap.material.manager,scrap.material,stock.group_stock_manager,crud,
+access_product_scrap_material_user,product.scrap.material.user,product.scrap.material,base.group_user,r,
+access_product_scrap_material_stock,product.scrap.material.stock,product.scrap.material,stock.group_stock_user,crud,
+access_stock_picking_scrap_material_stock,stock.picking.scrap.material.stock,stock.picking.scrap.material,stock.group_stock_user,crud,
+access_scrap_gaia_report_sale,scrap.gaia.report.sale,scrap.gaia.report,sales_team.group_sale_manager,crud,
+access_scrap_gaia_report_stock,scrap.gaia.report.stock,scrap.gaia.report,stock.group_stock_manager,crud,
+access_scrap_gaia_report_line_sale,scrap.gaia.report.line.sale,scrap.gaia.report.line,sales_team.group_sale_manager,crud,
+access_scrap_gaia_report_line_stock,scrap.gaia.report.line.stock,scrap.gaia.report.line,stock.group_stock_manager,crud,
+access_scrap_gaia_report_total_sale,scrap.gaia.report.total.sale,scrap.gaia.report.total,sales_team.group_sale_manager,crud,
+access_scrap_gaia_report_total_stock,scrap.gaia.report.total.stock,scrap.gaia.report.total,stock.group_stock_manager,crud,

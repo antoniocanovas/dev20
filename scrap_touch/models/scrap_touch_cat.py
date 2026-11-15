@@ -10,6 +10,8 @@ VEHICLE_LIMIT = 100
 # Locations offered for a dismantled part, and parts marked shown while dismantling
 LOCATION_LIMIT = 50
 PART_LIMIT = 50
+# Products offered as a part not foreseen
+EXTRA_PART_LIMIT = 50
 # Stages of the legal deadlines of the vehicles to dismantle (see scrap_base): the date field
 # of each one, its limit and the stage that must be done before
 CAT_STAGES = {
@@ -174,6 +176,50 @@ class ScrapTouch(models.AbstractModel):
         return self._get_dismantle_data(vehicle)
 
     @api.model
+    def get_dismantle_products(self, template_id, query=''):
+        """ The products that can be a part found while dismantling the vehicle, not foreseen in
+        its bill of materials: the goods of its company (or shared), by name or reference. No
+        product is created here, so that there are no duplicates. """
+        vehicle = self._get_vehicle(template_id)
+        company = vehicle.company_id or self.env.company
+        domain = [
+            ('type', '=', 'consu'),
+            ('company_id', 'in', (company.id, False)),
+            ('product_tmpl_id', '!=', vehicle.id),
+        ]
+        query = query.strip() if isinstance(query, str) else ''
+        if query:
+            domain += ['|', ('name', 'ilike', query), ('default_code', 'ilike', query)]
+        products = self.env['product.product'].search(domain, limit=EXTRA_PART_LIMIT, order='name, id')
+        return [{
+            'id': product.id,
+            'product': product.display_name,
+            'product_id': product.id,
+            'uom': product.uom_id.name,
+            'image_unique': str(product.write_date) if product.image_128 else False,
+        } for product in products]
+
+    @api.model
+    def dismantle_extra_part(self, template_id, product_id, quantity, result, condition=False, location_id=False):
+        """ Mark `quantity` of a part not foreseen as dismantled, missing or discarded: it is
+        added to the bill of materials of the vehicle. """
+        vehicle = self._get_vehicle(template_id)
+        if not is_record_id(product_id) or (location_id and not is_record_id(location_id)):
+            raise ValidationError(self.env._("Invalid part."))
+        if isinstance(quantity, bool) or not isinstance(quantity, (int, float)):
+            raise ValidationError(self.env._("Invalid quantity."))
+        product = self.env['product.product'].browse(product_id).exists()
+        if not product:
+            raise UserError(self.env._("The product doesn't exist anymore."))
+        product.check_access('read')
+        location = self.env['stock.location'].browse(location_id) if location_id else False
+        if location:
+            location = location.exists()
+            location.check_access('read')
+        vehicle._scrap_dismantle_extra(product, quantity, result, condition, location)
+        return self._get_dismantle_data(vehicle)
+
+    @api.model
     def get_decontamination(self, template_id):
         """ The decontamination of a vehicle: the waste products of the company, to take out as
         many times as needed, and the waste already marked. """
@@ -257,6 +303,9 @@ class ScrapTouch(models.AbstractModel):
                 'uom': line.uom_id.name,
                 'operation': line.operation_id.name or '',
                 'image_unique': str(line.product_id.write_date) if line.product_id.image_128 else False,
+                # Its bill of materials must share the whole cost of the vehicle to dismantle it
+                'cost_ok': line.scrap_added or line.bom_id.scrap_cost_share_valid,
+                'cost_share_total': round(line.bom_id.scrap_cost_share_total, 2),
             } for line in vehicle._scrap_dismantle_pending_lines()]
         Line = self.env['scrap.dismantle.line']
         results = dict(Line._fields['result']._description_selection(self.env))
@@ -287,6 +336,8 @@ class ScrapTouch(models.AbstractModel):
                 'user': part.user_id.name,
                 # Of a subproduct: undone dismantling it
                 'source': part.vehicle_id.display_name if part.vehicle_id != own else '',
+                # Not foreseen in the bill of materials: added while dismantling
+                'added': part.bom_line_id.scrap_added,
                 # A waste, corrected or removed until the vehicle is decontaminated
                 'can_undo': part.vehicle_id == own and (
                     not vehicle.decontamination_date if stage == 'decontamination' else bool(part.bom_line_id.bom_id.active)),

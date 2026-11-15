@@ -51,6 +51,7 @@
                             <field name="decontamination_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
                             <field name="scrap_limit_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
                             <field name="scrap_date" invisible="is_template or scrap_unbuild_type == 'subproduct'"/>
+                            <field name="scrap_unbuild_id" invisible="not scrap_unbuild_id" groups="mrp.group_mrp_user"/>
                         </group>
                         <group name="scrap_image">
                             <field name="image_1920" widget="image" nolabel="1" colspan="2"
@@ -71,6 +72,9 @@
                                    decoration-warning="result == 'missing'" decoration-danger="result == 'discarded'"/>
                             <field name="condition"/>
                             <field name="location_dest_id" groups="stock.group_stock_multi_locations"/>
+                            <field name="cost_share" optional="show" groups="stock.group_stock_manager"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="cost" optional="show" groups="stock.group_stock_manager"/>
                             <field name="user_id" widget="many2one_avatar_user" optional="hide"/>
                             <field name="move_id" optional="hide"/>
                         </list>
@@ -90,6 +94,9 @@
                                    decoration-warning="result == 'missing'" decoration-danger="result == 'discarded'"/>
                             <field name="condition"/>
                             <field name="location_dest_id" groups="stock.group_stock_multi_locations"/>
+                            <field name="cost_share" optional="show" groups="stock.group_stock_manager"/>
+                            <field name="currency_id" column_invisible="1"/>
+                            <field name="cost" optional="show" groups="stock.group_stock_manager"/>
                             <field name="user_id" widget="many2one_avatar_user" optional="hide"/>
                         </list>
                     </field>

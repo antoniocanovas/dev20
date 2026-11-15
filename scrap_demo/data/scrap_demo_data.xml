@@ -147,6 +147,9 @@
             <field name="purchase_ok" eval="False"/>
             <field name="sale_ok" eval="False"/>
             <field name="categ_id" ref="category_vehicles"/>
+            <field name="weight">1100</field>
+            <!-- GAIA: % estimado de su peso de cada material; lo que falta (vidrio, fluidos, textil...) no se informa -->
+            <field name="scrap_material_line_ids" eval="[Command.create({'scrap_material_id': ref('scrap_gaia.material_ferrous'), 'percent': 65}), Command.create({'scrap_material_id': ref('scrap_gaia.material_non_ferrous'), 'percent': 5}), Command.create({'scrap_material_id': ref('scrap_gaia.material_metals'), 'percent': 3}), Command.create({'scrap_material_id': ref('scrap_gaia.material_plastic'), 'percent': 12}), Command.create({'scrap_material_id': ref('scrap_gaia.material_tyres'), 'percent': 4})]"/>
         </record>
         <record id="template_van" model="product.template">
             <field name="name">Furgoneta</field>
@@ -158,6 +161,9 @@
             <field name="purchase_ok" eval="False"/>
             <field name="sale_ok" eval="False"/>
             <field name="categ_id" ref="category_vehicles"/>
+            <field name="weight">1900</field>
+            <!-- GAIA: % estimado de su peso de cada material; lo que falta (vidrio, fluidos, textil...) no se informa -->
+            <field name="scrap_material_line_ids" eval="[Command.create({'scrap_material_id': ref('scrap_gaia.material_ferrous'), 'percent': 70}), Command.create({'scrap_material_id': ref('scrap_gaia.material_non_ferrous'), 'percent': 4}), Command.create({'scrap_material_id': ref('scrap_gaia.material_metals'), 'percent': 3}), Command.create({'scrap_material_id': ref('scrap_gaia.material_plastic'), 'percent': 10}), Command.create({'scrap_material_id': ref('scrap_gaia.material_tyres'), 'percent': 4})]"/>
         </record>
         <record id="template_motorbike" model="product.template">
             <field name="name">Motocicleta</field>
@@ -169,6 +175,9 @@
             <field name="purchase_ok" eval="False"/>
             <field name="sale_ok" eval="False"/>
             <field name="categ_id" ref="category_vehicles"/>
+            <field name="weight">200</field>
+            <!-- GAIA: % estimado de su peso de cada material; lo que falta (vidrio, fluidos, textil...) no se informa -->
+            <field name="scrap_material_line_ids" eval="[Command.create({'scrap_material_id': ref('scrap_gaia.material_ferrous'), 'percent': 50}), Command.create({'scrap_material_id': ref('scrap_gaia.material_non_ferrous'), 'percent': 15}), Command.create({'scrap_material_id': ref('scrap_gaia.material_metals'), 'percent': 5}), Command.create({'scrap_material_id': ref('scrap_gaia.material_plastic'), 'percent': 18}), Command.create({'scrap_material_id': ref('scrap_gaia.material_tyres'), 'percent': 6})]"/>
         </record>
 
         <!-- Plantilla de subproducto: el motor de los vehículos (al desmontarlo, cada uno es un
@@ -184,6 +193,9 @@
             <field name="purchase_ok" eval="False"/>
             <field name="sale_ok" eval="False"/>
             <field name="categ_id" ref="category_parts"/>
+            <field name="weight">150</field>
+            <!-- GAIA: % estimado de su peso de cada material; lo que falta (vidrio, fluidos, textil...) no se informa -->
+            <field name="scrap_material_line_ids" eval="[Command.create({'scrap_material_id': ref('scrap_gaia.material_ferrous'), 'percent': 70}), Command.create({'scrap_material_id': ref('scrap_gaia.material_non_ferrous'), 'percent': 25}), Command.create({'scrap_material_id': ref('scrap_gaia.material_metals'), 'percent': 3}), Command.create({'scrap_material_id': ref('scrap_gaia.material_plastic'), 'percent': 2})]"/>
         </record>
 
         <!-- Piezas con datos CAT: se encuentran por su Ref. OEM, Ref. visible o referencias -->
@@ -281,6 +293,17 @@
             <field name="list_price">50</field>
         </record>
 
+        <!-- Lo que queda del vehículo al final: se desmonta la última y se lleva su parte del coste,
+             para que no se pierda al terminar el desguace -->
+        <record id="comp_body" model="product.product">
+            <field name="name">Carrocería / chatarra</field>
+            <field name="type">consu</field>
+            <field name="is_storable" eval="True"/>
+            <field name="categ_id" ref="category_parts"/>
+            <field name="scrap_unbuild_type">subproduct</field>
+            <field name="list_price">60</field>
+        </record>
+
         <!-- Plantilla de subproducto dentro del motor: la culata, que también se despieza (segundo
              nivel: vehículo, motor, culata) -->
         <record id="comp_cylinder_head" model="product.product">
@@ -294,6 +317,9 @@
             <field name="purchase_ok" eval="False"/>
             <field name="sale_ok" eval="False"/>
             <field name="list_price">150</field>
+            <field name="weight">20</field>
+            <!-- GAIA: % estimado de su peso de cada material; lo que falta (vidrio, fluidos, textil...) no se informa -->
+            <field name="scrap_material_line_ids" eval="[Command.create({'scrap_material_id': ref('scrap_gaia.material_ferrous'), 'percent': 15}), Command.create({'scrap_material_id': ref('scrap_gaia.material_non_ferrous'), 'percent': 85})]"/>
         </record>
         <record id="comp_valve" model="product.product">
             <field name="name">Válvula</field>
@@ -391,42 +417,57 @@
             <field name="product_id" ref="comp_battery"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_car_op_decontamination"/>
+            <field name="scrap_cost_share">5</field>
         </record>
         <record id="bom_car_comp_tank" model="mrp.bom.line">
             <field name="bom_id" ref="bom_car"/>
             <field name="product_id" ref="comp_tank"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_car_op_decontamination"/>
+            <field name="scrap_cost_share">5</field>
         </record>
         <record id="bom_car_comp_engine" model="mrp.bom.line">
             <field name="bom_id" ref="bom_car"/>
             <field name="product_id" search="[('product_tmpl_id', '=', ref('template_engine'))]"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_car_op_dismantling"/>
+            <field name="scrap_cost_share">30</field>
         </record>
         <record id="bom_car_comp_wheel" model="mrp.bom.line">
             <field name="bom_id" ref="bom_car"/>
             <field name="product_id" ref="comp_wheel"/>
             <field name="product_qty">4</field>
             <field name="operation_id" ref="bom_car_op_dismantling"/>
+            <field name="scrap_cost_share">20</field>
         </record>
         <record id="bom_car_comp_steering" model="mrp.bom.line">
             <field name="bom_id" ref="bom_car"/>
             <field name="product_id" ref="comp_steering"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_car_op_dismantling"/>
+            <field name="scrap_cost_share">5</field>
         </record>
         <record id="bom_car_comp_door" model="mrp.bom.line">
             <field name="bom_id" ref="bom_car"/>
             <field name="product_id" ref="comp_door"/>
             <field name="product_qty">2</field>
             <field name="operation_id" ref="bom_car_op_dismantling"/>
+            <field name="scrap_cost_share">15</field>
         </record>
         <record id="bom_car_comp_seat" model="mrp.bom.line">
             <field name="bom_id" ref="bom_car"/>
             <field name="product_id" ref="comp_seat"/>
             <field name="product_qty">2</field>
             <field name="operation_id" ref="bom_car_op_dismantling"/>
+            <field name="scrap_cost_share">10</field>
+        </record>
+        <record id="bom_car_comp_body" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_car"/>
+            <field name="product_id" ref="comp_body"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_car_op_dismantling"/>
+            <field name="sequence">100</field>
+            <field name="scrap_cost_share">10</field>
         </record>
 
         <!-- Despiece motocicleta: se copia a cada vehículo comprado con la plantilla -->
@@ -454,30 +495,43 @@
             <field name="product_id" ref="comp_battery"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_motorbike_op_decontamination"/>
+            <field name="scrap_cost_share">5</field>
         </record>
         <record id="bom_motorbike_comp_tank" model="mrp.bom.line">
             <field name="bom_id" ref="bom_motorbike"/>
             <field name="product_id" ref="comp_tank"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_motorbike_op_decontamination"/>
+            <field name="scrap_cost_share">10</field>
         </record>
         <record id="bom_motorbike_comp_engine" model="mrp.bom.line">
             <field name="bom_id" ref="bom_motorbike"/>
             <field name="product_id" search="[('product_tmpl_id', '=', ref('template_engine'))]"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_motorbike_op_dismantling"/>
+            <field name="scrap_cost_share">45</field>
         </record>
         <record id="bom_motorbike_comp_wheel" model="mrp.bom.line">
             <field name="bom_id" ref="bom_motorbike"/>
             <field name="product_id" ref="comp_wheel"/>
             <field name="product_qty">2</field>
             <field name="operation_id" ref="bom_motorbike_op_dismantling"/>
+            <field name="scrap_cost_share">20</field>
         </record>
         <record id="bom_motorbike_comp_handlebar" model="mrp.bom.line">
             <field name="bom_id" ref="bom_motorbike"/>
             <field name="product_id" ref="comp_handlebar"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_motorbike_op_dismantling"/>
+            <field name="scrap_cost_share">10</field>
+        </record>
+        <record id="bom_motorbike_comp_body" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_motorbike"/>
+            <field name="product_id" ref="comp_body"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_motorbike_op_dismantling"/>
+            <field name="sequence">100</field>
+            <field name="scrap_cost_share">10</field>
         </record>
 
         <!-- Despiece furgoneta: se copia a cada producto comprado con la plantilla -->
@@ -505,42 +559,57 @@
             <field name="product_id" ref="comp_battery"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_van_op_decontamination"/>
+            <field name="scrap_cost_share">5</field>
         </record>
         <record id="bom_van_comp_tank" model="mrp.bom.line">
             <field name="bom_id" ref="bom_van"/>
             <field name="product_id" ref="comp_tank"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_van_op_decontamination"/>
+            <field name="scrap_cost_share">5</field>
         </record>
         <record id="bom_van_comp_engine" model="mrp.bom.line">
             <field name="bom_id" ref="bom_van"/>
             <field name="product_id" search="[('product_tmpl_id', '=', ref('template_engine'))]"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_van_op_dismantling"/>
+            <field name="scrap_cost_share">30</field>
         </record>
         <record id="bom_van_comp_wheel" model="mrp.bom.line">
             <field name="bom_id" ref="bom_van"/>
             <field name="product_id" ref="comp_wheel"/>
             <field name="product_qty">4</field>
             <field name="operation_id" ref="bom_van_op_dismantling"/>
+            <field name="scrap_cost_share">20</field>
         </record>
         <record id="bom_van_comp_steering" model="mrp.bom.line">
             <field name="bom_id" ref="bom_van"/>
             <field name="product_id" ref="comp_steering"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_van_op_dismantling"/>
+            <field name="scrap_cost_share">5</field>
         </record>
         <record id="bom_van_comp_door" model="mrp.bom.line">
             <field name="bom_id" ref="bom_van"/>
             <field name="product_id" ref="comp_door"/>
             <field name="product_qty">2</field>
             <field name="operation_id" ref="bom_van_op_dismantling"/>
+            <field name="scrap_cost_share">15</field>
         </record>
         <record id="bom_van_comp_seat" model="mrp.bom.line">
             <field name="bom_id" ref="bom_van"/>
             <field name="product_id" ref="comp_seat"/>
             <field name="product_qty">3</field>
             <field name="operation_id" ref="bom_van_op_dismantling"/>
+            <field name="scrap_cost_share">10</field>
+        </record>
+        <record id="bom_van_comp_body" model="mrp.bom.line">
+            <field name="bom_id" ref="bom_van"/>
+            <field name="product_id" ref="comp_body"/>
+            <field name="product_qty">1</field>
+            <field name="operation_id" ref="bom_van_op_dismantling"/>
+            <field name="sequence">100</field>
+            <field name="scrap_cost_share">10</field>
         </record>
 
         <!-- Despiece motor: se copia a cada motor, desmontado de un vehículo o comprado. La culata
@@ -562,18 +631,21 @@
             <field name="product_id" ref="comp_cylinder_head"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_engine_op_dismantling"/>
+            <field name="scrap_cost_share">30</field>
         </record>
         <record id="bom_engine_comp_engine_block" model="mrp.bom.line">
             <field name="bom_id" ref="bom_engine"/>
             <field name="product_id" ref="comp_engine_block"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_engine_op_dismantling"/>
+            <field name="scrap_cost_share">50</field>
         </record>
         <record id="bom_engine_comp_turbo" model="mrp.bom.line">
             <field name="bom_id" ref="bom_engine"/>
             <field name="product_id" ref="comp_turbo"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_engine_op_dismantling"/>
+            <field name="scrap_cost_share">20</field>
         </record>
 
         <!-- Despiece culata: se copia a cada culata desmontada de un motor -->
@@ -594,12 +666,14 @@
             <field name="product_id" ref="comp_valve"/>
             <field name="product_qty">16</field>
             <field name="operation_id" ref="bom_cylinder_head_op_dismantling"/>
+            <field name="scrap_cost_share">60</field>
         </record>
         <record id="bom_cylinder_head_comp_camshaft" model="mrp.bom.line">
             <field name="bom_id" ref="bom_cylinder_head"/>
             <field name="product_id" ref="comp_camshaft"/>
             <field name="product_qty">1</field>
             <field name="operation_id" ref="bom_cylinder_head_op_dismantling"/>
+            <field name="scrap_cost_share">40</field>
         </record>
 
     </data>

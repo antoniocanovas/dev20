@@ -1471,3 +1471,57 @@ msgstr "En venta"
 #: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "There is no vehicle on sale."
 msgstr "No hay ningún vehículo en venta."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Unplanned part"
+msgstr "Pieza no prevista"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Not in the bill of materials"
+msgstr "No está en la lista de materiales"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Added"
+msgstr "Añadida"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Not foreseen in the bill of materials"
+msgstr "No prevista en la lista de materiales"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No products found."
+msgstr "No se ha encontrado ningún producto."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "It is added to the bill of materials of this vehicle only."
+msgstr "Se añade solo a la lista de materiales de este vehículo."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Unplanned"
+msgstr "No prevista"
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Discard first the parts to throw away, for a better share of the costs."
+msgstr "Elimina primero las piezas a desechar para un mejor reparto de costes."
+
+#. module: scrap_touch
+#. odoo-javascript
+#: code:addons/scrap_touch/static/src/touch_screen/touch_screen.js:0
+msgid "The cost shares of the bill of materials add up to %s%%: they must add up to 100%% to dismantle."
+msgstr "El reparto del coste de la lista de materiales suma %s %%: debe sumar 100 %% para poder desguazar."

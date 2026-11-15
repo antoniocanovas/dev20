@@ -1211,3 +1211,115 @@ msgstr "Marca del vehículo"
 #: model_terms:ir.ui.view,arch_db:scrap_base.product_template_kanban_view_inherit_scrap_base
 msgid "Template"
 msgstr "Plantilla"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_product_product__scrap_unbuild_id
+#: model:ir.model.fields,field_description:scrap_base.field_product_template__scrap_unbuild_id
+msgid "Disassembly Order"
+msgstr "Orden de desmontaje"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_product_product__scrap_unbuild_id
+#: model:ir.model.fields,help:scrap_base.field_product_template__scrap_unbuild_id
+msgid "Standard disassembly order of the vehicle or the subproduct: its parts and waste come out of it and, once dismantled, it consumes the vehicle, so that the traceability report goes from the vehicle to its parts and back."
+msgstr "Orden de desmontaje estándar del vehículo o del subproducto: de ella salen sus piezas y residuos y, una vez desguazado, consume el vehículo, para que el informe de trazabilidad vaya del vehículo a sus piezas y al revés."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_mrp_bom_line__scrap_added
+msgid "Added While Dismantling"
+msgstr "Añadida al desguazar"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_mrp_bom_line__scrap_added
+msgid "Part found while dismantling the vehicle, not foreseen in its bill of materials: added by the operator on the touch screen."
+msgstr "Pieza encontrada al desguazar el vehículo, no prevista en su lista de materiales: la añade el operario en la pantalla táctil."
+
+#. module: scrap_base
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s can't be a part of the vehicle."
+msgstr "%s no puede ser una pieza del vehículo."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__cost_share
+msgid "Cost Share (%)"
+msgstr "Reparto del coste (%)"
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_mrp_bom_line__scrap_cost_share
+msgid "Scrap Cost Share (%)"
+msgstr "Reparto del coste (%)"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_mrp_bom_line__scrap_cost_share
+msgid "Share of the cost of the vehicle given to this component when it is dismantled, divided between its quantity. The lines of a scrap template must add up to 100%. On a vehicle, the share still to dismantle."
+msgstr "Parte del coste del vehículo que recibe este componente al desguazarlo, dividida entre su cantidad. Las líneas de una plantilla de desguace deben sumar 100 %. En un vehículo, la parte que queda por desguazar."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_scrap_dismantle_line__cost_share
+msgid "Share of the cost of the vehicle: the one given to the part dismantled, or the one a part discarded or missing had, shared between the parts still to dismantle."
+msgstr "Parte del coste del vehículo: la que recibe la pieza desmontada, o la que tenía una pieza desechada o que falta, repartida entre las piezas pendientes."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__cost_lost
+msgid "Cost Share Lost (%)"
+msgstr "Reparto perdido (%)"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_scrap_dismantle_line__cost_lost
+msgid "Of a part discarded or missing, the share that no part still to dismantle could take."
+msgstr "De una pieza desechada o que falta, la parte que no pudo recibir ninguna pieza pendiente."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_scrap_dismantle_line__cost
+msgid "Cost"
+msgstr "Coste"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_scrap_dismantle_line__cost
+msgid "Value of the part dismantled entering the stock: its share of the real cost of the vehicle. Zero for a waste and for a part not foreseen in the bill of materials."
+msgstr "Valor con el que entra en stock la pieza desmontada: su parte del coste real del vehículo. Cero para un residuo y para una pieza no prevista en la lista de materiales."
+
+#. module: scrap_base
+#: model:ir.model.fields,field_description:scrap_base.field_mrp_bom__scrap_cost_share_total
+msgid "Total Cost Share (%)"
+msgstr "Reparto total del coste (%)"
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_mrp_bom__scrap_cost_share_total
+msgid "The cost shares of the lines still to dismantle, of the parts dismantled and of the ones lost: 100% to dismantle it."
+msgstr "El reparto del coste de las líneas pendientes, de las piezas desmontadas y de lo perdido: 100 % para poder desguazar."
+
+#. module: scrap_base
+#: model:ir.model.fields,help:scrap_base.field_mrp_bom__scrap_cost_ok
+msgid "A bill of materials to dismantle (of a scrap template, a vehicle or a subproduct): its lines share the cost of the product."
+msgstr "Lista de materiales para desguazar (de una plantilla de desguace, un vehículo o un subproducto): sus líneas se reparten el coste del producto."
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.mrp_bom_form_view_inherit_scrap_base
+msgid "The cost shares add up to"
+msgstr "El reparto del coste suma"
+
+#. module: scrap_base
+#: model_terms:ir.ui.view,arch_db:scrap_base.mrp_bom_form_view_inherit_scrap_base
+msgid ""
+"%:\n"
+"                    they must add up to 100% to dismantle."
+msgstr ""
+"%:\n"
+"                    debe sumar 100 % para poder desguazar."
+
+#. module: scrap_base
+#: code:addons/scrap_base/models/product_template.py:0
+#, python-format
+msgid "The cost shares of the bill of materials of %(product)s add up to %(total)s%%: they must add up to 100%% to dismantle it."
+msgstr "El reparto del coste de la lista de materiales de %(product)s suma %(total)s %%: debe sumar 100 %% para poder desguazarlo."
+
+#. module: scrap_base
+#: code:addons/scrap_base/models/product_template.py:0
+msgid "%s can't be undone: the parts that took its share of the cost are already dismantled."
+msgstr "%s no se puede deshacer: las piezas que recibieron su parte del coste ya están desguazadas."
+
+#. module: scrap_base
+#: code:addons/scrap_base/models/stock_move.py:0
+msgid "Share of the cost of %s"
+msgstr "Parte del coste de %s"

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Also in the form of the variants, that inherits it -->
+    <record id="product_template_form_view_gaia" model="ir.ui.view">
+        <field name="name">product.template.form.gaia</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="GAIA" name="scrap_gaia" invisible="type == 'service' or type == 'combo'">
+                    <group>
+                        <group>
+                            <label for="weight" string="Weight"/>
+                            <div class="o_row" name="scrap_gaia_weight">
+                                <field name="weight"/>
+                                <span><field name="weight_uom_name"/></span>
+                            </div>
+                        </group>
+                    </group>
+                    <field name="scrap_material_line_ids">
+                        <list editable="bottom">
+                            <field name="scrap_material_id"/>
+                            <field name="percent" sum="Total"/>
+                            <field name="weight"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

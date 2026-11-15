@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_picking_form_gaia" model="ir.ui.view">
+        <field name="name">stock.picking.form.gaia</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="GAIA" name="scrap_gaia" invisible="picking_type_code != 'outgoing'">
+                    <div class="alert alert-warning" role="alert" invisible="not scrap_gaia_warning">
+                        <field name="scrap_gaia_warning"/>
+                    </div>
+                    <button name="action_scrap_compute_gaia" type="object" string="Compute from the products"
+                            icon="fa-refresh" class="btn-secondary mb-2"
+                            confirm="What was written by hand will be lost."/>
+                    <field name="scrap_material_line_ids">
+                        <list editable="bottom">
+                            <field name="scrap_material_id"/>
+                            <field name="weight" sum="Total"/>
+                            <field name="weight_uom_name" string="Unit"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -31,7 +31,7 @@ class TestScrapCrmAvailable(TransactionCase):
         })
         cls.env['mrp.bom'].create({
             'product_tmpl_id': cls.car.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': cls.engine.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': cls.engine.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         supplier = cls.env['res.partner'].create({'name': 'CRM Supplier'})
         result = cls.env['scrap.touch'].purchase_entry({

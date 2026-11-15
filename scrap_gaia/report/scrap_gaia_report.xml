@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Kept as an attachment once presented: printed again as it was presented -->
+    <record id="action_report_scrap_gaia" model="ir.actions.report">
+        <field name="name">GAIA Report</field>
+        <field name="model">scrap.gaia.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">scrap_gaia.report_scrap_gaia</field>
+        <field name="print_report_name">object.name</field>
+        <field name="attachment">object.state == 'presented' and (object.name + '.pdf')</field>
+        <field name="attachment_use">True</field>
+        <field name="binding_model_id" ref="model_scrap_gaia_report"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_scrap_gaia_document">
+        <t t-call="web.external_layout">
+            <t t-set="uom" t-value="o.weight_uom_name"/>
+            <t t-set="materials" t-value="o._get_materials()"/>
+            <div class="page">
+                <h2 t-field="o.name">GAIA 2026-10</h2>
+                <div class="row mb-3">
+                    <div class="col-4"><strong>Period:</strong> <span t-field="o.date_from"/> - <span t-field="o.date_to"/></div>
+                    <div class="col-4"><strong>State:</strong> <span t-field="o.state"/>
+                        <t t-if="o.presented_date"> (<span t-field="o.presented_date"/>)</t></div>
+                    <div class="col-4"><strong>Deliveries:</strong> <span t-out="o.picking_count"/></div>
+                </div>
+
+                <h4>Weight by material</h4>
+                <table class="table table-sm o_main_table" name="gaia_totals">
+                    <thead>
+                        <tr><th>Material</th><th class="text-end">Weight (<t t-out="uom"/>)</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="o.total_ids" t-as="line">
+                            <td><span t-field="line.scrap_material_id"/></td>
+                            <td class="text-end"><span t-field="line.weight"/></td>
+                        </tr>
+                        <tr class="border-top fw-bold">
+                            <td>Total</td>
+                            <td class="text-end"><span t-field="o.weight_total"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 class="mt-4">Deliveries</h4>
+                <table class="table table-sm" name="gaia_pickings">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Delivery</th>
+                            <th>Customer</th>
+                            <th t-foreach="materials" t-as="material" class="text-end" t-out="material.name"/>
+                            <th class="text-end">Total (<t t-out="uom"/>)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="o._get_picking_rows()" t-as="row">
+                            <td><span t-field="row[0].date_done" t-options="{'widget': 'date'}"/></td>
+                            <td t-out="row[0].name"/>
+                            <td t-out="row[0].partner_id.display_name"/>
+                            <td t-foreach="materials" t-as="material" class="text-end">
+                                <span t-out="row[1].get(material, 0.0)" t-options="{'widget': 'float', 'decimal_precision': 'Stock Weight'}"/>
+                            </td>
+                            <td class="text-end"><span t-out="row[2]" t-options="{'widget': 'float', 'decimal_precision': 'Stock Weight'}"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4 class="mt-4">Moves</h4>
+                <table class="table table-sm" name="gaia_moves">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Delivery</th>
+                            <th>Product</th>
+                            <th class="text-end">Quantity</th>
+                            <th class="text-end">Weight (<t t-out="uom"/>)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="o._get_move_rows()" t-as="move">
+                            <td><span t-field="move.date" t-options="{'widget': 'date'}"/></td>
+                            <td t-out="move.picking_id.name"/>
+                            <td t-out="move.product_id.display_name"/>
+                            <td class="text-end"><span t-field="move.quantity"/> <span t-field="move.uom_id"/></td>
+                            <td class="text-end"><span t-out="move.product_id.weight * move.product_qty" t-options="{'widget': 'float', 'decimal_precision': 'Stock Weight'}"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p t-if="o.note" t-field="o.note"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_scrap_gaia">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="scrap_gaia.report_scrap_gaia_document"/>
+            </t>
+        </t>
+    </template>
+
+</odoo>

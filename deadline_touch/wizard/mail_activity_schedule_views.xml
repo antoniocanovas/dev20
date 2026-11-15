@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- As in the popup of the activity: last of the details, with its label -->
+    <record id="mail_activity_schedule_view_form_deadline_touch" model="ir.ui.view">
+        <field name="name">mail.activity.schedule.form.deadline_touch</field>
+        <field name="model">mail.activity.schedule</field>
+        <field name="inherit_id" ref="mail.mail_activity_schedule_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='note']/.." position="after">
+                <div class="d-flex align-items-center mb-2 gap-2 o_deadline_touch_activity_touch_ok"
+                     invisible="not res_model">
+                    <field name="touch_ok" nolabel="1"/>
+                    <label for="touch_ok" class="mb-0"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -9,7 +9,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 from odoo import Command, fields
 
-from .demo_files import create_files
 
 # Vehicles of the demo: (template, plate, make/model, chassis, price, days since their discharge,
 # days since their decontamination, days since their dismantling). The dates go back from today,
@@ -102,8 +101,6 @@ def post_init_hook(env):
     })
 
     _create_opportunities(env)
-    # Files (Expedientes): templates of the management of the yard and files made of them
-    create_files(env)
     _set_images(env)
 
 

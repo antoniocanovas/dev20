@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- The stages of the templates, copied to the projects made of them -->
+    <record id="task_stage_todo" model="project.task.type">
+        <field name="name">Por hacer</field>
+        <field name="sequence">1</field>
+        <field name="user_id" eval="False"/>
+    </record>
+    <record id="task_stage_doing" model="project.task.type">
+        <field name="name">En curso</field>
+        <field name="sequence">2</field>
+        <field name="user_id" eval="False"/>
+    </record>
+    <record id="task_stage_done" model="project.task.type">
+        <field name="name">Hecho</field>
+        <field name="sequence">3</field>
+        <field name="fold" eval="True"/>
+        <field name="user_id" eval="False"/>
+    </record>
+
+</odoo>

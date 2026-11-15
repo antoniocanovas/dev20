@@ -1,6 +1,6 @@
 # Datos de ejemplo del reciclaje de vehículos (`scrap_demo`)
 
-Carga datos de ejemplo para probar `scrap_base`, `scrap_touch` y `scrap_crm`. Depende de `scrap_touch`, `scrap_crm` (que trae `crm` y `project`) y `scrap_repair` (que trae `repair` y, con él, `sale_management`). Los datos se cargan siempre al instalar, aunque la base no tenga los datos de demostración de Odoo. Pensado para bases de prueba, no de producción.
+Carga datos de ejemplo para probar `scrap_base`, `scrap_touch` y `scrap_crm`. Depende de `scrap_touch`, `scrap_crm` (que trae `crm` y `project`), `scrap_repair` (que trae `repair` y, con él, `sale_management`) y `scrap_gaia`. Los datos se cargan siempre al instalar, aunque la base no tenga los datos de demostración de Odoo. Pensado para bases de prueba, no de producción.
 
 ## Qué crea
 
@@ -15,13 +15,21 @@ Carga datos de ejemplo para probar `scrap_base`, `scrap_touch` y `scrap_crm`. De
   - *Motor usado*, de tipo *Subproducto*: el motor de todas las listas de despiece de vehículos y el motor que se compra para despiezarlo.
   - *Culata*, de tipo *Subproducto*: componente del motor que también se despieza, para probar el segundo nivel (vehículo → motor → culata).
 - **Listas de materiales de despiece**, con los centros de trabajo *Zona de descontaminación* y *Zona de despiece*:
-  - *Despiece turismo* (plantilla Turismo): operación *Descontaminar* (batería y depósito de combustible) y *Desmontar piezas* (motor, 4 ruedas, volante, 2 puertas delanteras y 2 asientos delanteros).
-  - *Despiece motocicleta* (plantilla Motocicleta): *Descontaminar* (batería y depósito) y *Desmontar piezas* (motor, 2 ruedas y manillar).
-  - *Despiece furgoneta* (plantilla Furgoneta): *Descontaminar* (batería y depósito) y *Desmontar piezas* (motor, 4 ruedas, volante, 2 puertas delanteras y 3 asientos delanteros).
+  - *Despiece turismo* (plantilla Turismo): operación *Descontaminar* (batería y depósito de combustible) y *Desmontar piezas* (motor, 4 ruedas, volante, 2 puertas delanteras, 2 asientos delanteros y *Carrocería / chatarra*).
+  - *Despiece motocicleta* (plantilla Motocicleta): *Descontaminar* (batería y depósito) y *Desmontar piezas* (motor, 2 ruedas, manillar y *Carrocería / chatarra*).
+  - *Despiece furgoneta* (plantilla Furgoneta): *Descontaminar* (batería y depósito) y *Desmontar piezas* (motor, 4 ruedas, volante, 2 puertas delanteras, 3 asientos delanteros y *Carrocería / chatarra*).
   - *Despiece motor* (plantilla Motor usado): *Desmontar motor* (culata, bloque motor y turbo).
   - *Despiece culata* (plantilla Culata): *Desmontar culata* (16 válvulas y árbol de levas).
+  - **% de coste** de cada línea, que suman 100 % en cada lista: turismo y furgoneta (motor 30, ruedas 20, puertas 15, asientos 10, carrocería 10, batería 5, depósito 5, volante 5), motocicleta (motor 45, ruedas 20, manillar 10, depósito 10, carrocería 10, batería 5), motor (bloque 50, culata 30, turbo 20) y culata (válvulas 60, árbol de levas 40).
+  - *Carrocería / chatarra*: lo que queda del vehículo, al final de las tres listas de vehículos. Se desmonta la última y se lleva el porcentaje que quede, para que no se pierda al terminar el desguace.
   - En las tres listas de vehículos, el motor es la plantilla *Motor usado*. Al desmontarlo se crea un producto propio, *Motor usado DES…*, que es un subproducto con el vehículo como **origen** y con su lista *Despiece motor*. Sale en Desguace → **Subproductos**. Al desmontar su culata pasa lo mismo: *Culata DES…*, con el mismo origen (el vehículo) y su lista *Despiece culata*.
   - Cada vehículo comprado tiene su copia; el vehículo creado a mano la recibe con **Completar datos CAT**.
+- **GAIA** (`scrap_gaia`): peso y % estimado de cada material en las plantillas, que pasan a los vehículos y subproductos creados de ellas. Lo que falta hasta 100 % (vidrio, fluidos, textil...) no se informa.
+  - *Turismo*: 1.100 kg; férreo 65, no férreo 5, metales 3, plástico 12, neumáticos 4.
+  - *Furgoneta*: 1.900 kg; férreo 70, no férreo 4, metales 3, plástico 10, neumáticos 4.
+  - *Motocicleta*: 200 kg; férreo 50, no férreo 15, metales 5, plástico 18, neumáticos 6.
+  - *Motor usado*: 150 kg; férreo 70, no férreo 25, metales 3, plástico 2.
+  - *Culata*: 20 kg; férreo 15, no férreo 85.
 - **Piezas** (las de los datos CAT y los componentes de las listas), de tipo *Subproducto*, para que muestren su pestaña CAT.
 - **Piezas con datos CAT** para probar la búsqueda: *Alternador* (Ref. OEM `231001234R`, Ref. visible `TG11C068`, referencias `231009185R` y `8200667609`), *Faro delantero izquierdo* (`5G1941005`) y *Puerta lateral corredera derecha* (`BK31-V24630-AB`).
 - **Compra de Grúas Martínez para desguace, recibida**, con cuatro vehículos en cada etapa de los plazos (las fechas se cuentan hacia atrás desde el día de instalación):
@@ -55,11 +63,4 @@ Carga datos de ejemplo para probar `scrap_base`, `scrap_touch` y `scrap_crm`. De
 
 Al desinstalar se borran los registros del XML (modelos, proveedores, categorías, proyecto, plantillas y piezas) si nada los usa. Las compras, los vehículos, sus cuentas analíticas, ubicaciones y secuencias se crean al instalar y se quedan.
 
-- **Tareas de las oportunidades (2026-11-11):** con la fecha límite estándar (`date_deadline`), relativa al día de instalación: dos vencidas, una para hoy y dos próximas (-2, -1, 0, +1 y +3 días), para ver los colores en Expedientes.
-
-- **Expedientes (20.0.1.2.0, 2026-11-12):** `demo_files.py`, desde el hook de instalación (depende ahora de `project_task_touch`). Cuatro plantillas marcadas para Expedientes, con fechas de inicio y fin (desde el 1 de enero) y fechas límite en sus tareas, y expedientes creados con ellas: sus fechas límite y su fin salen de la plantilla, movidas a su inicio (`project_task_touch`):
-  - *Salida de residuos*: una tarea con 4 subtareas que se repite cada mes; la del mes pasado hecha y la de este mes creada por la recurrencia.
-  - *Onboarding de empleado*: 7 tareas con dependencias. *Onboarding Juan Pérez (mecánico)* en su segunda semana (una vencida, otras esperando) y *Onboarding Laura Martín (administración)* que empieza hoy.
-  - *Gestión AEAT mensual*: revisar facturas, conciliar bancos, modelos 303, 111 y 115, presentar y archivar, con dependencias y hasta el día 20 del mes siguiente. El mes anterior al pasado presentado y el pasado en curso.
-  - *Formación de taller*: cursos (PRL, descontaminación de VFU, carretilla, híbridos y eléctricos, corte) con las subtareas *Inscripción / Asistencia / Certificado entregado* y una evaluación final que depende de todos. *Formación de taller · Juan Pérez* con el PRL hecho y el resto en marcha.
-  - En una base ya instalada no se crean solos (el hook es solo de instalación): `from odoo.addons.scrap_demo.demo_files import create_files; create_files(env)` desde `odoo-bin shell`.
+- **Tareas de las oportunidades (2026-11-11):** con la fecha límite estándar (`date_deadline`), relativa al día de instalación: dos vencidas, una para hoy y dos próximas (-2, -1, 0, +1 y +3 días), para ver los colores en Vencimientos (`deadline_touch`), si está instalado.

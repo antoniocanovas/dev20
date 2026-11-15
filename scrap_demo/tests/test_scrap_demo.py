@@ -71,6 +71,28 @@ class TestScrapDemo(TransactionCase):
             self.assertIn(template_engine, self.env.ref(f'scrap_demo.{xmlid}').bom_line_ids.product_id)
         van_engine = Template.search([('scrap_origin_id', '=', van.id)])
         self.assertEqual(van_engine.scrap_template_id, self.env.ref('scrap_demo.template_engine'))
+
+        # GAIA: the weight and the materials of their templates, in the vehicles and the parts
+        ferrous = self.env.ref('scrap_gaia.material_ferrous')
+        self.assertEqual(len(self.env.ref('scrap_demo.template_car').scrap_material_line_ids), 5)
+        for product, weight, percent in ((car, 1100, 65), (van, 1900, 70), (done, 200, 50), (van_engine, 150, 70)):
+            self.assertEqual(product.weight, weight)
+            self.assertEqual(product.scrap_material_line_ids.filtered(lambda line: line.scrap_material_id == ferrous).percent, percent)
+        self.assertEqual(head.weight, 20)
+        self.assertEqual(head.scrap_material_line_ids.mapped('percent'), [15, 85])
+
+        # The body / scrap metal, in the vehicles: the rest of the cost, dismantled the last one
+        body = self.env.ref('scrap_demo.comp_body')
+        for xmlid in ('bom_car', 'bom_van', 'bom_motorbike'):
+            bom = self.env.ref(f'scrap_demo.{xmlid}')
+            self.assertEqual(bom.bom_line_ids.filtered(lambda line: line.product_id == body).scrap_cost_share, 10)
+            self.assertTrue(bom.scrap_cost_share_valid)
+        self.assertTrue(van.bom_ids.scrap_cost_share_valid)
+        # The van, 900: the battery discarded (5%) goes to the lines pending, the engine one of
+        # them (30 of 85): 30 + 5 * 30 / 85 = 31.76%
+        engine_part = dismantled.filtered(lambda part: part.bom_line_id.product_id == template_engine)
+        self.assertAlmostEqual(engine_part.cost_share, 30 + 5 * 30 / 85, places=2)
+        self.assertAlmostEqual(engine_part.cost, 900 * (30 + 5 * 30 / 85) / 100, places=2)
         bought = Template.search([('scrap_lot_name', '=', 'MOTOR0001')])
         self.assertEqual((bought.scrap_unbuild_type, bought.scrap_origin_id.id), ('subproduct', False))
         self.assertTrue(bought.discharge_date, "Received")
@@ -171,47 +193,3 @@ class TestScrapDemo(TransactionCase):
         # The parts are found by their CAT data
         self.assertIn(self.env.ref('scrap_demo.part_alternator').product_variant_id,
                       self.env['product.product'].search([('display_name', 'ilike', 'TG11C068')]))
-
-    def test_demo_files(self):
-        """ The files (Expedientes) of the demo: templates and files made of them. """
-        Project = self.env['project.project'].with_context(active_test=False)
-        templates = Project.search([('is_template', '=', True), ('touch_ok', '=', True)])
-        self.assertEqual(set(templates.mapped('name')) & {
-            'Salida de residuos', 'Onboarding de empleado', 'Gestión AEAT mensual', 'Formación de taller'},
-            {'Salida de residuos', 'Onboarding de empleado', 'Gestión AEAT mensual', 'Formación de taller'})
-        self.assertTrue(all(templates.filtered(lambda t: t.name == 'Gestión AEAT mensual').mapped('date')), "With planned dates")
-        self.assertTrue(all(templates.task_ids.filtered(lambda task: not task.parent_id).mapped('date_deadline')),
-                        "With deadlines, moved to the files made of them")
-        files = Project.search([('touch_template_id', 'in', templates.ids)])
-        self.assertTrue(all(files.mapped('date')), "With an end, from the template")
-        self.assertTrue(all(files.mapped('touch_ok')))
-        self.assertGreaterEqual(len(files), 6)
-        today = fields.Date.context_today(files)
-
-        # Waste: one task each month; the last one done, this one created by its recurrence
-        waste = files.filtered(lambda file: file.name == 'Salida de residuos')
-        pickups = waste.task_ids.filtered(lambda task: not task.parent_id).sorted('date_deadline')
-        self.assertEqual(len(pickups), 2)
-        self.assertEqual(pickups.mapped('state'), ['1_done', '01_in_progress'])
-        self.assertTrue(all(pickups.mapped('recurring_task')))
-        self.assertEqual(pickups[1].date_deadline.month, today.month, "The one of this month")
-        self.assertEqual(len(pickups[1].child_ids), 4, "With its subtasks")
-
-        # Onboarding: the presentation waits for the training in risks, still open
-        juan = files.filtered(lambda file: file.name == 'Onboarding Juan Pérez (mecánico)')
-        tasks = {task.name: task for task in juan.task_ids}
-        self.assertEqual(tasks['Contrato y alta en la Seguridad Social'].state, '1_done')
-        self.assertEqual(tasks['Formación inicial en prevención de riesgos'].state, '01_in_progress')
-        self.assertEqual(tasks['Presentación al equipo y acompañamiento la primera semana'].state, '04_waiting_normal')
-        self.assertTrue(tasks['Formación inicial en prevención de riesgos'].date_deadline.date() < today, "Late")
-
-        # AEAT: the month before the last one presented, the last one under way
-        aeat = files.filtered(lambda file: file.name.startswith('AEAT')).sorted('date_start')
-        self.assertEqual(len(aeat), 2)
-        self.assertTrue(all(state == '1_done' for state in aeat[0].task_ids.mapped('state')))
-        self.assertIn('04_waiting_normal', aeat[1].task_ids.mapped('state'), "The submission waits for the 303")
-
-        # Training: courses with their steps as subtasks
-        training = files.filtered(lambda file: file.name.startswith('Formación de taller'))
-        vfu = training.task_ids.filtered(lambda task: task.name.startswith('Descontaminación'))
-        self.assertEqual(sorted(vfu.child_ids.mapped('state')), ['01_in_progress', '1_done', '1_done'])

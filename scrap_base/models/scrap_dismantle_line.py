@@ -49,6 +49,20 @@ class ScrapDismantleLine(models.Model):
         help="Where the part dismantled, or the waste, enters the stock; by default, the location "
              "of the vehicle, or the waste zone of the company.")
     move_id = fields.Many2one('stock.move', string="Stock Move", readonly=True)
+    # The cost of the vehicle given to the part (its share of the bill of materials); of a part
+    # discarded or missing, the share it had, given to the ones still to dismantle or lost
+    cost_share = fields.Float(
+        "Cost Share (%)", readonly=True,
+        help="Share of the cost of the vehicle: the one given to the part dismantled, or the one "
+             "a part discarded or missing had, shared between the parts still to dismantle.")
+    cost_lost = fields.Float(
+        "Cost Share Lost (%)", readonly=True,
+        help="Of a part discarded or missing, the share that no part still to dismantle could take.")
+    currency_id = fields.Many2one(related='company_id.currency_id')
+    cost = fields.Monetary(
+        "Cost", readonly=True,
+        help="Value of the part dismantled entering the stock: its share of the real cost of the "
+             "vehicle. Zero for a waste and for a part not foreseen in the bill of materials.")
     date = fields.Datetime("Date", required=True, default=fields.Datetime.now)
     user_id = fields.Many2one('res.users', string="Operator", required=True,
                               default=lambda self: self.env.user)

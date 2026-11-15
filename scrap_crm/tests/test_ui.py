@@ -24,7 +24,7 @@ class TestScrapCrmAvailableUi(HttpCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': car.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         supplier = self.env['res.partner'].create({'name': 'Tour Supplier'})
         result = self.env['scrap.touch'].purchase_entry({

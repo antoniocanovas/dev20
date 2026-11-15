@@ -4,6 +4,21 @@ from odoo import fields, models
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
+    # A part or a waste entering the stock while dismantling: its value, a share of the real
+    # cost of the vehicle, instead of the cost of the product
+    scrap_valued = fields.Boolean(copy=False, readonly=True)
+    scrap_value = fields.Float(copy=False, readonly=True)
+
+    def _get_value_from_production(self, quantity):
+        if not self.scrap_valued:
+            return super()._get_value_from_production(quantity)
+        valued_quantity = self._get_valued_qty()
+        return {
+            'value': self.scrap_value * quantity / valued_quantity if valued_quantity else 0,
+            'quantity': quantity,
+            'description': self.env._("Share of the cost of %s", self.origin or ''),
+        }
+
     def _prepare_move_line_vals(self, quantity=None, reserved_quant=None):
         """ The receipt of a vehicle comes with its license plate as serial number. """
         vals = super()._prepare_move_line_vals(quantity=quantity, reserved_quant=reserved_quant)

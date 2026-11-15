@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The materials of the GAIA reports in use, as in Odoo 17 -->
+    <data noupdate="1">
+        <record id="material_ferrous" model="scrap.material">
+            <field name="name">Férreo</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="material_non_ferrous" model="scrap.material">
+            <field name="name">No férreo</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="material_metals" model="scrap.material">
+            <field name="name">Metales</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="material_plastic" model="scrap.material">
+            <field name="name">Plástico</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="material_tyres" model="scrap.material">
+            <field name="name">Neumáticos</field>
+            <field name="sequence">50</field>
+        </record>
+    </data>
+</odoo>

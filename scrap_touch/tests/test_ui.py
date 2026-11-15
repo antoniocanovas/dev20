@@ -71,11 +71,12 @@ class TestScrapTouchUi(HttpCase):
         Product = self.env['product.product']
         wheel = Product.create({'name': 'Tour Wheel', 'type': 'consu', 'is_storable': True})
         engine = Product.create({'name': 'Tour Engine', 'type': 'consu', 'is_storable': True})
+        Product.create({'name': 'Tour Mirror', 'type': 'consu', 'is_storable': True})
         self.env['mrp.bom'].create({
             'product_tmpl_id': vehicle.id,
             'bom_line_ids': [
-                fields.Command.create({'product_id': wheel.id, 'product_qty': 2}),
-                fields.Command.create({'product_id': engine.id, 'product_qty': 1}),
+                fields.Command.create({'product_id': wheel.id, 'product_qty': 2, 'scrap_cost_share': 40}),
+                fields.Command.create({'product_id': engine.id, 'product_qty': 1, 'scrap_cost_share': 60}),
             ],
         })
         stock = self.env['stock.warehouse'].search([('company_id', '=', self.env.company.id)], limit=1).lot_stock_id
@@ -88,10 +89,16 @@ class TestScrapTouchUi(HttpCase):
         self.start_tour('/odoo/scrap-touch', 'scrap_touch_cat_tour', login='scrap_tour')
         self.assertEqual(vehicle.decontamination_date, today)
         self.assertEqual(vehicle.scrap_date, today)
-        part = vehicle.scrap_dismantle_line_ids.filtered(lambda part: part.stage == 'dismantling')
+        part, extra = vehicle.scrap_dismantle_line_ids.filtered(lambda part: part.stage == 'dismantling').sorted('id')
         self.assertEqual((part.product_id, part.quantity, part.result, part.condition, part.location_dest_id),
                          (wheel, 2, 'dismantled', 'good', shelf))
         self.assertEqual(wheel.with_context(location=shelf.id).qty_available, 2)
-        self.assertEqual(vehicle.bom_ids.bom_line_ids.mapped('product_qty'), [0, 1], "The engine is left")
+        self.assertEqual((extra.product_id.name, extra.quantity, extra.condition, extra.bom_line_id.scrap_added),
+                         ('Tour Mirror', 2, 'functional', True))
+        lines = vehicle.bom_ids.bom_line_ids
+        self.assertEqual(lines.filtered(lambda line: not line.scrap_added).mapped('product_qty'), [0, 1], "The engine is left")
+        # Dismantled on a date: its disassembly order consumed it
+        self.assertEqual(vehicle.scrap_unbuild_id.state, 'done')
+        self.assertEqual(vehicle.product_variant_id.qty_available, 0)
         waste_zone = self.env.company.scrap_waste_location_id
         self.assertEqual(oil.with_context(location=waste_zone.id).qty_available, 5, "3 litres and 2, corrected")

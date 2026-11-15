@@ -442,6 +442,9 @@ registry.category("web_tour.tours").add("scrap_touch_cat_tour", {
             run: "click",
         },
         {
+            trigger: ".o_scrap_touch_cost_hint:contains(Discard first the parts to throw away)",
+        },
+        {
             trigger: ".o_scrap_touch_part:contains(Tour Wheel) .o_scrap_touch_part_qty:contains(2)",
             run: "click",
         },
@@ -497,6 +500,45 @@ registry.category("web_tour.tours").add("scrap_touch_cat_tour", {
         },
         {
             trigger: ".o_scrap_touch_dismantle_screen:not(:has(.o_scrap_touch_part:contains(Tour Wheel)))",
+        },
+        {
+            content: "A part not foreseen in the bill of materials: chosen among the products",
+            trigger: ".o_scrap_touch_add_part",
+            run: "click",
+        },
+        {
+            trigger: ".o_scrap_touch_extra_search",
+            run: "edit Tour Mirror",
+        },
+        {
+            trigger: ".o_scrap_touch_extra_product:contains(Tour Mirror)",
+            run: "click",
+        },
+        {
+            content: "Then as any other part: as many as found",
+            trigger: ".o_scrap_touch_part_name:contains(Tour Mirror)",
+        },
+        {
+            trigger: ".o_scrap_touch_part_plus",
+            run: "click",
+        },
+        {
+            trigger: ".o_scrap_touch_part_quantity:contains(2)",
+        },
+        {
+            trigger: ".o_scrap_touch_part_option_functional",
+            run: "click",
+        },
+        {
+            trigger: ".o_scrap_touch_confirm_part:enabled",
+            run: "click",
+        },
+        {
+            content: "Marked as added",
+            trigger: ".o_scrap_touch_parts tr:contains(Tour Mirror) .o_scrap_touch_part_added",
+        },
+        {
+            trigger: ".o_scrap_touch_dismantle_screen:not(:has(.o_scrap_touch_part:contains(Tour Mirror)))",
         },
         {
             content: "The engine marked as missing by mistake, and undone",

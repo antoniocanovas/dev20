@@ -123,8 +123,8 @@ class TestScrapTouchCat(TransactionCase):
         self.env['mrp.bom'].create({
             'product_tmpl_id': vehicle.id,
             'bom_line_ids': [
-                Command.create({'product_id': wheel.id, 'product_qty': 4}),
-                Command.create({'product_id': battery.id, 'product_qty': 1}),
+                Command.create({'product_id': wheel.id, 'product_qty': 4, 'scrap_cost_share': 80}),
+                Command.create({'product_id': battery.id, 'product_qty': 1, 'scrap_cost_share': 20}),
             ],
         })
         wheels, battery_line = vehicle.bom_ids.bom_line_ids
@@ -132,7 +132,15 @@ class TestScrapTouchCat(TransactionCase):
         self.assertEqual((summary['pending_parts'], summary['dismantled_parts']), (2, 0))
         data = self.touch.get_dismantle(vehicle.id)
         self.assertEqual([line['id'] for line in data['pending']], [wheels.id, battery_line.id])
+        self.assertTrue(all(line['cost_ok'] for line in data['pending']))
         self.assertEqual(data['location_id'], vehicle.scrap_location_id.id)
+        # Its cost shares not adding up to 100%: the screen warns before dismantling
+        battery_line.scrap_cost_share = 10
+        pending = self.touch.get_dismantle(vehicle.id)['pending']
+        self.assertEqual([(line['cost_ok'], line['cost_share_total']) for line in pending], [(False, 90), (False, 90)])
+        with self.assertRaises(UserError):
+            self.touch.dismantle_part(vehicle.id, wheels.id, 1, 'dismantled', 'good')
+        battery_line.scrap_cost_share = 20
         locations = self.touch.get_dismantle_locations(vehicle.id)
         self.assertEqual(locations[0]['id'], vehicle.scrap_location_id.id, "Its own location first")
         self.assertTrue(all(self.env['stock.location'].browse(location['id']).usage == 'internal' for location in locations))
@@ -164,6 +172,32 @@ class TestScrapTouchCat(TransactionCase):
         with self.assertRaises(UserError):
             self.touch.undo_dismantle_part(vehicle.id, part['id'])
 
+    def test_dismantle_extra(self):
+        """ A part not foreseen, chosen among the products and marked on the screen. """
+        Product = self.env['product.product']
+        wheel = Product.create({'name': 'CAT Touch Wheel', 'type': 'consu', 'is_storable': True})
+        mirror = Product.create({'name': 'CAT Touch Mirror', 'type': 'consu', 'is_storable': True, 'default_code': 'MIR-1'})
+        vehicle = self.decontaminated
+        self.env['mrp.bom'].create({
+            'product_tmpl_id': vehicle.id,
+            'bom_line_ids': [Command.create({'product_id': wheel.id, 'product_qty': 4, 'scrap_cost_share': 100})],
+        })
+        for query in ('touch mirror', 'MIR-1'):
+            self.assertEqual([data['id'] for data in self.touch.get_dismantle_products(vehicle.id, query)], [mirror.id], query)
+        self.assertNotIn(vehicle.product_variant_id.id, [data['id'] for data in self.touch.get_dismantle_products(vehicle.id, 'CAT Touch Car')])
+
+        data = self.touch.dismantle_extra_part(vehicle.id, mirror.id, 2, 'dismantled', 'good')
+        part = data['parts'][0]
+        self.assertEqual((part['product_id'], part['quantity'], part['added']), (mirror.id, 2, True))
+        self.assertTrue(part['can_undo'])
+        self.assertEqual(len(data['pending']), 1, "Only the wheels left")
+        for args in (('x', 1, 'missing'), (mirror.id, True, 'missing'), (mirror.id, '1', 'missing')):
+            with self.assertRaises(ValidationError):
+                self.touch.dismantle_extra_part(vehicle.id, *args)
+        data = self.touch.undo_dismantle_part(vehicle.id, part['id'])
+        self.assertFalse(data['parts'])
+        self.assertEqual(len(data['pending']), 1)
+
     def test_dismantle_subproduct(self):
         """ The subproducts, in their own list of the dismantling, are dismantled as the
         vehicles; the vehicle shows their parts too. """
@@ -175,12 +209,12 @@ class TestScrapTouchCat(TransactionCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': engine.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 2})],
+            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 2, 'scrap_cost_share': 100})],
         })
         vehicle = self.decontaminated
         self.env['mrp.bom'].create({
             'product_tmpl_id': vehicle.id,
-            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         data = self.touch.dismantle_part(vehicle.id, vehicle.bom_ids.bom_line_ids.id, 1, 'dismantled', 'good')
         sub_engine = self.env['product.template'].search([('scrap_origin_id', '=', vehicle.id)])
@@ -240,15 +274,15 @@ class TestScrapTouchCat(TransactionCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': engine.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 4})],
+            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 4, 'scrap_cost_share': 100})],
         })
         vehicle = self.decontaminated
         self.env['mrp.bom'].create({
             'product_tmpl_id': vehicle.id,
             'bom_line_ids': [
-                Command.create({'product_id': wheel.id, 'product_qty': 4}),
-                Command.create({'product_id': engine.id, 'product_qty': 2}),
-                Command.create({'product_id': door.id, 'product_qty': 1}),
+                Command.create({'product_id': wheel.id, 'product_qty': 4, 'scrap_cost_share': 40}),
+                Command.create({'product_id': engine.id, 'product_qty': 2, 'scrap_cost_share': 50}),
+                Command.create({'product_id': door.id, 'product_qty': 1, 'scrap_cost_share': 10}),
             ],
         })
         wheels, engines, doors = vehicle.bom_ids.bom_line_ids
@@ -299,7 +333,7 @@ class TestScrapTouchCat(TransactionCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': engine.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 2})],
+            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 2, 'scrap_cost_share': 100})],
         })
 
         def buy(plate, receive):

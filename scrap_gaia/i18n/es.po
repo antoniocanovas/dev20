@@ -1,0 +1,838 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* scrap_gaia
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 20.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-15 07:29+0000\n"
+"PO-Revision-Date: 2026-11-15 07:29+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: scrap_gaia
+#: model:ir.module.module,description:base.module_scrap_gaia
+msgid ""
+"# GAIA en los albaranes (`scrap_gaia`)\n"
+"\n"
+"GAIA es el organismo oficial al que se informa del material vendido y reciclado según su composición: kg de férreo, de plástico, de neumáticos... Este módulo calcula esos kg en cada albarán de salida, a partir del peso de los productos y de su porcentaje de cada material. Se pueden corregir a mano y se imprimen en el albarán.\n"
+"\n"
+"Depende de `scrap_base`, por las plantillas desguace de las que se copian el peso y los porcentajes. Funciona en Odoo 20 Community y Enterprise.\n"
+"\n"
+"## Materiales\n"
+"\n"
+"**Inventario → Configuración → Productos → Materiales GAIA** (responsables de inventario). La lista se ordena arrastrando las filas, y un material que ya no se usa se archiva.\n"
+"\n"
+"El módulo instala los que se usan ahora:\n"
+"\n"
+"- Férreo\n"
+"- No férreo\n"
+"- Metales\n"
+"- Plástico\n"
+"- Neumáticos\n"
+"\n"
+"## En el producto\n"
+"\n"
+"Pestaña **GAIA** en la ficha del producto y de la variante; no sale en servicios ni combos:\n"
+"\n"
+"- **Peso**: el mismo campo que en la pestaña *Inventario*. Se puede cambiar en cualquiera de las dos.\n"
+"- **Líneas de materiales**:\n"
+"  - **Material**, cada uno una sola vez por producto;\n"
+"  - **Estimado (%)**, entre 0 y 100, con su total al pie;\n"
+"  - **Peso**: los kg de ese material según el peso del producto.\n"
+"- Los porcentajes no pueden ser negativos ni sumar más de 100 %. Lo que falte hasta 100 % no se informa a GAIA.\n"
+"\n"
+"### Desde la plantilla desguace\n"
+"\n"
+"Un producto creado desde una plantilla desguace (*Plantilla de vehículo*) recibe **el peso y las líneas de la plantilla**. Pasa con:\n"
+"\n"
+"- los vehículos creados al confirmar una compra;\n"
+"- los subproductos desmontados de una plantilla, como el motor;\n"
+"- un producto creado a mano con la plantilla ya puesta.\n"
+"\n"
+"Si al crearlo ya trae su peso o sus líneas, se quedan las suyas.\n"
+"\n"
+"Después todo es editable en el producto, sin que cambie la plantilla. Si se cambia la plantilla a mano, el peso y las líneas pasan a ser los de la nueva plantilla: se ve en la ficha en cuanto se elige, antes de guardar. Volver a poner la misma plantilla no cambia nada. Las líneas también se pueden crear a mano en cualquier producto.\n"
+"\n"
+"## En el albarán de salida\n"
+"\n"
+"Pestaña **GAIA** en los albaranes de salida:\n"
+"\n"
+"- **Una línea por material**, con sus kg: la suma, en todos los productos del albarán, de *peso × cantidad × %*. Usa la cantidad pedida de cada movimiento, en la unidad del producto, y deja fuera los cancelados.\n"
+"- **Editable**: los kg se pueden cambiar y se pueden añadir o quitar líneas.\n"
+"- **Cuándo se recalcula**: al añadir o quitar productos o cambiar sus cantidades. No se recalcula al validar el albarán ni al cambiar después el peso o los porcentajes de un producto, así que lo corregido a mano se mantiene.\n"
+"- **Calcular desde los productos**: vuelve a calcularlo con los datos actuales de los productos y pierde lo escrito a mano; pide confirmación.\n"
+"- **Avisos**: en amarillo, los productos almacenables del albarán sin peso o sin materiales GAIA.\n"
+"\n"
+"Las entradas y los albaranes internos no se calculan; la pestaña solo sale en las salidas.\n"
+"\n"
+"### Impresión\n"
+"\n"
+"El **albarán de entrega** (*Imprimir → Albarán de entrega*) añade, tras los productos, una tabla **Material GAIA / Peso** con las líneas que tienen kg y el total.\n"
+"\n"
+"## Pruebas\n"
+"\n"
+"`tests/test_scrap_gaia.py`:\n"
+"\n"
+"- los materiales instalados;\n"
+"- un vehículo copiado de su plantilla, con su peso y sus líneas, editables sin cambiar la plantilla;\n"
+"- un producto creado con la plantilla, con y sin peso y líneas propios;\n"
+"- el cambio de plantilla, por escrito y en la ficha;\n"
+"- el límite de los porcentajes;\n"
+"- el albarán de salida:\n"
+"  - el cálculo y los avisos;\n"
+"  - el recálculo al cambiar una cantidad;\n"
+"  - lo escrito a mano, que se mantiene al validar y al cambiar el producto;\n"
+"  - la tabla en el albarán impreso;\n"
+"  - el botón para recalcular;\n"
+"- una entrada, que no se calcula.\n"
+msgstr ""
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/stock_picking.py:0
+msgid "- %s: without GAIA materials."
+msgstr "- %s: sin materiales GAIA."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/stock_picking.py:0
+msgid "- %s: without weight."
+msgstr "- %s: sin peso."
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "<strong>Deliveries:</strong>"
+msgstr "<strong>Albaranes:</strong>"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_delivery_document_gaia
+msgid "<strong>GAIA material</strong>"
+msgstr "<strong>Material GAIA</strong>"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "<strong>Period:</strong>"
+msgstr "<strong>Periodo:</strong>"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "<strong>State:</strong>"
+msgstr "<strong>Estado:</strong>"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_delivery_document_gaia
+msgid "<strong>Total</strong>"
+msgstr "<strong>Total</strong>"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_delivery_document_gaia
+msgid "<strong>Weight</strong>"
+msgstr "<strong>Peso</strong>"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "A GAIA report presented can't be changed: set it back to draft first."
+msgstr ""
+"Un informe GAIA presentado no se puede cambiar: vuélvelo antes a borrador."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "A GAIA report presented can't be computed again."
+msgstr "Un informe GAIA presentado no se puede volver a calcular."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "A GAIA report presented can't be deleted."
+msgstr "Un informe GAIA presentado no se puede borrar."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_needaction
+msgid "Action Needed"
+msgstr "Acción requerida"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__active
+msgid "Active"
+msgstr "Activo"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_material_view_search
+msgid "Archived"
+msgstr "Archivado"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_attachment_count
+msgid "Attachment Count"
+msgstr "Número de adjuntos"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Back to Draft"
+msgstr "Volver a borrador"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__company_id
+msgid "Company"
+msgstr "Compañía"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Compute"
+msgstr "Calcular"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "Compute %s before downloading it."
+msgstr "Calcula %s antes de descargarlo."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "Compute %s before presenting it."
+msgstr "Calcula %s antes de presentarlo."
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Compute again"
+msgstr "Volver a calcular"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.view_picking_form_gaia
+msgid "Compute from the products"
+msgstr "Calcular desde los productos"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__computed_date
+msgid "Computed on"
+msgstr "Calculado el"
+
+#. module: scrap_gaia
+#: model_terms:ir.actions.act_window,help:scrap_gaia.scrap_gaia_report_action
+msgid "Create the GAIA report of a period"
+msgstr "Crea el informe GAIA de un periodo"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__create_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__create_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__create_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__create_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__create_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__create_uid
+msgid "Created by"
+msgstr "Creado por"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__create_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__create_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__create_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__create_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__create_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__create_date
+msgid "Created on"
+msgstr "Creado el"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__partner_id
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Customer"
+msgstr "Cliente"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__date_done
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Date"
+msgstr "Fecha"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_scrap_gaia_report_line__date_done
+msgid "Date at which the transfer has been processed or cancelled."
+msgstr "Fecha en la que se validó o canceló el albarán."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__picking_ids
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_list
+msgid "Deliveries"
+msgstr "Albaranes"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__picking_id
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Delivery"
+msgstr "Albarán"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__display_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_template__display_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__display_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__display_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__display_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__display_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking__display_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__display_name
+msgid "Display Name"
+msgstr "Nombre mostrado"
+
+#. module: scrap_gaia
+#: model:ir.model.fields.selection,name:scrap_gaia.selection__scrap_gaia_report__state__draft
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_search
+msgid "Draft"
+msgstr "Borrador"
+
+#. module: scrap_gaia
+#: model:ir.model.constraint,message:scrap_gaia.constraint_product_scrap_material_material_unique
+msgid "Each material only once in a product."
+msgstr "Cada material solo una vez en un producto."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__percent
+msgid "Estimated (%)"
+msgstr "Estimado (%)"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_product_product__scrap_material_line_ids
+#: model:ir.model.fields,help:scrap_gaia.field_product_template__scrap_material_line_ids
+msgid ""
+"Estimated share of its weight of each material, for the GAIA reports of the "
+"deliveries. A product made from a scrap template gets the ones of the "
+"template."
+msgstr ""
+"Parte estimada de su peso de cada material, para los informes GAIA de los "
+"albaranes de salida. Un producto creado desde una plantilla desguace recibe "
+"los de la plantilla."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__xlsx_file
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Excel"
+msgstr "Excel"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_delivery_document_gaia
+msgid "Ferrous"
+msgstr "Férreo"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_follower_ids
+msgid "Followers"
+msgstr "Seguidores"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Seguidores (contactos)"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__date_from
+msgid "From"
+msgstr "Desde"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.product_template_form_view_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.view_picking_form_gaia
+msgid "GAIA"
+msgstr "GAIA"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "GAIA 2026-10"
+msgstr "GAIA 2026-10"
+
+#. module: scrap_gaia
+#: model:ir.model,name:scrap_gaia.model_scrap_material
+msgid "GAIA Material"
+msgstr "Material GAIA"
+
+#. module: scrap_gaia
+#: model:ir.model,name:scrap_gaia.model_product_scrap_material
+msgid "GAIA Material of a Product"
+msgstr "Material GAIA de un producto"
+
+#. module: scrap_gaia
+#: model:ir.model,name:scrap_gaia.model_stock_picking_scrap_material
+msgid "GAIA Material of a Transfer"
+msgstr "Material GAIA de un albarán"
+
+#. module: scrap_gaia
+#: model:ir.actions.act_window,name:scrap_gaia.scrap_material_action
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_product__scrap_material_line_ids
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_template__scrap_material_line_ids
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking__scrap_material_line_ids
+#: model:ir.ui.menu,name:scrap_gaia.scrap_material_menu
+msgid "GAIA Materials"
+msgstr "Materiales GAIA"
+
+#. module: scrap_gaia
+#: model:ir.actions.report,name:scrap_gaia.action_report_scrap_gaia
+#: model:ir.model,name:scrap_gaia.model_scrap_gaia_report
+msgid "GAIA Report"
+msgstr "Informe GAIA"
+
+#. module: scrap_gaia
+#: model:ir.model,name:scrap_gaia.model_scrap_gaia_report_line
+msgid "GAIA Report Line"
+msgstr "Línea de informe GAIA"
+
+#. module: scrap_gaia
+#: model:ir.model,name:scrap_gaia.model_scrap_gaia_report_total
+msgid "GAIA Report Total"
+msgstr "Total de informe GAIA"
+
+#. module: scrap_gaia
+#: model:ir.actions.act_window,name:scrap_gaia.scrap_gaia_report_action
+#: model:ir.ui.menu,name:scrap_gaia.scrap_gaia_report_menu
+msgid "GAIA Reports"
+msgstr "Informes GAIA"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking__scrap_gaia_warning
+msgid "GAIA Warnings"
+msgstr "Avisos GAIA"
+
+#. module: scrap_gaia
+#: model:ir.module.module,summary:base.module_scrap_gaia
+msgid ""
+"GAIA: peso de lo vendido y reciclado por material (férreo, plástico...) en "
+"los albaranes de salida y en informes por periodo"
+msgstr ""
+"GAIA: peso de lo vendido y reciclado por material (férreo, plástico...) en "
+"los albaranes de salida y en informes por periodo"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__has_message
+msgid "Has Message"
+msgstr "Tiene mensaje"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__id
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_template__id
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__id
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__id
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__id
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__id
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking__id
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__id
+msgid "ID"
+msgstr "ID"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_scrap_gaia_report__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Si está marcado, hay mensajes nuevos que requieren tu atención."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_scrap_gaia_report__message_has_error
+#: model:ir.model.fields,help:scrap_gaia.field_scrap_gaia_report__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Si está marcado, algunos mensajes tienen un error de entrega."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_is_follower
+msgid "Is Follower"
+msgstr "Es seguidor"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "It can be computed again and changed: present it again afterwards."
+msgstr "Se podrá volver a calcular y cambiar: preséntalo de nuevo después."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_product_scrap_material__weight
+msgid "Its share of the weight of the product."
+msgstr "Su parte del peso del producto."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__write_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__write_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__write_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__write_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__write_uid
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__write_uid
+msgid "Last Updated by"
+msgstr "Última actualización por"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__write_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__write_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__write_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__write_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__write_date
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__write_date
+msgid "Last Updated on"
+msgstr "Última actualización el"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Mark as Presented"
+msgstr "Marcar como presentado"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__scrap_material_id
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__scrap_material_id
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__scrap_material_id
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__scrap_material_id
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Material"
+msgstr "Material"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_has_error
+msgid "Message Delivery error"
+msgstr "Error de entrega del mensaje"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_ids
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Moves"
+msgstr "Movimientos"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__name
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__name
+msgid "Name"
+msgstr "Nombre"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__note
+msgid "Note"
+msgstr "Nota"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Notes"
+msgstr "Notas"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Número de acciones"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_has_error_counter
+msgid "Number of errors"
+msgstr "Número de errores"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_scrap_gaia_report__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Número de mensajes que requieren una acción"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_scrap_gaia_report__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Número de mensajes con error de entrega"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "Origin"
+msgstr "Origen"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "PDF"
+msgstr "PDF"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__picking_id
+msgid "Picking"
+msgstr "Albarán"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__picking_count
+msgid "Picking Count"
+msgstr "Número de albaranes"
+
+#. module: scrap_gaia
+#: model:ir.model.fields.selection,name:scrap_gaia.selection__scrap_gaia_report__state__presented
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_search
+msgid "Presented"
+msgstr "Presentado"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__presented_date
+msgid "Presented on"
+msgstr "Presentado el"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model,name:scrap_gaia.model_product_template
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Product"
+msgstr "Producto"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__product_tmpl_id
+msgid "Product Tmpl"
+msgstr "Plantilla de producto"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Quantity"
+msgstr "Cantidad"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__rating_ids
+msgid "Ratings"
+msgstr "Valoraciones"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Reference of the presentation, remarks..."
+msgstr "Justificante de la presentación, observaciones..."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__report_id
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__report_id
+msgid "Report"
+msgstr "Informe"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Error de entrega del SMS"
+
+#. module: scrap_gaia
+#: model:ir.module.module,shortdesc:base.module_scrap_gaia
+msgid "Scrap GAIA"
+msgstr "Scrap GAIA"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking__scrap_weight_uom_name
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__weight_uom_name
+msgid "Scrap Weight Uom Name"
+msgstr "Unidad de peso"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__sequence
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__sequence
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_material__sequence
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__sequence
+msgid "Sequence"
+msgstr "Secuencia"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__state
+msgid "State"
+msgstr "Estado"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "Summary"
+msgstr "Resumen"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_material.py:0
+msgid "The GAIA percentages of %s add up to more than 100%%."
+msgstr "Los porcentajes GAIA de %s suman más del 100%%."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_material.py:0
+msgid "The GAIA percentages of %s can't be negative."
+msgstr "Los porcentajes GAIA de %s no pueden ser negativos."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_scrap_gaia_report__picking_ids
+msgid ""
+"The deliveries done in the period with products of the vehicle recycling."
+msgstr ""
+"Los albaranes de salida validados en el periodo con productos del reciclaje "
+"de vehículos."
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid ""
+"The deliveries of the period are read again, with the weights they have now."
+msgstr ""
+"Se vuelven a leer los albaranes del periodo, con los pesos que tienen ahora."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid ""
+"The period of %(report)s overlaps the one of %(other)s (%(date_from)s - "
+"%(date_to)s)."
+msgstr ""
+"El periodo de %(report)s se solapa con el de %(other)s (%(date_from)s - "
+"%(date_to)s)."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "The period of %s ends before it starts."
+msgstr "El periodo de %s termina antes de empezar."
+
+#. module: scrap_gaia
+#: model:ir.model.constraint,message:scrap_gaia.constraint_scrap_material_name_unique
+msgid "There is already a GAIA material with this name."
+msgstr "Ya existe un material GAIA con este nombre."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__date_to
+msgid "To"
+msgstr "Hasta"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.product_template_form_view_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_list
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.view_picking_form_gaia
+msgid "Total"
+msgstr "Total"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Total ("
+msgstr "Total ("
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_product__scrap_material_percent
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_template__scrap_material_percent
+msgid "Total (%)"
+msgstr "Total (%)"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__weight_total
+msgid "Total Weight"
+msgstr "Peso total"
+
+#. module: scrap_gaia
+#: model:ir.model,name:scrap_gaia.model_stock_picking
+msgid "Transfer"
+msgstr "Albarán"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.view_picking_form_gaia
+msgid "Unit"
+msgstr "Unidad"
+
+#. module: scrap_gaia
+#: model_terms:ir.actions.act_window,help:scrap_gaia.scrap_gaia_report_action
+msgid ""
+"Usually a month: the deliveries of the products of the vehicle recycling and their\n"
+"               weight of each material, to download in PDF or Excel and present."
+msgstr ""
+"Normalmente un mes: los albaranes de salida de los productos del reciclaje de vehículos\n"
+"               y su peso de cada material, para descargar en PDF o Excel y presentar."
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+#: model:ir.model.fields,field_description:scrap_gaia.field_product_scrap_material__weight
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_line__weight
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report_total__weight
+#: model:ir.model.fields,field_description:scrap_gaia.field_stock_picking_scrap_material__weight
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.product_template_form_view_gaia
+msgid "Weight"
+msgstr "Peso"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Weight ("
+msgstr "Peso ("
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__weight_uom_name
+msgid "Weight Uom Name"
+msgstr "Unidad de peso"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__line_ids
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Weight by Delivery"
+msgstr "Peso por albarán"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__total_ids
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.scrap_gaia_report_view_form
+msgid "Weight by Material"
+msgstr "Peso por material"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_scrap_gaia_document
+msgid "Weight by material"
+msgstr "Peso por material"
+
+#. module: scrap_gaia
+#: model:ir.model.fields,help:scrap_gaia.field_stock_picking__scrap_material_line_ids
+msgid ""
+"Weight of each material of the products delivered, for GAIA: from their "
+"weight and their percentages of each material. It can be changed by hand."
+msgstr ""
+"Peso de cada material de los productos entregados, para GAIA: desde su peso "
+"y sus porcentajes de cada material. Se puede cambiar a mano."
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.view_picking_form_gaia
+msgid "What was written by hand will be lost."
+msgstr "Se perderá lo escrito a mano."
+
+#. module: scrap_gaia
+#: model:ir.model.fields,field_description:scrap_gaia.field_scrap_gaia_report__xlsx_filename
+msgid "Xlsx Filename"
+msgstr "Nombre del Excel"
+
+#. module: scrap_gaia
+#. odoo-python
+#: code:addons/scrap_gaia/models/scrap_gaia_report.py:0
+msgid "id"
+msgstr "id"
+
+#. module: scrap_gaia
+#: model_terms:ir.ui.view,arch_db:scrap_gaia.report_delivery_document_gaia
+msgid "kg"
+msgstr "kg"
+
+#. module: scrap_gaia
+#: model:ir.actions.report,print_report_name:scrap_gaia.action_report_scrap_gaia
+msgid "object.name"
+msgstr "object.name"

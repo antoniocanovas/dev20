@@ -362,8 +362,8 @@ class TestScrapVehicles(TransactionCase):
             'code': 'Dismantle',
             'operation_ids': [Command.create({'name': 'Take to pieces', 'workcenter_id': workcenter.id})],
             'bom_line_ids': [
-                Command.create({'product_id': wheel.id, 'product_qty': 4}),
-                Command.create({'product_id': engine.id, 'product_qty': 1}),
+                Command.create({'product_id': wheel.id, 'product_qty': 4, 'scrap_cost_share': 40}),
+                Command.create({'product_id': engine.id, 'product_qty': 1, 'scrap_cost_share': 60}),
             ],
         })
         bom.bom_line_ids[1].operation_id = bom.operation_ids
@@ -400,9 +400,9 @@ class TestScrapVehicles(TransactionCase):
         self.env['mrp.bom'].create({
             'product_tmpl_id': self.template.product_tmpl_id.id,
             'bom_line_ids': [
-                Command.create({'product_id': self.wheel.id, 'product_qty': 4}),
-                Command.create({'product_id': self.engine.id, 'product_qty': 1}),
-                Command.create({'product_id': self.battery.id, 'product_qty': 1}),
+                Command.create({'product_id': self.wheel.id, 'product_qty': 4, 'scrap_cost_share': 40}),
+                Command.create({'product_id': self.engine.id, 'product_qty': 1, 'scrap_cost_share': 50}),
+                Command.create({'product_id': self.battery.id, 'product_qty': 1, 'scrap_cost_share': 10}),
             ],
         })
         order = self._buy('main', [plate])
@@ -457,6 +457,181 @@ class TestScrapVehicles(TransactionCase):
         with self.assertRaises(UserError):
             vehicle._scrap_dismantle(wheels, 1, 'missing')
 
+    def test_unbuild(self):
+        """ The standard disassembly order of the vehicle: its parts come out of it and, once
+        dismantled, it consumes the vehicle, linked to its parts for the traceability report;
+        undone, the vehicle comes back. """
+        vehicle = self._vehicle_to_dismantle('2121CAT')
+        wheels, engine, battery = vehicle.bom_ids.bom_line_ids
+        worker = new_test_user(self.env, login='cat_unbuilder', groups='stock.group_stock_user')
+        vehicle = vehicle.with_user(worker)
+        product = vehicle.product_variant_id.sudo()
+        plate = product.env['stock.lot'].search([('product_id', '=', product.id)])
+        self.assertFalse(vehicle.scrap_unbuild_id)
+
+        wheel = vehicle._scrap_dismantle(wheels, 1, 'dismantled', 'good')
+        unbuild = vehicle.sudo().scrap_unbuild_id
+        self.assertEqual((unbuild.product_id, unbuild.state), (product, 'draft'))
+        self.assertEqual(wheel.move_id.unbuild_id, unbuild)
+        self.assertEqual(wheel.move_id.reference, unbuild.name)
+        battery_part = vehicle._scrap_dismantle(battery, 1, 'dismantled', 'excellent')
+        discarded = vehicle._scrap_dismantle(engine, 1, 'discarded')
+        self.assertEqual(product.qty_available, 1, "In stock while it is dismantled")
+
+        # Nothing left: dismantled, the vehicle is consumed, linked to its parts
+        vehicle._scrap_dismantle(wheels, 3, 'missing')
+        self.assertTrue(vehicle.scrap_date)
+        self.assertEqual(unbuild.state, 'done')
+        self.assertEqual(product.qty_available, 0)
+        consume = unbuild.consume_line_ids
+        self.assertEqual(consume.move_line_ids.lot_id, plate)
+        self.assertEqual(consume.location_id, vehicle.scrap_location_id)
+        self.assertEqual(unbuild.lot_ids, plate)
+        parts = (wheel | battery_part | discarded).move_id.move_line_ids
+        self.assertEqual(consume.move_line_ids.produce_line_ids, parts)
+        # The traceability report goes from the vehicle to its parts, and back
+        report = self.env['stock.traceability.report']
+        self.assertEqual(report._get_linked_move_lines(consume.move_line_ids)[0], parts)
+        self.assertEqual(report._get_linked_move_lines(battery_part.move_id.move_line_ids)[1], consume.move_line_ids)
+
+        # A part undone: not dismantled, the vehicle back with its plate
+        vehicle._scrap_undo_dismantle(wheel)
+        self.assertFalse(vehicle.scrap_date)
+        self.assertEqual(unbuild.state, 'draft')
+        self.assertEqual(self.env['stock.quant']._get_available_quantity(
+            product, vehicle.scrap_location_id, lot_id=plate, strict=True), 1)
+        self.assertFalse(consume.move_line_ids.produce_line_ids)
+
+        # Dismantled with the button, with a part pending: consumed again, the same order
+        vehicle.action_scrap_dismantled()
+        self.assertEqual(unbuild.state, 'done')
+        self.assertEqual(product.qty_available, 0)
+        self.assertEqual(vehicle.sudo().scrap_unbuild_id, unbuild)
+        self.assertEqual(unbuild.consume_line_ids.filtered(lambda move: not move.returned_move_ids - move).move_line_ids.produce_line_ids,
+                         (battery_part | discarded).move_id.move_line_ids)
+
+        # Dismantled without any part: its order, done, consumes it
+        other = self._vehicle_to_dismantle('2222CAT').with_user(worker)
+        other.action_scrap_dismantled()
+        self.assertEqual(other.sudo().scrap_unbuild_id.state, 'done')
+        self.assertEqual(other.product_variant_id.sudo().qty_available, 0)
+
+    def test_dismantle_extra(self):
+        """ A part not foreseen, found while dismantling: added to the bill of materials of the
+        vehicle only, marked as added, and dismantled at once; undone, it is removed again. """
+        vehicle = self._vehicle_to_dismantle('2323CAT')
+        worker = new_test_user(self.env, login='cat_extra', groups='stock.group_stock_user')
+        vehicle = vehicle.with_user(worker)
+        mirror = self.env['product.product'].create({'name': 'CAT Mirror', 'type': 'consu', 'is_storable': True})
+        pending = vehicle._scrap_dismantle_pending_lines()
+
+        parts = vehicle._scrap_dismantle_extra(mirror, 2, 'dismantled', 'good')
+        added = parts.bom_line_id.sudo()
+        self.assertTrue(added.scrap_added)
+        self.assertEqual(added.bom_id.product_tmpl_id, vehicle)
+        self.assertEqual(added.product_qty, 0, "Dismantled at once")
+        self.assertEqual(vehicle._scrap_dismantle_pending_lines(), pending, "Nothing more to dismantle")
+        self.assertEqual(mirror.with_context(location=vehicle.scrap_location_id.id).qty_available, 2)
+        self.assertEqual(parts.move_id.unbuild_id, vehicle.sudo().scrap_unbuild_id)
+        self.assertEqual(parts.user_id, worker)
+        self.assertFalse(self.template.bom_ids.bom_line_ids.filtered('scrap_added'), "Not in the template")
+
+        # Undone: removed from the bill of materials, not again to dismantle
+        vehicle._scrap_undo_dismantle(parts)
+        self.assertFalse(added.exists())
+        self.assertEqual(mirror.qty_available, 0)
+        self.assertEqual(vehicle._scrap_dismantle_pending_lines(), pending)
+
+        with self.assertRaises(ValidationError):
+            vehicle._scrap_dismantle_extra(vehicle.product_variant_id, 1, 'missing')
+        with self.assertRaises(UserError):
+            vehicle._scrap_dismantle_extra(mirror, 0, 'missing')
+
+        # Dismantled, nothing left: a part added and undone keeps it dismantled
+        for line in vehicle._scrap_dismantle_pending_lines():
+            vehicle._scrap_dismantle(line, line.product_qty, 'missing')
+        self.assertTrue(vehicle.scrap_date)
+        with self.assertRaises(UserError):
+            vehicle._scrap_dismantle_extra(mirror, 1, 'missing')
+        vehicle.sudo().scrap_date = False
+        parts = vehicle._scrap_dismantle_extra(mirror, 1, 'dismantled', 'functional')
+        self.assertTrue(vehicle.scrap_date, "Nothing left: dismantled")
+        consume = vehicle.sudo().scrap_unbuild_id.consume_line_ids.filtered(lambda move: not move.returned_move_ids and move.location_dest_id.usage == 'production')
+        move_lines = parts.move_id.move_line_ids
+        self.assertIn(move_lines, consume.move_line_ids.produce_line_ids)
+        vehicle._scrap_undo_dismantle(parts)
+        self.assertTrue(vehicle.scrap_date, "Still dismantled: nothing left")
+        self.assertNotIn(move_lines, consume.move_line_ids.produce_line_ids)
+
+        # A vehicle without bill of materials gets one
+        other = self._vehicle_to_dismantle('2626CAT')
+        other.bom_ids.unlink()
+        other.with_user(worker)._scrap_dismantle_extra(mirror, 1, 'missing')
+        self.assertEqual(other.bom_ids.bom_line_ids.product_id, mirror)
+
+    def test_cost_shares(self):
+        """ The real cost of the vehicle, shared by its parts as its bill of materials says: the
+        share of a part discarded goes to the ones still to dismantle. """
+        vehicle = self._vehicle_to_dismantle('2030CST')
+        wheels, engine, battery = vehicle.bom_ids.bom_line_ids
+        self.assertEqual(vehicle._scrap_cost_base(), 1000, "Its purchase")
+        self.assertEqual(wheels.scrap_cost_share, 40, "Copied from the template")
+
+        # Not 100%: it can't be dismantled
+        battery.scrap_cost_share = 5
+        self.assertFalse(vehicle.bom_ids.scrap_cost_share_valid)
+        with self.assertRaisesRegex(UserError, "add up to 95"):
+            vehicle._scrap_dismantle(wheels, 1, 'dismantled', 'good')
+        battery.scrap_cost_share = 10
+
+        # Two wheels already in stock at 40: the one dismantled, 100 (40% / 4), averages it
+        self.env['stock.quant']._update_available_quantity(self.wheel, vehicle.scrap_location_id, 2)
+        self.wheel.standard_price = 40
+        part = vehicle._scrap_dismantle(wheels, 1, 'dismantled', 'good')
+        self.assertAlmostEqual(part.cost_share, 10)
+        self.assertEqual(part.cost, 100)
+        self.assertEqual(part.move_id.value, 100, "Valued at its share, not at the cost of the product")
+        self.assertAlmostEqual(self.wheel.standard_price, 60, msg="(2 x 40 + 100) / 3")
+        self.assertAlmostEqual(wheels.scrap_cost_share, 30)
+
+        # The engine discarded: its 50% to the wheels and the battery left, as theirs (30 and 10)
+        discarded = vehicle._scrap_dismantle(engine, 1, 'discarded')
+        self.assertEqual((discarded.cost_share, discarded.cost_lost, discarded.cost), (50, 0, 0))
+        self.assertAlmostEqual(wheels.scrap_cost_share, 67.5)
+        self.assertAlmostEqual(battery.scrap_cost_share, 22.5)
+        self.assertAlmostEqual(engine.scrap_cost_share, 0)
+        self.assertAlmostEqual(vehicle.bom_ids.scrap_cost_share_total, 100, msg="Still the whole cost")
+
+        # A new product (the battery, by lot, at an average cost): its real cost
+        self.battery.categ_id = self.env['product.category'].create({
+            'name': 'CAT Average Parts', 'property_cost_method': 'average'})
+        part = vehicle._scrap_dismantle(battery, 1, 'dismantled', 'excellent')
+        self.assertEqual(part.cost, 225)
+        self.assertEqual(self.battery.standard_price, 225, "Set by Odoo: average cost")
+
+        # Undone the engine: its share taken back from the wheels left
+        vehicle._scrap_undo_dismantle(discarded)
+        self.assertAlmostEqual(engine.scrap_cost_share, 50)
+        self.assertAlmostEqual(wheels.scrap_cost_share, 17.5)
+        self.assertAlmostEqual(vehicle.bom_ids.scrap_cost_share_total, 100)
+        # The battery can't be undone the same way: its share given back to its line
+        vehicle._scrap_undo_dismantle(part)
+        self.assertAlmostEqual(battery.scrap_cost_share, 22.5)
+
+        # Missing, the last ones: nothing left to take their share, lost
+        vehicle._scrap_dismantle(engine, 1, 'missing')
+        vehicle._scrap_dismantle(battery, 1, 'dismantled', 'good')
+        missing = vehicle._scrap_dismantle(wheels, 3, 'missing')
+        self.assertAlmostEqual(missing.cost_lost, missing.cost_share)
+        self.assertTrue(vehicle.scrap_date, "Nothing left")
+        self.assertAlmostEqual(vehicle.bom_ids.scrap_cost_share_total, 100)
+
+        # A part added while dismantling has no cost
+        vehicle.scrap_date = False
+        mirror = self.env['product.product'].create({'name': 'CAT Mirror', 'type': 'consu', 'is_storable': True})
+        part = vehicle._scrap_dismantle_extra(mirror, 1, 'dismantled', 'good')
+        self.assertEqual((part.cost_share, part.cost), (0, 0))
+
     def test_dismantle_checks(self):
         vehicle = self._vehicle_to_dismantle('2121CAT')
         wheels = vehicle.bom_ids.bom_line_ids[0]
@@ -484,11 +659,11 @@ class TestScrapVehicles(TransactionCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': engine.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': head.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': head.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': self.template.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 2})],
+            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 2, 'scrap_cost_share': 100})],
         })
         order = self._buy('main', ['2323CAT'])
         self._receive(order)
@@ -567,7 +742,7 @@ class TestScrapVehicles(TransactionCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': self.template.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         order = self._buy('main', ['2626CAT'])
         self._receive(order)
@@ -599,15 +774,15 @@ class TestScrapVehicles(TransactionCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': head.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 8})],
+            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 8, 'scrap_cost_share': 100})],
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': engine.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': head.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': head.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': self.template.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': engine.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         order = self._buy('main', ['2929CAT'])
         self._receive(order)
@@ -679,11 +854,11 @@ class TestScrapVehicles(TransactionCase):
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': head.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 8})],
+            'bom_line_ids': [Command.create({'product_id': valve.id, 'product_qty': 8, 'scrap_cost_share': 100})],
         })
         self.env['mrp.bom'].create({
             'product_tmpl_id': engine.product_tmpl_id.id,
-            'bom_line_ids': [Command.create({'product_id': head.id, 'product_qty': 1})],
+            'bom_line_ids': [Command.create({'product_id': head.id, 'product_qty': 1, 'scrap_cost_share': 100})],
         })
         order = self._buy('main', ['MOTOR01'], product=engine)
         bought = order.order_line.product_id.product_tmpl_id
