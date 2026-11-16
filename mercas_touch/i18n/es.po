@@ -1448,3 +1448,9 @@ msgstr "Imprimir"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Invoiced"
 msgstr "Facturado"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Details"
+msgstr "Detalle"

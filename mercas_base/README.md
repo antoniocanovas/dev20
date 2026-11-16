@@ -113,6 +113,10 @@ El botón **Imprimir etiquetas** (visible en pedidos de compra confirmados y en 
 
 **Reimprimir desde el lote:** el formulario del lote tiene también el botón **Imprimir etiquetas** (`stock.lot.action_print_mercas_labels`), para reponer etiquetas sin buscar el pedido. Abre el mismo asistente con una línea por lote, con tantas etiquetas como cajas se compraron del lote (la suma de **Cajas** de sus líneas de compra confirmadas), o una si la compra no lo indica. También se puede abrir con varios lotes a la vez. Es lo que usa la reimpresión de `mercas_touch`.
 
+### Lotes — Inventario
+
+El formulario del lote (**Mercas > Lotes**) tiene, junto a **Desechar**, el botón **Inventario** (`stock.lot.action_open_inventory`, usuarios de inventario). Abre un asistente (`stock.lot.inventory.wizard`) con la ubicación interna donde el lote tiene más stock (o la del almacén de la compañía, si no tiene), el disponible ahí y la **cantidad contada**, propuesta igual al disponible. Al aplicar, `_mercas_apply_inventory` hace el ajuste de inventario estándar sobre el quant del lote (`stock.quant` en modo inventario), con la referencia *Inventario del lote X*: la diferencia va a o viene de la ubicación de pérdidas de inventario y por eso suma o resta en **Desechado** del lote, igual que cualquier ajuste. Si la cuenta coincide, no hace nada. Solo ajusta el quant sin paquete ni propietario; si la cantidad contada es menor que lo que hay en paquetes, pide ajustarlo desde el inventario.
+
 Reutiliza el mecanismo estándar de etiquetas de producto de Odoo (`product.label.layout` / los informes `product.report_product_template_label_*`): el asistente arma su propio `quantity_by_product` (cantidad por producto, no uniforme como en el asistente nativo) y llama directamente al informe, así que las etiquetas impresas son las mismas plantillas y formatos que ya conoce cualquier usuario de Odoo (Dymo, 2x7, 4x7, 4x12, con o sin precio).
 
 ### Compras — Facturación firme

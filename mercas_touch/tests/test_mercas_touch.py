@@ -255,6 +255,18 @@ class TestMercasTouch(MercasTouchCommon):
         with self.assertRaises(ValidationError):
             self.Touch.scrap_lot(lot.id, 0)
 
+    def test_lot_inventory_notifies_screens(self):
+        self._buy(40.0, lot_name='COUNT-1')
+        lot = self.env['stock.lot'].search([('name', '=', 'COUNT-1')])
+        notified = []
+        self.patch(type(self.env['mercas.touch']), '_notify_lots_changed',
+                   lambda self, products: notified.append(products))
+        lot.with_user(self.user)._mercas_apply_inventory(30.0)
+        self.assertEqual(lot.product_qty, 30.0)
+        self.assertEqual(notified, [lot.product_id])
+        lot.with_user(self.user)._mercas_apply_inventory(30.0)
+        self.assertEqual(len(notified), 1, "Nothing to tell when the count didn't change")
+
     def test_lots_and_invoicing(self):
         firm_order = self._buy(10.0, 1.0, lot_name='FIRM-1', firm=True)['order']
         self._buy(10.0, 1.0, lot_name='SETTLE-1')

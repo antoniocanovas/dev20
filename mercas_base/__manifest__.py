@@ -25,6 +25,7 @@
         "views/account_move_views.xml",
         "wizard/stock_lot_invoice_wizard_views.xml",
         "wizard/stock_lot_change_wizard_views.xml",
+        "wizard/stock_lot_inventory_wizard_views.xml",
         "report/mercas_box_label_templates.xml",
         "report/report_invoice.xml",
         "wizard/mercas_label_print_wizard_views.xml",

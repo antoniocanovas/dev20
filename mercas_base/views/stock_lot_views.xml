@@ -29,6 +29,13 @@
                         type="object"
                         class="btn-secondary"
                     />
+                    <button
+                        name="action_open_inventory"
+                        string="Inventory"
+                        type="object"
+                        class="btn-secondary"
+                        groups="stock.group_stock_user"
+                    />
                 </header>
             </xpath>
 

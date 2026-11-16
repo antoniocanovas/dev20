@@ -80,6 +80,7 @@ Cada tipo de caja muestra cuántas tiene el cliente (o cuántas tenemos del prov
 
 Los lotes pendientes de facturar al proveedor, el último recibido primero, con buscador (o escaneando una etiqueta). Cada tarjeta muestra una barra de vendido, desechado y en almacén, y los kg de cada cosa.
 
+- **Detalle:** abre en un diálogo el formulario del lote del menú Mercas (compras, ventas, facturas, desechos) con sus botones, entre ellos **Inventario** para fijar la cantidad contada. Al cerrarlo se recargan los lotes.
 - **Desechar:** cantidad con el teclado numérico; se desecha de la ubicación con más stock del lote.
 - **Etiquetas:** reimprime las etiquetas de caja del lote, o de todos los marcados, con el asistente de `mercas_base` (ver *F6 · Etiqueta dañada*).
 - **Liquidar**, **Facturar adelanto** y **Factura firme**, sobre los lotes marcados, con las mismas reglas que el asistente de liquidación de `mercas_base`. Al terminar se abre la factura.
@@ -109,7 +110,7 @@ Se aplican los permisos normales del usuario: la pantalla no salta ninguna regla
 - **Pedidos enviados por la pantalla:** `_browse_order(model, id)` comprueba el id y que el pedido siga existiendo; `is_record_id`/`are_record_ids` validan los ids recibidos.
 - **Pantalla:** acción cliente Owl 3 `mercas_touch.screen` con un componente `TouchNumpad` para el teclado numérico. El teclado solo emite la tecla pulsada; la pantalla la aplica al campo que se está editando.
 - **Escáner:** usa el plugin de `barcodes`; un código escaneado mientras se escribe en un campo va al campo.
-- **Aviso de lotes:** el servidor envía `mercas_touch/lots_changed` a los usuarios internos cuando vende, compra o desecha.
+- **Aviso de lotes:** el servidor envía `mercas_touch/lots_changed` a los usuarios internos cuando vende, compra, desecha o se hace inventario de un lote.
 
 ## Tests
 

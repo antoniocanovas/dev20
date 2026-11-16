@@ -350,6 +350,89 @@ class StockLot(models.Model):
         action["target"] = "new"
         return action
 
+    def action_open_inventory(self):
+        """Open the wizard to count this lot's stock and set it as the new
+        on-hand quantity (a standard inventory adjustment)."""
+        self.ensure_one()
+        return {
+            "name": _("Inventory"),
+            "type": "ir.actions.act_window",
+            "res_model": "stock.lot.inventory.wizard",
+            "view_mode": "form",
+            "views": [(False, "form")],
+            "target": "new",
+            "context": {"default_lot_id": self.id},
+        }
+
+    def _mercas_location_quants(self, location):
+        """Quants of this lot in exactly `location`."""
+        self.ensure_one()
+        return self.quant_ids.filtered(lambda q: q.location_id == location)
+
+    def _mercas_inventory_location(self, company=None):
+        """Internal location where the lot has the most stock or, without
+        stock anywhere, the stock location of the company's warehouse."""
+        self.ensure_one()
+        company = company or self._mercas_company()
+        quants = self.quant_ids.filtered(
+            lambda q: q.location_id.usage == "internal" and q.quantity > 0
+        )
+        if quants:
+            return max(quants, key=lambda q: q.quantity).location_id
+        return self.env["stock.warehouse"].search(
+            [("company_id", "=", company.id)], limit=1
+        ).lot_stock_id
+
+    def _mercas_apply_inventory(self, qty, location=None):
+        """Set the on-hand quantity of this lot in `location` to `qty`
+        through the standard inventory adjustment of stock.quant (inventory
+        mode): the difference is moved to/from the inventory loss location,
+        and counts as scrap or gain in `scrap_kg`.
+
+        Only the plain quant (no package, no owner) is adjusted, which is
+        the one Mercas works with; a count lower than what sits in packages
+        is refused instead of guessing which package to empty.
+
+        :return: the difference applied (0 when the count already matched)
+        """
+        self.ensure_one()
+        if qty < 0:
+            raise UserError(_("The counted quantity can't be negative."))
+        location = location or self._mercas_inventory_location()
+        if not location or location.usage != "internal":
+            raise UserError(_("Choose an internal location to count the lot %s.", self.name))
+        quants = self._mercas_location_quants(location)
+        uom = self.product_id.uom_id
+        diff = qty - sum(quants.mapped("quantity"))
+        if uom.is_zero(diff):
+            return 0.0
+        plain = quants.filtered(lambda q: not q.package_id and not q.owner_id)[:1]
+        target = (plain.quantity if plain else 0.0) + diff
+        if uom.compare(target, 0.0) < 0:
+            raise UserError(_(
+                "Part of the stock of the lot %s is in packages; adjust it from "
+                "the inventory instead.", self.name,
+            ))
+        Quant = self.env["stock.quant"].with_context(
+            inventory_mode=True,
+            inventory_name=_("Inventory of lot %s", self.name),
+        )
+        if plain:
+            plain = plain.with_env(Quant.env)
+            plain.inventory_quantity = target
+        else:
+            plain = Quant.create({
+                "product_id": self.product_id.id,
+                "location_id": location.id,
+                "lot_id": self.id,
+                "inventory_quantity": target,
+            })
+        if isinstance(plain.action_apply_inventory(), dict):
+            raise UserError(_(
+                "The stock of the lot %s changed while counting it. Try again.", self.name,
+            ))
+        return diff
+
     def _mercas_has_firm_invoicing(self):
         self.ensure_one()
         return bool(self.supplier_invoice_line_ids.filtered(

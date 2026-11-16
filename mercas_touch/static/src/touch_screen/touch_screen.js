@@ -1357,6 +1357,20 @@ export class TouchScreen extends Component {
         return Object.keys(this.state.lotSelection).map((id) => parseInt(id, 10));
     }
 
+    /** The form of the lot of the Mercas menu: purchases, sales, invoices, scraps and its
+     * buttons (inventory, scrap, labels...). The lots are reloaded when it is closed. */
+    async onOpenLot(lot) {
+        await this.action.doAction({
+            type: "ir.actions.act_window",
+            name: lot.name,
+            res_model: "stock.lot",
+            res_id: lot.id,
+            views: [[false, "form"]],
+            target: "new",
+            context: { dialog_size: "extra-large" },
+        }, { onClose: () => this.loadLots() });
+    }
+
     onScrapLot(lot) {
         this.state.scrap = { lot, qty: "" };
     }

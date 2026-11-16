@@ -189,6 +189,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__lot_id
 #: model:ir.model.fields,field_description:mercas_base.field_account_move_line__lot_id
 #: model:ir.model.fields,field_description:mercas_base.field_mercas_label_print_wizard_line__lot_id
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_inventory_wizard__lot_id
 msgid "Lot"
 msgstr "Lote"
 
@@ -1146,6 +1147,9 @@ msgstr "Reembolsos"
 
 #. module: mercas_base
 #: model:ir.ui.menu,name:mercas_base.menu_mercas_inventario
+#: code:addons/mercas_base/models/stock_lot.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_inventory_wizard_form
 msgid "Inventory"
 msgstr "Inventario"
 
@@ -1221,6 +1225,7 @@ msgstr "Referencia"
 
 #. module: mercas_base
 #: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_inventory_wizard__product_uom_id
 msgid "UoM"
 msgstr "UdM"
 
@@ -1489,3 +1494,58 @@ msgid ""
 " the self-billing journal of the company, numbered with a series of its own,"
 " and are sent to it by email."
 msgstr "Expedimos las facturas de este proveedor en su nombre: sus facturas van al diario de autofacturas de la compañía, con una serie propia, y se le envían por correo."
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_stock_lot_inventory_wizard
+msgid "Lot Inventory Adjustment"
+msgstr "Ajuste de inventario del lote"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_inventory_wizard__location_id
+msgid "Location"
+msgstr "Ubicación"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_inventory_wizard__current_qty
+msgid "On Hand"
+msgstr "Disponible"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_inventory_wizard__counted_qty
+msgid "Counted Quantity"
+msgstr "Cantidad contada"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_lot_inventory_wizard__difference_qty
+msgid "Difference"
+msgstr "Diferencia"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_inventory_wizard_form
+msgid "Apply"
+msgstr "Aplicar"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "The counted quantity can't be negative."
+msgstr "La cantidad contada no puede ser negativa."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "Choose an internal location to count the lot %s."
+msgstr "Elija una ubicación interna para contar el lote %s."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "Part of the stock of the lot %s is in packages; adjust it from the inventory instead."
+msgstr "Parte del stock del lote %s está en paquetes; ajústelo desde el inventario."
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "Inventory of lot %s"
+msgstr "Inventario del lote %s"
+
+#. module: mercas_base
+#: code:addons/mercas_base/models/stock_lot.py:0
+msgid "The stock of the lot %s changed while counting it. Try again."
+msgstr "El stock del lote %s ha cambiado mientras se contaba. Inténtelo de nuevo."
