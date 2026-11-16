@@ -282,11 +282,33 @@
                             <i class="oi" data-icon="add"/>
                         </button>
                     </div>
-                    <select class="form-select form-select-lg o_mercas_touch_box_product" t-on-change="this.onEntryBoxProduct">
-                        <option value="">Box…</option>
-                        <option t-foreach="this.boxProducts()" t-as="box" t-key="box.id" t-att-value="box.id"
-                                t-att-selected="box.id === entry.boxProductId" t-out="box.name"/>
-                    </select>
+                    <!-- More than 200 kinds of box: typed to filter, then chosen from the results -->
+                    <div class="position-relative o_mercas_touch_box_product">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                            <input type="text" autocomplete="off" class="form-control o_mercas_touch_box_search"
+                                   placeholder="Box…"
+                                   t-att-value="entry.boxSearch !== null ? entry.boxSearch : this.boxName(entry.boxProductId, '')"
+                                   t-on-focus="this.onBoxSearchFocus" t-on-blur="this.onBoxSearchBlur"
+                                   t-on-input="this.onBoxSearchInput" t-on-keydown="this.onBoxSearchKeydown"/>
+                            <button t-if="entry.boxProductId" class="btn btn-secondary o_mercas_touch_box_clear" title="No box"
+                                    t-on-mousedown.prevent="" t-on-click="() => this.onSelectBox(false)">
+                                <i class="oi" data-icon="close"/>
+                            </button>
+                        </div>
+                        <t t-if="entry.boxSearch !== null">
+                            <t t-set="boxChoices" t-value="this.boxChoices()"/>
+                            <div class="list-group position-absolute w-100 shadow o_mercas_touch_box_choices" t-on-mousedown.prevent="">
+                                <button t-foreach="boxChoices.boxes" t-as="box" t-key="box.id"
+                                        t-att-class="'list-group-item list-group-item-action py-3 o_mercas_touch_box_choice ' + (box.id === entry.boxProductId ? 'active' : '')"
+                                        t-on-click="() => this.onSelectBox(box.id)" t-out="box.name"/>
+                                <div t-if="!boxChoices.boxes.length" class="list-group-item text-muted">No box matches.</div>
+                                <div t-if="boxChoices.more" class="list-group-item text-muted small">
+                                    <t t-out="boxChoices.more"/> more: keep typing to narrow the search.
+                                </div>
+                            </div>
+                        </t>
+                    </div>
                 </div>
                 <t t-if="this.state.mode === 'purchase'">
                     <div class="row g-2">
@@ -626,8 +648,18 @@
                     t-on-click="() => this.onBoxDirection('deliver')">We give back boxes to the supplier</button>
         </div>
         <div t-if="!this.boxProducts().length" class="alert alert-warning">There is no product marked as a box.</div>
+        <t t-else="">
+            <div class="input-group input-group-lg mb-3 o_mercas_touch_search">
+                <span class="input-group-text"><i class="oi" data-icon="search"/></span>
+                <input type="search" class="form-control o_mercas_touch_box_list_search" autocomplete="off"
+                       placeholder="Search a box by reference or name…"
+                       t-att-value="this.state.boxListSearch" t-on-input="this.onBoxListSearchInput"/>
+            </div>
+        </t>
+        <t t-set="boxCards" t-value="this.boxCards()"/>
+        <div t-if="this.boxProducts().length and !boxCards.length" class="text-muted mb-3">No box matches.</div>
         <div class="o_mercas_touch_grid">
-            <div t-foreach="this.boxProducts()" t-as="box" t-key="box.id" class="card o_mercas_touch_box">
+            <div t-foreach="boxCards" t-as="box" t-key="box.id" class="card o_mercas_touch_box">
                 <div class="card-body">
                     <div class="fs-5 fw-bold text-truncate" t-out="box.name"/>
                     <div class="small text-muted mb-2">

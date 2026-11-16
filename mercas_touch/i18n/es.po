@@ -1454,3 +1454,27 @@ msgstr "Facturado"
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Details"
 msgstr "Detalle"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No box"
+msgstr "Sin caja"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No box matches."
+msgstr "Ninguna caja coincide."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "more: keep typing to narrow the search."
+msgstr "más: sigue escribiendo para afinar la búsqueda."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Search a box by reference or name…"
+msgstr "Buscar una caja por referencia o nombre…"

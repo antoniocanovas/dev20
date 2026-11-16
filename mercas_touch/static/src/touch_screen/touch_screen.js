@@ -22,6 +22,8 @@ const MODEL = "mercas.touch";
 const LOTS_CHANGED = "mercas_touch/lots_changed";
 // Time to wait after typing before searching partners or lots
 const SEARCH_DELAY = 300;
+// Kinds of box listed at once while looking for the box of a line
+const BOX_CHOICES_LIMIT = 50;
 
 /** A random uuid (version 4); crypto.randomUUID() needs HTTPS, the counter may use plain HTTP. */
 function randomUuid() {
@@ -99,6 +101,7 @@ export class TouchScreen extends Component {
             // Boxes
             boxDirection: "return",
             boxQty: {},
+            boxListSearch: "",
             // Lots
             lotSearch: "",
             lotList: [],
@@ -171,6 +174,11 @@ export class TouchScreen extends Component {
             ev.preventDefault();
             ev.stopImmediatePropagation();
             this.openMode(mode.key);
+        } else if (ev.key === "Escape" && this.state.entry && this.state.entry.boxSearch !== null) {
+            // Escape closes the list of boxes, it doesn't leave the line
+            ev.preventDefault();
+            ev.stopImmediatePropagation();
+            document.activeElement?.blur();
         } else if (ev.key === "Escape" && this.state.mode && !document.querySelector(".modal")) {
             ev.preventDefault();
             ev.stopImmediatePropagation();
@@ -211,6 +219,7 @@ export class TouchScreen extends Component {
         this.state.categoryId = false;
         this.state.productSearch = "";
         this.state.boxQty = {};
+        this.state.boxListSearch = "";
         this.state.boxDirection = "return";
         this.state.invoiceIds = [];
         this.state.amount = "";
@@ -633,6 +642,14 @@ export class TouchScreen extends Component {
         return this.state.data.products.filter((product) => product.is_box);
     }
 
+    /** Kinds of box whose internal reference, name or barcode contains the text typed. */
+    searchBoxes(text) {
+        const search = normalize((text || "").trim());
+        return this.boxProducts().filter(
+            (box) => !search || normalize(`${box.default_code || ""} ${box.name} ${box.barcode || ""}`).includes(search)
+        );
+    }
+
     productById(productId) {
         return this.state.data.products.find((product) => product.id === productId);
     }
@@ -704,6 +721,8 @@ export class TouchScreen extends Component {
             price: line ? this.formatInput(line.price) : this.formatInput(product.price),
             boxQty: line ? line.boxQty : 0,
             boxProductId: line ? line.boxProductId : defaultBox,
+            // Text typed to look for a box; null while the list of boxes is closed
+            boxSearch: null,
             note: line ? line.note : "",
             showNote: Boolean(line?.note),
             originCountryId: line ? line.originCountryId : false,
@@ -776,8 +795,52 @@ export class TouchScreen extends Component {
         this.state.entry.boxQty = Math.max(0, (this.state.entry.boxQty || 0) + step);
     }
 
-    onEntryBoxProduct(ev) {
-        this.state.entry.boxProductId = parseInt(ev.target.value, 10) || false;
+    /**
+     * Kinds of box matching what is typed in the box of the line, at most BOX_CHOICES_LIMIT
+     * of them: there are hundreds, too many for a selection.
+     */
+    boxChoices() {
+        const boxes = this.searchBoxes(this.state.entry.boxSearch);
+        return {
+            boxes: boxes.slice(0, BOX_CHOICES_LIMIT),
+            more: Math.max(0, boxes.length - BOX_CHOICES_LIMIT),
+        };
+    }
+
+    onBoxSearchFocus(ev) {
+        // An empty search shows all the boxes; the one chosen stays until another is picked
+        this.state.entry.boxSearch = "";
+        ev.target.value = "";
+    }
+
+    onBoxSearchBlur(ev) {
+        // A little later: on some tablets the tap on a result blurs the field before its click
+        const entry = this.state.entry;
+        const input = ev.target;
+        browser.setTimeout(() => {
+            if (this.state.entry === entry && document.activeElement !== input) {
+                entry.boxSearch = null;
+            }
+        }, 200);
+    }
+
+    onBoxSearchInput(ev) {
+        this.state.entry.boxSearch = ev.target.value;
+    }
+
+    onBoxSearchKeydown(ev) {
+        if (ev.key === "Enter") {
+            const [box] = this.boxChoices().boxes;
+            if (box) {
+                this.onSelectBox(box.id);
+            }
+        }
+    }
+
+    onSelectBox(boxProductId) {
+        this.state.entry.boxProductId = boxProductId || false;
+        this.state.entry.boxSearch = null;
+        document.activeElement?.blur();
     }
 
     onEntryCountry(ev) {
@@ -1028,8 +1091,8 @@ export class TouchScreen extends Component {
         return this.state.lines.reduce((total, line) => total + (line.boxQty || 0), 0);
     }
 
-    boxName(boxProductId) {
-        return this.productById(boxProductId)?.name || _t("boxes");
+    boxName(boxProductId, fallback = _t("boxes")) {
+        return this.productById(boxProductId)?.name || fallback;
     }
 
     // ------------------------------------------------------------------
@@ -1254,6 +1317,21 @@ export class TouchScreen extends Component {
     onBoxDirection(direction) {
         this.state.boxDirection = direction;
         this.state.boxQty = {};
+    }
+
+    /**
+     * Boxes of the tab, filtered by what is typed; those with a quantity typed stay in sight
+     * so that what is going to be moved is always seen. The kinds the partner holds go first.
+     */
+    boxCards() {
+        const found = new Set(this.searchBoxes(this.state.boxListSearch).map((box) => box.id));
+        const boxes = this.boxProducts().filter((box) => found.has(box.id) || this.state.boxQty[box.id] > 0);
+        const held = (box) => (this.boxBalance(box.id) ? 0 : 1);
+        return boxes.sort((a, b) => held(a) - held(b));
+    }
+
+    onBoxListSearchInput(ev) {
+        this.state.boxListSearch = ev.target.value;
     }
 
     boxBalance(productId) {

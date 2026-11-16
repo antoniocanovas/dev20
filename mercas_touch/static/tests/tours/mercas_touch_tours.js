@@ -67,12 +67,32 @@ registry.category("web_tour.tours").add("mercas_touch_sale_tour", {
             trigger: ".o_mercas_touch_box_qty_input:value(2)",
         },
         {
+            content: "The box of the product is proposed",
+            trigger: ".o_mercas_touch_box_search:value(Tour Box)",
+        },
+        {
+            content: "Look for another kind of box by its internal reference",
+            trigger: ".o_mercas_touch_box_search",
+            run: "edit cj-77",
+        },
+        {
+            trigger: ".o_mercas_touch_box_choices:not(:has(.o_mercas_touch_box_choice:contains(Tour Box)))",
+        },
+        {
+            content: "Choose it among the results",
+            trigger: ".o_mercas_touch_box_choice:contains(Tour Crate)",
+            run: "click",
+        },
+        {
+            trigger: ".o_mercas_touch_box_search:value(Tour Crate)",
+        },
+        {
             trigger: ".o_mercas_touch_add",
             run: "click",
         },
         {
             content: "The line is in the ticket",
-            trigger: ".o_mercas_touch_line:contains(TOUR-LOT):contains(12)",
+            trigger: ".o_mercas_touch_line:contains(TOUR-LOT):contains(12):contains(Tour Crate)",
         },
         {
             trigger: ".o_mercas_touch_total_boxes:text(2)",
@@ -87,7 +107,7 @@ registry.category("web_tour.tours").add("mercas_touch_sale_tour", {
         },
         {
             content: "The customer now holds the boxes",
-            trigger: ".o_mercas_touch_partner_badges:contains(Tour Box)",
+            trigger: ".o_mercas_touch_partner_badges:contains(Tour Crate)",
         },
         {
             content: "Invoice the sale",

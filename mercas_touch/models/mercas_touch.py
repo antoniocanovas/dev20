@@ -75,6 +75,11 @@ class MercasTouch(models.AbstractModel):
             '|', ('sale_ok', '=', True), ('purchase_ok', '=', True),
             *Product._check_company_domain(company),
         ], limit=PRODUCT_LIMIT, order='default_code, name, id')
+        # All the kinds of box, even past the limit: each line chooses its box among them
+        products |= Product.search([
+            ('is_box', '=', True), ('id', 'not in', products.ids),
+            *Product._check_company_domain(company),
+        ], order='default_code, name, id')
         journals = self.env['account.journal'].search([
             ('type', 'in', ('bank', 'cash')),
             *self.env['account.journal']._check_company_domain(company),

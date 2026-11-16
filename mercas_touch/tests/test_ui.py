@@ -17,6 +17,10 @@ class TestMercasTouchUi(HttpCase):
             'name': 'Tour Box', 'type': 'consu', 'is_storable': True, 'is_box': True, 'list_price': 0.0,
             'taxes_id': [Command.clear()], 'supplier_taxes_id': [Command.clear()],
         })
+        cls.crate = cls.env['product.product'].create({
+            'name': 'Tour Crate', 'default_code': 'CJ-77', 'type': 'consu', 'is_storable': True, 'is_box': True, 'list_price': 0.0,
+            'taxes_id': [Command.clear()], 'supplier_taxes_id': [Command.clear()],
+        })
         cls.pear = cls.env['product.product'].create({
             'name': 'Tour Pear', 'type': 'consu', 'is_storable': True, 'tracking': 'lot',
             'uom_id': cls.uom_kg.id, 'list_price': 2.0, 'box_product_id': cls.box.id,
@@ -44,6 +48,7 @@ class TestMercasTouchUi(HttpCase):
         self.assertEqual(line.product_uom_qty, 12)
         self.assertEqual(line.price_unit, 1.5)
         self.assertEqual(line.box_qty, 2)
+        self.assertEqual(line.box_product_id, self.crate, "The box chosen by typing, not the one of the product")
         self.assertTrue(all(picking.state == 'done' for picking in order.picking_ids))
         invoice = order.invoice_ids
         self.assertEqual(invoice.state, 'posted')
