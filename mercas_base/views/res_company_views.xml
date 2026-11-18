@@ -15,6 +15,7 @@
                         </group>
                         <group string="Purchases">
                             <field name="purchase_lot_autocomplete" widget="toggle"/>
+                            <field name="mercas_firm_negotiation" widget="toggle"/>
                             <field name="origin_country" widget="toggle"/>
                             <field name="origin_state" widget="toggle"/>
                             <field name="origin_filter" widget="toggle"/>

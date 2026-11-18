@@ -43,6 +43,14 @@ Dentro de cada modo, la flecha (o **Esc**) vuelve atrás, y los botones F1-F6 de
 7. **Vender y entregar.** Guarda las últimas líneas en el presupuesto y ejecuta *Vender y Entregar* de `mercas_base`: confirma y valida el albarán. Después se puede imprimir el **albarán** o las **etiquetas de caja**, o abrir el pedido.
    - **DeCA (documento de control del transporte, opcional):** el botón *DeCA* abre un diálogo del albarán con el transportista, las matrículas de la tractora y del remolque, las autorizaciones especiales y el peso, y avisa de lo que aún falta (matrícula, transportista, NIF del transportista, del cliente o de la empresa, o el peso de los productos). *Imprimir DeCA* guarda los datos e imprime el documento (`l10n_es_deca_oca`). El transportista se propone según *Transportista por defecto* de la pestaña Mercas de la compañía: el del último albarán del cliente con sus matrículas, el propio cliente o ninguno; también en los albaranes creados desde el backend, y al abrir el diálogo en albaranes anteriores. Cambiar estos datos tras imprimir genera una nueva versión del DeCA.
 8. **Facturar y cobrar.** *Facturar* crea y publica la factura del pedido, que se puede imprimir. *Cobrar* abre el cobro del cliente con esa factura ya marcada y su importe pendiente propuesto: se elige el diario y se cobra, total o parcialmente.
+9. **Comentarios.** En la venta confirmada, un texto libre que se imprime en el pedido, el albarán y la factura (`sale.order.mercas_comment` de `mercas_base`). Se guarda con *Guardar comentarios* y ya no se puede cambiar cuando la factura se ha enviado o se ha guardado su PDF, para que no quede desfasado.
+10. **Enviar por correo.** Abre una lista con el **albarán**, la **DeCA** (solo si está completa: si no, avisa de completarla antes) y la **factura**, marcados los disponibles cuyo contacto tiene correo, con la dirección a la que irá cada uno. Con *Enviar*:
+    - **la factura** va al contacto de facturación del pedido con el envío estándar de facturas de Odoo (plantilla de factura, queda marcada como enviada y su PDF guardado);
+    - **el albarán y la DeCA** van al contacto de entrega, con la plantilla *Táctil: documentos de la entrega* (editable en Ajustes › Técnico › Plantillas de correo), y quedan en el historial del último albarán;
+    - si los dos contactos tienen el mismo correo, todo va en un solo correo (el de la factura);
+    - si falta el correo de algún contacto, no se envía nada y se avisa.
+
+    El correo sale por el servidor de correo saliente de Odoo: sin él configurado, se queda en la cola.
 
 Si el cliente supera su riesgo (con `sale_financial_risk` y sin permitir confirmar por encima del riesgo), el pedido queda en presupuesto y se abre el aviso estándar de OCA, donde un gestor de riesgo puede continuar.
 

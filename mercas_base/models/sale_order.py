@@ -20,6 +20,38 @@ class SaleOrder(models.Model):
         store=True,
         string="Is Box Delivery to Supplier",
     )
+    mercas_comment = fields.Text(
+        string="Comments",
+        copy=False,
+        help=(
+            "Printed on the order, its delivery slips and its invoices. It can't "
+            "be changed once an invoice has been sent or its PDF generated."
+        ),
+    )
+
+    def _mercas_comment_locked(self):
+        """The comment is printed on the invoices: once the PDF of one is kept
+        (sent or generated), changing it would leave the PDF out of date."""
+        self.ensure_one()
+        return any(
+            invoice.invoice_pdf_report_id or invoice.is_move_sent
+            for invoice in self.invoice_ids
+            if invoice.move_type == "out_invoice" and invoice.state == "posted"
+        )
+
+    def write(self, vals):
+        if "mercas_comment" in vals:
+            locked = self.filtered(
+                lambda o: (o.mercas_comment or "") != (vals["mercas_comment"] or "")
+                and o._mercas_comment_locked()
+            )
+            if locked:
+                raise UserError(_(
+                    "The comments of %s can't be changed: its invoice has already "
+                    "been sent or printed.",
+                    ", ".join(locked.mapped("name")),
+                ))
+        return super().write(vals)
 
     @api.depends(
         "box_delivery_purchase_id", "order_line.display_type",

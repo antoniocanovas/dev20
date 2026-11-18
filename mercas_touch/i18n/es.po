@@ -1478,3 +1478,153 @@ msgstr "más: sigue escribiendo para afinar la búsqueda."
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Search a box by reference or name…"
 msgstr "Buscar una caja por referencia o nombre…"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Not in the bill: invoiced from their lot"
+msgstr "No van en la factura: se facturan desde su lote"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid ""
+"Invoice them with the buttons of the lots: Settle, Invoice advance or Firm "
+"invoice."
+msgstr ""
+"Facturar con los botones de los lotes: Liquidar, Facturar adelanto o Factura "
+"firme."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "%s has no email."
+msgstr "%s no tiene correo electrónico."
+
+#. module: mercas_touch
+#: model:mail.template,body_html:mercas_touch.mail_template_delivery_documents
+msgid ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"        Hello <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</t>,<br/><br/>\n"
+"        Please find attached the documents of the delivery <strong t-out=\"object.name or ''\">WH/OUT/00001</strong><t t-if=\"object.sale_id\"> of your order <strong t-out=\"object.sale_id.name or ''\">S00001</strong></t>.<br/><br/>\n"
+"        Best regards,\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-quote-container=\"1\">\n"
+"            <br/><br/>\n"
+"            <t t-out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/>Mitchell Admin</t>\n"
+"        </t>\n"
+"    </p>\n"
+"</div>\n"
+"            "
+msgstr ""
+"<div style=\"margin: 0px; padding: 0px;\">\n"
+"    <p style=\"margin: 0px; padding: 0px; font-size: 13px;\">\n"
+"        Hola <t t-out=\"object.partner_id.name or ''\">Brandon Freeman</t>,<br/><br/>\n"
+"        Le adjuntamos los documentos de la entrega <strong t-out=\"object.name or ''\">WH/OUT/00001</strong><t t-if=\"object.sale_id\"> de su pedido <strong t-out=\"object.sale_id.name or ''\">S00001</strong></t>.<br/><br/>\n"
+"        Un saludo,\n"
+"        <t t-if=\"not is_html_empty(object.user_id.signature)\" data-o-mail-quote-container=\"1\">\n"
+"            <br/><br/>\n"
+"            <t t-out=\"object.user_id.signature or ''\" data-o-mail-quote=\"1\">--<br data-o-mail-quote=\"1\"/>Mitchell Admin</t>\n"
+"        </t>\n"
+"    </p>\n"
+"</div>\n"
+"            "
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Choose the documents to send."
+msgstr "Elige los documentos que enviar."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Comments"
+msgstr "Comentarios"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Complete the DeCA first (button DeCA)."
+msgstr "Completa antes la DeCA (botón DeCA)."
+
+#. module: mercas_touch
+#: model:mail.template,description:mercas_touch.mail_template_delivery_documents
+msgid "Delivery slip and DeCA of a sale, sent from the touch screen"
+msgstr "Albarán y DeCA de una venta, enviados desde la pantalla táctil"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid comments."
+msgstr "Comentarios no válidos."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid ""
+"It can't be changed anymore: the invoice has already been sent or printed."
+msgstr "Ya no se pueden cambiar: la factura ya se ha enviado o impreso."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Only the documents of a confirmed sale can be sent."
+msgstr "Solo se pueden enviar los documentos de una venta confirmada."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Printed on the order, the delivery slip and the invoice"
+msgstr "Se imprimen en el pedido, el albarán y la factura"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Save comments"
+msgstr "Guardar comentarios"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Send"
+msgstr "Enviar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Send by email"
+msgstr "Enviar por correo"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Sent to %(email)s: %(documents)s"
+msgstr "Enviado a %(email)s: %(documents)s"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid ""
+"Some of the documents chosen aren't available anymore: reload the sale."
+msgstr ""
+"Alguno de los documentos elegidos ya no está disponible: vuelve a cargar la "
+"venta."
+
+#. module: mercas_touch
+#: model:mail.template,name:mercas_touch.mail_template_delivery_documents
+msgid "Touch: Delivery Documents"
+msgstr "Táctil: documentos de la entrega"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "has no email"
+msgstr "no tiene correo electrónico"
+
+#. module: mercas_touch
+#: model:mail.template,subject:mercas_touch.mail_template_delivery_documents
+msgid ""
+"{{ object.company_id.name }} - {{ object.sale_id.name or object.name }}"
+msgstr ""
+"{{ object.company_id.name }} - {{ object.sale_id.name or object.name }}"

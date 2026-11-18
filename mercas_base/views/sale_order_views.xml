@@ -7,6 +7,11 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
 
+            <!-- Comments printed on the order, its delivery slips and invoices -->
+            <field name="note" position="before">
+                <field name="mercas_comment" colspan="2" nolabel="1" placeholder="Comments (printed on the order, delivery slips and invoices)..."/>
+            </field>
+
             <!-- Sold & Sent button next to Confirm -->
             <button name="action_confirm" position="after">
                 <button name="button_sold_and_sent"

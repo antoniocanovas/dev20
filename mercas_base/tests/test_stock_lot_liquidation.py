@@ -215,6 +215,13 @@ class TestStockLotLiquidation(TransactionCase):
         self.assertEqual(bill.amount_total, 50.0)
         self.assertFalse(self.lot.supplier_invoice_line_ids, "The lot stays to invoice from the lot")
 
+        # The bill warns about the line left out, with its lot
+        alert = bill.alerts.get("mercas_lot_settlement_lines")
+        self.assertTrue(alert)
+        self.assertIn(self.lot.name, alert["message"])
+        self.assertEqual(alert["action"]["domain"], [["id", "in", self.lot.ids]])
+        self.assertEqual(self.purchase._mercas_lot_settlement_lines(), lot_line)
+
     def test_empty_lines_alert_ignores_sections(self):
         """The sections of a bill (at 0) aren't empty lines to remove."""
         bill = self.env["account.move"].create({

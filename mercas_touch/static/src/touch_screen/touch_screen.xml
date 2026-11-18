@@ -200,7 +200,8 @@
                 <span class="d-flex flex-column min-w-0">
                     <span class="fw-bold text-truncate" t-out="product.name"/>
                     <span class="small text-muted">
-                        <t t-out="this.formatAmount(product.price)"/> / <t t-out="product.uom"/>
+                        <!-- The sale price: a purchase proposes the one of the supplier -->
+                        <t t-if="this.state.mode !== 'purchase'"><t t-out="this.formatAmount(product.price)"/> / </t><t t-out="product.uom"/>
                         <t t-if="product.tracking"> · <i class="oi" data-icon="barcode"/> Lots</t>
                     </span>
                 </span>
@@ -579,6 +580,59 @@
                     <t t-if="lot.box_qty"> · <t t-out="lot.box_qty"/> boxes</t>
                 </div>
             </div>
+            <div t-if="done.kind === 'sale' and done.state === 'sale'" class="mt-3 text-start o_mercas_touch_sale_comment">
+                <label class="fw-bold mb-1" for="o_mercas_touch_comment">Comments</label>
+                <textarea id="o_mercas_touch_comment" class="form-control" rows="2"
+                          placeholder="Printed on the order, the delivery slip and the invoice"
+                          t-att-disabled="done.comment_locked"
+                          t-att-value="this.commentValue(done)"
+                          t-on-input="(ev) => done.commentEdit = ev.target.value"/>
+                <div t-if="done.comment_locked" class="small text-muted mt-1">
+                    It can't be changed anymore: the invoice has already been sent or printed.
+                </div>
+                <button t-elif="this.commentValue(done) !== done.comment" class="btn btn-primary mt-2 o_mercas_touch_save_comment"
+                        t-att-disabled="this.state.sending" t-on-click="() => this.onSaveComment(done)">
+                    <i class="oi" data-icon="check"/> Save comments
+                </button>
+            </div>
+            <div t-if="done.mailPanel" class="card mt-3 text-start o_mercas_touch_mail_panel">
+                <div class="card-body">
+                    <div class="fw-bold mb-2">Send by email</div>
+                    <t t-foreach="['delivery', 'deca', 'invoice']" t-as="kind" t-key="kind">
+                        <t t-set="available" t-value="done.mail.documents.includes(kind)"/>
+                        <t t-set="email" t-value="this.mailEmail(done, kind)"/>
+                        <div t-if="available or (kind === 'deca' and done.mail.deca_missing)"
+                             t-attf-class="form-check py-2 o_mercas_touch_mail_{{ kind }}">
+                            <input class="form-check-input" type="checkbox" t-att-id="'o_mercas_touch_mail_' + kind"
+                                   t-att-disabled="!available or !email"
+                                   t-att-checked="done.mailPanel.kinds.includes(kind)"
+                                   t-on-change="() => this.onToggleMailKind(kind)"/>
+                            <label class="form-check-label fs-5" t-att-for="'o_mercas_touch_mail_' + kind">
+                                <t t-out="this.mailDocumentLabel(kind)"/>
+                                <span t-if="email" class="small text-muted"> → <t t-out="email"/></span>
+                                <span t-else="" class="small text-danger"> → <t t-out="this.mailName(done, kind)"/> has no email</span>
+                            </label>
+                            <div t-if="!available" class="small text-muted">Complete the DeCA first (button DeCA).</div>
+                        </div>
+                    </t>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-primary btn-lg o_mercas_touch_mail_send"
+                                t-att-disabled="this.state.sending or !done.mailPanel.kinds.length"
+                                t-on-click="this.onSendMail">
+                            <i class="oi" data-icon="send"/> Send
+                        </button>
+                        <button class="btn btn-secondary btn-lg" t-on-click="this.onToggleMail">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            <div t-if="done.kind === 'purchase' and done.settlement_lines?.length"
+                 class="alert alert-warning text-start mt-3 mb-0 o_mercas_touch_settlement_lines">
+                <div class="fw-bold">Not in the bill: invoiced from their lot</div>
+                <div class="small mb-1">Invoice them with the buttons of the lots: Settle, Invoice advance or Firm invoice.</div>
+                <div t-foreach="done.settlement_lines" t-as="line" t-key="line_index">
+                    <t t-out="line.product"/>: <strong t-out="line.lot_name"/> · <t t-out="this.formatQty(line.qty)"/> <t t-out="line.uom"/>
+                </div>
+            </div>
             <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
                 <button t-if="done.kind === 'sale' and done.state === 'sale'" class="btn btn-secondary btn-lg o_mercas_touch_print_delivery"
                         t-on-click="() => this.onPrint('delivery')">
@@ -621,6 +675,10 @@
                 <button t-if="done.invoice and done.kind === 'sale'" class="btn btn-secondary btn-lg o_mercas_touch_print_invoice"
                         t-on-click="() => this.onPrint('invoice')">
                     <i class="oi" data-icon="print"/> Print invoice
+                </button>
+                <button t-if="done.kind === 'sale' and done.state === 'sale' and done.mail?.documents.length"
+                        class="btn btn-secondary btn-lg o_mercas_touch_mail" t-on-click="this.onToggleMail">
+                    <i class="oi" data-icon="mail"/> Send by email
                 </button>
                 <button t-if="done.invoice and done.kind === 'sale' and done.invoice.payment_state !== 'paid'" class="btn btn-primary btn-lg o_mercas_touch_collect_invoice"
                         t-on-click="this.onCollectInvoice">

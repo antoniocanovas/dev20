@@ -1,6 +1,6 @@
 {
     "name": "Mercas Base",
-    "version": "20.0.1.0.0",
+    "version": "20.0.1.0.1",
     "summary": "Módulo base para gestión de mercados mayoristas de frutas",
     "author": "Antonio Cánovas",
     "license": "LGPL-3",
@@ -28,6 +28,7 @@
         "wizard/stock_lot_inventory_wizard_views.xml",
         "report/mercas_box_label_templates.xml",
         "report/report_invoice.xml",
+        "report/report_comment.xml",
         "wizard/mercas_label_print_wizard_views.xml",
         "views/stock_lot_views.xml",
         "views/purchase_order_views.xml",

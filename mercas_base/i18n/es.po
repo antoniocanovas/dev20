@@ -217,6 +217,7 @@ msgstr "Producto"
 #. module: mercas_base
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__mercas_firm_negotiation
 #: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__mercas_firm_negotiation
+#: model:ir.model.fields,field_description:mercas_base.field_res_company__mercas_firm_negotiation
 #: model:ir.model.fields,field_description:mercas_base.field_res_partner__mercas_firm_negotiation
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot__mercas_firm_negotiation
 #: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_search_mercas
@@ -1549,3 +1550,78 @@ msgstr "Inventario del lote %s"
 #: code:addons/mercas_base/models/stock_lot.py:0
 msgid "The stock of the lot %s changed while counting it. Try again."
 msgstr "El stock del lote %s ha cambiado mientras se contaba. Inténtelo de nuevo."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/account_move.py:0
+msgid ""
+"Not in this bill: the lines with a lot are invoiced from their lot "
+"(settlement, advance or firm invoice of the lot). %s"
+msgstr ""
+"No están en esta factura: las líneas con lote se facturan desde su lote "
+"(liquidación, anticipo o factura firme del lote). %s"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "lot %s"
+msgstr "lote %s"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "See the lots"
+msgstr "Ver los lotes"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/account_move.py:0
+msgid "Lots to invoice"
+msgstr "Lotes por facturar"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_res_company__mercas_firm_negotiation
+msgid ""
+"If enabled, every new contact gets this option enabled, so the purchase "
+"price is the one negotiated at that moment."
+msgstr ""
+"Si está activado cualquier contacto nuevo tendrá esta opción habilitada por "
+"lo que el precio de compra será el negociado en ese momento."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas
+msgid "Comments (printed on the order, delivery slips and invoices)..."
+msgstr ""
+"Comentarios (se imprimen en el pedido, los albaranes y las facturas)..."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_account_bank_statement_line__mercas_comment
+#: model:ir.model.fields,help:mercas_base.field_account_move__mercas_comment
+msgid "Comments of the sales invoiced, printed on the invoice."
+msgstr "Comentarios de las ventas facturadas, impresos en la factura."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_sale_order__mercas_comment
+msgid ""
+"Printed on the order, its delivery slips and its invoices. It can't be "
+"changed once an invoice has been sent or its PDF generated."
+msgstr ""
+"Se imprimen en el pedido, sus albaranes y sus facturas. No se pueden cambiar"
+" una vez enviada una factura o generado su PDF."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/sale_order.py:0
+msgid ""
+"The comments of %s can't be changed: its invoice has already been sent or "
+"printed."
+msgstr ""
+"Los comentarios de %s no se pueden cambiar: su factura ya se ha enviado o "
+"impreso."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_account_bank_statement_line__mercas_comment
+#: model:ir.model.fields,field_description:mercas_base.field_account_move__mercas_comment
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order__mercas_comment
+msgid "Comments"
+msgstr "Comentarios"

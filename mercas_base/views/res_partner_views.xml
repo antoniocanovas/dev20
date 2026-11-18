@@ -9,7 +9,7 @@
         <field name="arch" type="xml">
             <group name="sale" position="inside">
                 <field name="mercas_margin"/>
-                <field name="mercas_firm_negotiation" widget="boolean_toggle"/>
+                <field name="mercas_firm_negotiation" widget="boolean_toggle" invisible="not is_company and parent_id"/>
             </group>
             <group name="purchase" position="inside">
                 <field name="mercas_self_billing" widget="boolean_toggle" invisible="not is_company and parent_id"/>

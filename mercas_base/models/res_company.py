@@ -53,6 +53,13 @@ class ResCompany(models.Model):
         digits=(10, 2),
         help="General margin when not in partner.",
     )
+    mercas_firm_negotiation = fields.Boolean(
+        string="Firm Negotiation",
+        help=(
+            "If enabled, every new contact gets this option enabled, so the "
+            "purchase price is the one negotiated at that moment."
+        ),
+    )
     auto_confirm_supplier_invoice = fields.Boolean(
         string="Auto-Confirm Supplier Invoice",
         default=False,

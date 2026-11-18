@@ -1,4 +1,4 @@
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -12,6 +12,8 @@ class ResPartner(models.Model):
     )
     mercas_firm_negotiation = fields.Boolean(
         string="Firm Negotiation",
+        # New contacts take the option of the company (Mercas tab)
+        default=lambda self: self.env.company.mercas_firm_negotiation,
         help=(
             "Default value of the 'Firm Negotiation' field on new purchase "
             "order lines for this supplier. It can be changed manually on "
@@ -48,6 +50,20 @@ class ResPartner(models.Model):
             "boxes button."
         ),
     )
+
+    @api.model
+    def _commercial_fields(self):
+        # Firm negotiation is decided by the supplier (company): hidden on its
+        # contacts and addresses, and copied to them when it changes
+        return super()._commercial_fields() + ["mercas_firm_negotiation"]
+
+    def _get_commercial_values(self):
+        # The standard only copies the values that are set: a company without
+        # firm negotiation must also pass it on to a new contact, which would
+        # otherwise keep the default of the company (Mercas tab)
+        values = super()._get_commercial_values()
+        values["mercas_firm_negotiation"] = self.mercas_firm_negotiation
+        return values
 
     def _mercas_box_locations(self, company):
         """Dedicated customer/supplier locations of this partner, excluding the

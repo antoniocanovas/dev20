@@ -104,11 +104,7 @@ class MercasLabelPrintWizard(models.TransientModel):
         # Own report (see report/mercas_box_label.py) instead of the standard
         # product labels: those only know the product, and each box label
         # must also carry its lot, expiration and origin.
-        xml_id = (
-            "mercas_base.action_report_mercas_box_label_dymo"
-            if self.print_format == "dymo"
-            else "mercas_base.action_report_mercas_box_label"
-        )
+        xml_id = self._get_report_xmlid()
         data = {
             "print_format": self.print_format,
             "labels": [
@@ -119,6 +115,14 @@ class MercasLabelPrintWizard(models.TransientModel):
         report_action = self.env.ref(xml_id).report_action(None, data=data, config=False)
         report_action.update({"close_on_report_download": True})
         return report_action
+
+
+    def _get_report_xmlid(self):
+        """The report of the chosen format. A module of a customer adds its
+        own formats (selection_add on print_format) and their reports here."""
+        if self.print_format == "dymo":
+            return "mercas_base.action_report_mercas_box_label_dymo"
+        return "mercas_base.action_report_mercas_box_label"
 
 
 class MercasLabelPrintWizardLine(models.TransientModel):

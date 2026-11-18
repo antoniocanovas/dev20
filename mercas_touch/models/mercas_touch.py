@@ -3,10 +3,15 @@ from collections import defaultdict
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools import float_round
 from odoo.tools.sql import escape_like_value
 
 from odoo.addons.web.controllers.utils import clean_action
 
+# Characters of the comments of a sale
+MAX_COMMENT = 2000
+# The documents of a sale that can be sent by email, by the contact that receives them
+SALE_MAIL_DOCUMENTS = {'delivery': 'shipping', 'deca': 'shipping', 'invoice': 'invoice'}
 # Partners found by a search on the screen
 PARTNER_LIMIT = 60
 # Products shown on the screen, in tiles by category
@@ -268,6 +273,41 @@ class MercasTouch(models.AbstractModel):
             (line for line in balance.values() if line['customer'] or line['supplier']),
             key=lambda line: line['name'],
         )
+
+    @api.model
+    def get_line_price(self, kind, partner_id, product_id, qty=0, attribute_value_ids=None):
+        """ The price proposed for a new line, computed by an order line as in the backend:
+
+        - purchase: the vendor price list of the supplier for that quantity, or else the cost
+          of the product;
+        - sale: the price list of the customer, with the extra price of the attributes chosen
+          (quality, size), or else the sale price of the product.
+
+        Net of the discount of the line: the screen has no discount. """
+        if kind not in ('sale', 'purchase'):
+            raise ValidationError(self.env._("Invalid kind of order."))
+        partner = self._get_partner(partner_id)
+        if not is_record_id(product_id):
+            raise ValidationError(self.env._("Invalid product."))
+        product = self.env['product.product'].browse(product_id).exists()
+        if not product:
+            raise ValidationError(self.env._("The product doesn't exist anymore."))
+        qty = qty if is_number(qty) and qty > 0 else 1.0
+        order = self.env[f'{kind}.order'].new({'partner_id': partner.id, 'company_id': self.env.company.id})
+        line_vals = {'order_id': order.id, 'product_id': product.id}
+        if kind == 'sale':
+            line_vals['product_uom_qty'] = qty
+            attribute_values = self.env['product.template.attribute.value'].browse(
+                [value for value in attribute_value_ids or [] if is_record_id(value)]
+            ).exists().filtered(lambda value: value.product_tmpl_id == product.product_tmpl_id)
+            if attribute_values:
+                line_vals['product_no_variant_attribute_value_ids'] = [Command.set(attribute_values.ids)]
+        else:
+            line_vals['product_qty'] = qty
+        line = self.env[f'{kind}.order.line'].new(line_vals)
+        line.order_id = order
+        digits = self.env['decimal.precision'].precision_get('Product Price')
+        return float_round(line.price_unit * (1 - (line.discount or 0.0) / 100), precision_digits=digits)
 
     @api.model
     def get_product_lots(self, product_id):
@@ -927,6 +967,9 @@ class MercasTouch(models.AbstractModel):
                 picking.state in ('done', 'cancel') for picking in order.picking_ids),
             'picking_ids': order.picking_ids.filtered(lambda picking: picking.state == 'done').ids,
             **self._get_order_states(order),
+            'comment': order.mercas_comment or '',
+            'comment_locked': order._mercas_comment_locked(),
+            'mail': self._get_sale_mail_data(order),
         }
 
     def _get_purchase_lot(self, line):
@@ -962,6 +1005,13 @@ class MercasTouch(models.AbstractModel):
                 mode for mode, lots in self._get_purchase_lots_to_invoice(order).items() if lots
             ] if order.state == 'purchase' else [],
             'invoice_count': len(self._get_purchase_invoices(order)),
+            # Left out of the bill of the purchase: invoiced from their lot
+            'settlement_lines': [{
+                'product': line.product_id.display_name,
+                'lot_name': line.lot_id.name,
+                'qty': line.product_qty,
+                'uom': line.uom_id.name,
+            } for line in order._mercas_lot_settlement_lines()] if order.state == 'purchase' else [],
             'lots': [{
                 'product': line.product_id.display_name,
                 'lot_id': line.lot_id.id,
@@ -1195,6 +1245,142 @@ class MercasTouch(models.AbstractModel):
         if model != 'sale.order' or not pickings:
             raise UserError(self.env._("There is no delivery to print."))
         return self._get_client_action(self.env.ref('stock.action_report_delivery').report_action(pickings))
+
+    @api.model
+    def set_sale_comment(self, order_id, comment):
+        """ The comments of a sale, printed on the order, its delivery slips and its invoices
+        (see sale.order.mercas_comment). Locked once an invoice has been sent or printed. """
+        if not isinstance(comment, str) or len(comment) > MAX_COMMENT:
+            raise ValidationError(self.env._("Invalid comments."))
+        order = self._browse_order('sale.order', order_id)
+        order.mercas_comment = comment.strip() or False
+        return {'comment': order.mercas_comment or '', 'comment_locked': order._mercas_comment_locked()}
+
+    def _get_sale_mail_documents(self, order):
+        """ What can be sent of a sale: its delivery slips (the deliveries done), the DeCA of its
+        last delivery, if complete, and its last posted invoice. """
+        pickings = order.picking_ids.filtered(
+            lambda picking: picking.state == 'done' and picking.picking_type_code == 'outgoing')
+        deca = pickings.sorted('id')[-1:]
+        invoice = order.invoice_ids.filtered(
+            lambda move: move.state == 'posted' and move.move_type == 'out_invoice').sorted('id')[-1:]
+        return {
+            'delivery': pickings,
+            'deca': deca if deca and not deca.mercas_deca_missing else deca.browse(),
+            'invoice': invoice,
+        }
+
+    def _get_sale_mail_partners(self, order):
+        return {'invoice': order.partner_invoice_id, 'shipping': order.partner_shipping_id}
+
+    def _get_sale_mail_data(self, order):
+        """ For the button "Send by email": the documents available, and the email of the
+        contact of invoicing (the invoice) and of delivery (the delivery slip and the DeCA). """
+        if order.state != 'sale':
+            return False
+        documents = self._get_sale_mail_documents(order)
+        partners = self._get_sale_mail_partners(order)
+        return {
+            'documents': [kind for kind, records in documents.items() if records],
+            'deca_missing': bool(not documents['deca'] and documents['delivery']),
+            'emails': {key: partner.email or '' for key, partner in partners.items()},
+            'names': {key: partner.display_name for key, partner in partners.items()},
+        }
+
+    @api.model
+    def send_sale_documents(self, order_id, kinds):
+        """ Send by email the documents of a sale chosen on the screen (`kinds`: 'delivery',
+        'deca', 'invoice'): the invoice to the contact of invoicing, with the standard sending
+        of invoices (marked as sent, its PDF kept); the delivery slips and the DeCA to the
+        contact of delivery. A single email when both contacts have the same address.
+
+        :returns: [{'email': str, 'documents': [kind]}], one per email sent
+        """
+        if not isinstance(kinds, list) or not kinds or any(kind not in SALE_MAIL_DOCUMENTS for kind in kinds):
+            raise ValidationError(self.env._("Choose the documents to send."))
+        order = self._browse_order('sale.order', order_id)
+        if order.state != 'sale':
+            raise UserError(self.env._("Only the documents of a confirmed sale can be sent."))
+        order.check_access('write')
+        documents = self._get_sale_mail_documents(order)
+        missing = [kind for kind in kinds if not documents[kind]]
+        if missing:
+            raise UserError(self.env._("Some of the documents chosen aren't available anymore: reload the sale."))
+        partners = self._get_sale_mail_partners(order)
+
+        # One email per address: the invoice, and the delivery documents
+        emails = {}
+        for kind in dict.fromkeys(kinds):
+            partner = partners[SALE_MAIL_DOCUMENTS[kind]]
+            if not partner.email:
+                raise UserError(self.env._("%s has no email.", partner.display_name))
+            key = partner.email_normalized or partner.email.strip().lower()
+            emails.setdefault(key, {'partner': partner, 'kinds': []})['kinds'].append(kind)
+
+        sent = []
+        for mail in emails.values():
+            partner, mail_kinds = mail['partner'], mail['kinds']
+            attachments = self._get_sale_mail_attachments(documents, mail_kinds)
+            if 'invoice' in mail_kinds:
+                self._send_sale_invoice(documents['invoice'], partner, attachments)
+            else:
+                self._send_sale_delivery_documents(documents['delivery'].sorted('id')[-1], partner, attachments)
+            sent.append({'email': partner.email, 'documents': mail_kinds})
+        return sent
+
+    def _get_sale_mail_attachments(self, documents, kinds):
+        """ The PDF of the delivery slips and the DeCA, kept on their delivery. The invoice
+        makes its own, with the standard sending. """
+        Report = self.env['ir.actions.report']
+        attachments = self.env['ir.attachment']
+        reports = [
+            ('delivery', 'stock.action_report_delivery', self.env._("Delivery slip")),
+            ('deca', 'l10n_es_deca_oca.action_report_deca', self.env._("DeCA")),
+        ]
+        for kind, report, label in reports:
+            if kind not in kinds:
+                continue
+            for picking in documents[kind]:
+                pdf = Report._render_qweb_pdf(report, picking.ids)[0]
+                attachments |= attachments.create({
+                    'name': f"{label} - {picking.name}.pdf".replace('/', '_'),
+                    'raw': pdf,
+                    'mimetype': 'application/pdf',
+                    'res_model': 'stock.picking',
+                    'res_id': picking.id,
+                })
+        return attachments
+
+    def _send_sale_invoice(self, invoice, partner, attachments):
+        """ The standard sending of the invoice by email, to `partner`, with the PDF of the
+        delivery documents going to the same address. """
+        sender = self.env['account.move.send']
+        settings = sender._get_default_sending_settings(
+            invoice, sending_methods=['email'], mail_partner_ids=[partner.id])
+        widget = settings.get('mail_attachments_widget') or []
+        widget += [{
+            'id': attachment.id,
+            'name': attachment.name,
+            'mimetype': attachment.mimetype,
+            'manual': True,
+        } for attachment in attachments]
+        sender._generate_and_send_invoices(
+            invoice, sending_methods=['email'], mail_partner_ids=[partner.id], mail_attachments_widget=widget)
+
+    def _send_sale_delivery_documents(self, picking, partner, attachments):
+        """ The delivery slips and the DeCA by email, posted on the last delivery. """
+        template = self.env.ref('mercas_touch.mail_template_delivery_documents')
+        lang = template._render_lang(picking.ids)[picking.id]
+        template = template.with_context(lang=lang)
+        picking.with_context(lang=lang).message_post(
+            body=template._render_field('body_html', picking.ids, compute_lang=False)[picking.id],
+            subject=template._render_field('subject', picking.ids, compute_lang=False)[picking.id],
+            partner_ids=partner.ids,
+            attachment_ids=attachments.ids,
+            message_type='comment',
+            subtype_xmlid='mail.mt_comment',
+            email_layout_xmlid='mail.mail_notification_light',
+        )
 
     # ------------------------------------------------------------------
     # Helpers

@@ -718,7 +718,8 @@ export class TouchScreen extends Component {
             product,
             lot,
             qty: line ? this.formatInput(line.qty) : "",
-            price: line ? this.formatInput(line.price) : this.formatInput(product.price),
+            // The price of the order line for the partner (see loadLinePrice)
+            price: line ? this.formatInput(line.price) : partner ? "" : this.formatInput(product.price),
             boxQty: line ? line.boxQty : 0,
             boxProductId: line ? line.boxProductId : defaultBox,
             // Text typed to look for a box; null while the list of boxes is closed
@@ -734,6 +735,40 @@ export class TouchScreen extends Component {
             field: "qty",
         };
         this.loadOriginStates(this.state.entry.originCountryId);
+        if (!line && partner) {
+            this.loadLinePrice(this.state.entry);
+        }
+    }
+
+    /** What the proposed price depends on, besides the partner and the product. */
+    linePriceKey(entry) {
+        return JSON.stringify([this.parseNumber(entry.qty) || 1, [...entry.attributeValueIds].sort()]);
+    }
+
+    /**
+     * The price of a new line, as the order proposes it: for a purchase, the vendor price list
+     * of the supplier for the quantity, or else the cost of the product; for a sale, the price
+     * list of the customer with the extra price of the attributes, or else the sale price. Only
+     * while the price is still the proposed one: a price typed by hand stays.
+     *
+     * @returns {Promise<boolean>} whether the price of the entry was set
+     */
+    async loadLinePrice(entry) {
+        const key = this.linePriceKey(entry);
+        const proposed = entry.proposedPrice ?? "";
+        const price = await this.orm.call(MODEL, "get_line_price", [
+            this.state.mode,
+            this.state.partner.id,
+            entry.product.id,
+            this.parseNumber(entry.qty) || 1,
+            entry.attributeValueIds,
+        ]);
+        if (this.state.entry !== entry || entry.price !== proposed) {
+            return false;
+        }
+        entry.price = entry.proposedPrice = this.formatInput(price);
+        entry.proposedKey = key;
+        return true;
     }
 
     onSelectLot(lot) {
@@ -920,9 +955,18 @@ export class TouchScreen extends Component {
         }
     }
 
-    onAddEntry() {
+    async onAddEntry() {
         const entry = this.state.entry;
         const qty = this.parseNumber(entry.qty);
+        // The price lists may have another price for the quantity or the attributes chosen
+        // after opening
+        if (!entry.line && this.state.partner && qty > 0 && entry.proposedKey !== this.linePriceKey(entry)
+            && entry.price === (entry.proposedPrice ?? "")) {
+            await this.loadLinePrice(entry);
+            if (this.state.entry !== entry) {
+                return;
+            }
+        }
         const price = this.parseNumber(entry.price);
         if (!(qty > 0)) {
             this.notification.add(_t("Enter the quantity."), { type: "warning" });
@@ -1298,7 +1342,82 @@ export class TouchScreen extends Component {
     /** The DeCA of the delivery: its carrier and licence plates, proposed, and then printed. */
     async onDeca() {
         const action = await this.orm.call(MODEL, "get_deca_action", [this.state.done.id]);
-        await this.action.doAction(action);
+        // Completed, the DeCA can be sent by email
+        await this.action.doAction(action, { onClose: () => this.refreshOrderSummary() });
+    }
+
+    /** The comments of the sale being typed, or the ones saved. */
+    commentValue(done) {
+        return done.commentEdit ?? done.comment;
+    }
+
+    /** Save the comments of the sale: printed on the order, the delivery slip and the invoice. */
+    async onSaveComment(done) {
+        const result = await this.run("set_sale_comment", [done.id, this.commentValue(done)]);
+        if (result && this.state.done === done) {
+            Object.assign(done, result);
+            delete done.commentEdit;
+        }
+    }
+
+    mailDocumentLabel(kind) {
+        return { delivery: _t("Delivery slip"), deca: _t("DeCA"), invoice: _t("Invoice") }[kind];
+    }
+
+    /** The invoice goes to the contact of invoicing; the delivery slip and the DeCA, of delivery. */
+    mailEmail(done, kind) {
+        return done.mail.emails[kind === "invoice" ? "invoice" : "shipping"];
+    }
+
+    mailName(done, kind) {
+        return done.mail.names[kind === "invoice" ? "invoice" : "shipping"];
+    }
+
+    /** Open (with the documents available and an email, checked) or close the sending. */
+    async onToggleMail() {
+        const done = this.state.done;
+        if (done.mailPanel) {
+            done.mailPanel = null;
+            return;
+        }
+        // An invoice or a DeCA made meanwhile
+        await this.refreshOrderSummary();
+        if (this.state.done !== done || !done.mail) {
+            return;
+        }
+        done.mailPanel = {
+            kinds: done.mail.documents.filter((kind) => this.mailEmail(done, kind)),
+        };
+    }
+
+    onToggleMailKind(kind) {
+        const panel = this.state.done.mailPanel;
+        panel.kinds = panel.kinds.includes(kind)
+            ? panel.kinds.filter((other) => other !== kind)
+            : [...panel.kinds, kind];
+    }
+
+    async onSendMail() {
+        const done = this.state.done;
+        const kinds = ["delivery", "deca", "invoice"].filter((kind) => done.mailPanel.kinds.includes(kind));
+        const sent = await this.run("send_sale_documents", [done.id, kinds]);
+        if (!sent) {
+            return;
+        }
+        for (const mail of sent) {
+            this.notification.add(
+                _t("Sent to %(email)s: %(documents)s", {
+                    email: mail.email,
+                    documents: mail.documents.map((kind) => this.mailDocumentLabel(kind)).join(", "),
+                }),
+                { type: "success" }
+            );
+        }
+        if (this.state.done === done) {
+            done.mailPanel = null;
+            // The invoice sent: its comments can't be changed anymore
+            await this.refreshOrderSummary();
+        }
     }
 
     async onNewOperation() {

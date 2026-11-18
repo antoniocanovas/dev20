@@ -8,6 +8,7 @@
     'icon': '/mercas_touch/static/description/icon.png',
     'depends': ['mercas_base', 'barcodes', 'l10n_es_deca_oca'],
     'data': [
+        'data/mail_template_data.xml',
         'views/mercas_touch_views.xml',
     ],
     'assets': {

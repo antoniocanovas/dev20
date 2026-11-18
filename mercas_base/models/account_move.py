@@ -1,9 +1,22 @@
-from odoo import Command, _, api, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.misc import formatLang
 
 
 class AccountMove(models.Model):
     _inherit = "account.move"
+
+    mercas_comment = fields.Text(
+        string="Comments",
+        compute="_compute_mercas_comment",
+        help="Comments of the sales invoiced, printed on the invoice.",
+    )
+
+    @api.depends("invoice_line_ids.sale_line_ids.order_id.mercas_comment")
+    def _compute_mercas_comment(self):
+        for move in self:
+            orders = move.invoice_line_ids.sale_line_ids.order_id
+            move.mercas_comment = "\n".join(c for c in orders.mapped("mercas_comment") if c) or False
 
     def action_post(self):
         result = super().action_post()
@@ -89,7 +102,47 @@ class AccountMove(models.Model):
                 )
             else:
                 del alerts["account_remove_empty_lines"]
+        settlement = self._mercas_lot_settlement_alert()
+        if settlement:
+            alerts["mercas_lot_settlement_lines"] = settlement
         return alerts
+
+    def _mercas_lot_settlement_alert(self):
+        """The lines of the purchases of a bill left out of it because they
+        are invoiced from their lot (see purchase.order.action_create_invoice):
+        without a warning the bill looks incomplete."""
+        if self.move_type != "in_invoice" or self.state == "cancel":
+            return False
+        lines = self.invoice_line_ids.purchase_line_id.order_id._mercas_lot_settlement_lines()
+        if not lines:
+            return False
+        detail = "; ".join(
+            "%s: %s %s %s (%s)" % (
+                line.order_id.name,
+                line.product_id.display_name,
+                formatLang(self.env, line.product_qty, digits=2),
+                line.uom_id.name,
+                _("lot %s", line.lot_id.name),
+            )
+            for line in lines
+        )
+        return {
+            "level": "warning",
+            "message": _(
+                "Not in this bill: the lines with a lot are invoiced from "
+                "their lot (settlement, advance or firm invoice of the lot). %s",
+                detail,
+            ),
+            "action_text": _("See the lots"),
+            "action": {
+                "type": "ir.actions.act_window",
+                "name": _("Lots to invoice"),
+                "res_model": "stock.lot",
+                "view_mode": "list,form",
+                "domain": [("id", "in", lines.lot_id.ids)],
+                "target": "current",
+            },
+        }
 
     def _add_purchase_order_lines(self, purchase_order_lines):
         # The lines with a lot are invoiced from the lot, as in the bill of
