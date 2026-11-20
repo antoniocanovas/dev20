@@ -216,7 +216,11 @@ class PurchaseOrder(models.Model):
 
 
 class PurchaseOrderLine(models.Model):
-    _inherit = "purchase.order.line"
+    _name = "purchase.order.line"
+    _inherit = ["purchase.order.line", "mercas.weighed.line.mixin"]
+
+    _mercas_qty_field = "product_qty"
+    _mercas_uom_field = "uom_id"
 
     box_qty = fields.Integer(string="Boxes", default=0)
     box_purchase_line_id = fields.Many2one(
@@ -312,6 +316,7 @@ class PurchaseOrderLine(models.Model):
             # The received kg of a firm lot billed at the purchase price: they
             # count as invoiced in the lot (net_invoiced_kg)
             vals["mercas_is_firm_line"] = self.lot_id.mercas_firm_negotiation
+        vals.update(self._mercas_invoice_weight_vals(vals.get("quantity", 0.0)))
         return vals
 
     @api.model_create_multi

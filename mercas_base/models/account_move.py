@@ -28,6 +28,60 @@ class AccountMove(models.Model):
                 lots._mercas_recompute_invoiced_status()
         return result
 
+    # The goods with their boxes and weights, and the packaging apart -------
+
+    def _mercas_packaging_lines(self):
+        """Lines of the packaging (box products) and their Envases section,
+        printed in a table of their own under the goods. None when the
+        invoice only has packaging (a return of boxes): then they are the
+        lines of the invoice."""
+        self.ensure_one()
+        products = self.invoice_line_ids.filtered(lambda l: l.display_type == "product")
+        boxes = products.filtered(lambda l: l.product_id.is_box)
+        if not boxes or boxes == products:
+            return self.env["account.move.line"]
+        sections = self.invoice_line_ids.filtered(
+            lambda l: l.display_type == "line_section" and l.name == "Envases"
+        )
+        return boxes | sections
+
+    def _mercas_packaging_summary(self):
+        """The packaging lines grouped by box, price and taxes, for the table
+        of the packaging: [{name, quantity, uom, price_unit, taxes, amount}]."""
+        self.ensure_one()
+        lines = self._mercas_packaging_lines().filtered(lambda l: l.display_type == "product")
+        tax_included = self.company_price_include == "tax_included"
+        groups = lines.grouped(lambda l: (l.product_id, l.product_uom_id, l.price_unit, l.tax_ids))
+        return [
+            {
+                "name": product.display_name,
+                "quantity": sum(group.mapped("quantity")),
+                "uom": uom,
+                "price_unit": price_unit,
+                "taxes": ", ".join(tax.tax_label for tax in taxes if tax.tax_label),
+                "amount": sum(group.mapped("price_total" if tax_included else "price_subtotal")),
+            }
+            for (product, uom, price_unit, taxes), group in groups.items()
+        ]
+
+    def _mercas_invoice_weights(self):
+        """{line id: boxes, net, tare and gross weight} of the goods, or False
+        when none of them has boxes or tare: the invoice keeps the standard
+        columns then (a settlement of a lot, a service...)."""
+        self.ensure_one()
+        goods = self.invoice_line_ids.filtered(
+            lambda l: l.display_type == "product" and not l.product_id.is_box
+        )
+        if not any(line.box_qty or line.mercas_tare for line in goods):
+            return False
+        return {line.id: line._mercas_weights() for line in goods}
+
+    def _get_move_lines_to_report(self):
+        lines = super()._get_move_lines_to_report()
+        if len(self) == 1:
+            lines -= self._mercas_packaging_lines()
+        return lines
+
     def _mercas_is_self_billed(self):
         """A vendor bill or refund of a supplier whose invoices we issue."""
         self.ensure_one()

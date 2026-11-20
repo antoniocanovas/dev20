@@ -110,6 +110,8 @@ class TestMercasTouchUi(HttpCase):
             'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id,
             'lines': [{'product_id': self.pear.id, 'lot_id': self.lot.id, 'qty': 3.0, 'price_unit': 2.0}],
         })['order']
+        # The advance of the purchase: only the billing administrators invoice the purchases
+        self.user.group_ids += self.env.ref('account.group_account_manager')
         self.start_tour('/odoo/mercas-touch', 'mercas_touch_to_invoice_tour', login='touch_tour')
         self.assertEqual(self.env['sale.order'].browse(order['id']).invoice_status, 'invoiced')
         self.assertTrue(self.lot.supplier_invoice_line_ids, "The bill of the lot was made from the purchase")

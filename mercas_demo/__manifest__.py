@@ -1,6 +1,6 @@
 {
     "name": "Mercas Demo",
-    "version": "20.0.1.0.0",
+    "version": "20.0.1.0.1",
     "summary": "Datos de demo/arranque para Mercas Base sobre un Odoo limpio",
     "author": "Antonio Cánovas",
     "license": "LGPL-3",
@@ -14,6 +14,7 @@
         "data/res_company_demo.xml",
         "data/res_partner_demo.xml",
         "data/product_template_demo.xml",
+        "data/stock_package_type_demo.xml",
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

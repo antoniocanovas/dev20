@@ -1,7 +1,7 @@
 import uuid
 
 from odoo import Command
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
 
@@ -50,6 +50,12 @@ class MercasTouchCommon(TransactionCase):
                    'stock.group_stock_user,stock.group_production_lot,account.group_account_invoice',
         )
         cls.Touch = cls.env['mercas.touch'].with_user(cls.user)
+        # The purchases are invoiced to the suppliers only by the billing administrators
+        cls.billing_admin = new_test_user(
+            cls.env, login='touch_billing_admin', name='Touch Billing Admin',
+            groups='sales_team.group_sale_salesman_all_leads,purchase.group_purchase_user,'
+                   'stock.group_stock_user,stock.group_production_lot,account.group_account_manager',
+        )
 
     @classmethod
     def _buy(cls, qty=100.0, price=1.0, lot_name=None, **line):
@@ -70,6 +76,27 @@ class TestMercasTouch(MercasTouchCommon):
         self.assertTrue(products[self.box.id]['is_box'])
         self.assertEqual(products[self.pear.id]['categ_id'], self.pear.categ_id.id)
         self.assertTrue(data['journals'])
+
+    def test_screen_data_only_market_goods(self):
+        """ The catalog of sales and purchases has only the products of the categories of
+        market goods; the boxes are still there, whatever their category, to choose them. """
+        other = self.env['product.category'].create({'name': 'Touch Supplies', 'is_merca': False})
+        empty = self.env['product.category'].create({'name': 'Touch Fruit'})
+        self.assertTrue(empty.is_merca, "By default")
+        supply = self.env['product.product'].create({
+            'name': 'Touch Gloves', 'type': 'consu', 'categ_id': other.id, 'sale_ok': True, 'purchase_ok': True,
+        })
+        self.box.categ_id = other
+        data = self.Touch.get_screen_data()
+        product_ids = {product['id'] for product in data['products']}
+        self.assertNotIn(supply.id, product_ids)
+        self.assertIn(self.pear.id, product_ids)
+        self.assertIn(self.box.id, product_ids, "The boxes are chosen apart")
+        self.assertIn(self.lettuce.id, product_ids, "Without category, it is shown")
+        category_ids = {category['id'] for category in data['categories']}
+        self.assertNotIn(empty.id, category_ids, "A category of market goods without products isn't shown")
+        self.assertNotIn(other.id, category_ids, "Nor one of other goods, even with boxes")
+        self.assertFalse(self.lettuce.categ_id)
 
     def test_search_partners(self):
         found = self.Touch.search_partners('Touch', 'customer')
@@ -151,6 +178,23 @@ class TestMercasTouch(MercasTouchCommon):
         second = self.Touch.purchase(vals)
         self.assertEqual(first['order']['id'], second['order']['id'])
         self.assertEqual(self.env['purchase.order'].search_count([('mercas_touch_uuid', '=', vals['uuid'])]), 1)
+
+    def test_product_weights(self):
+        """ The screen works out the net weight from the gross one less the boxes: it gets
+        the weight of the boxes and whether the goods are sold by weight. """
+        self.box.weight = 0.6
+        pear = self.Touch._get_product_data(self.pear)
+        self.assertTrue(pear['weighed'])
+        self.assertEqual(pear['uom_per_weight'], 1.0)
+        self.assertFalse(self.Touch._get_product_data(self.lettuce)['weighed'])
+        self.assertEqual(self.Touch._get_product_data(self.box)['weight'], 0.6)
+        # The line sold keeps the tare of its boxes
+        vals = {'uuid': str(uuid.uuid4()), 'partner_id': self.supplier.id,
+                'lines': [{'product_id': self.pear.id, 'qty': 10.0, 'box_qty': 5, 'box_product_id': self.box.id}]}
+        order = self.env['purchase.order'].browse(self.Touch.purchase(vals)['order']['id'])
+        line = order.order_line.filtered(lambda l: l.product_id == self.pear)
+        self.assertAlmostEqual(line.mercas_tare, 3.0)
+        self.assertAlmostEqual(line.mercas_gross_weight, 13.0)
 
     def test_product_lots(self):
         self._buy(30.0, lot_name='OLD')
@@ -310,6 +354,7 @@ class TestMercasTouch(MercasTouchCommon):
         self.assertEqual(len(notified), 1, "Nothing to tell when the count didn't change")
 
     def test_lots_and_invoicing(self):
+        self.Touch = self.Touch.with_user(self.billing_admin)
         firm_order = self._buy(10.0, 1.0, lot_name='FIRM-1', firm=True)['order']
         self._buy(10.0, 1.0, lot_name='SETTLE-1')
         firm = self.env['stock.lot'].search([('name', '=', 'FIRM-1')])
@@ -372,6 +417,116 @@ class TestMercasTouch(MercasTouchCommon):
         self.assertEqual(action['res_model'], 'mercas.label.print.wizard')
         with self.assertRaises(ValidationError):
             self.Touch.get_print_action('res.partner', self.customer.id, 'labels')
+
+    def test_pallets(self):
+        """ The boxes of a sale go on pallets from the screen: in draft, and corrected after
+        the sale by the counter itself; the delivery follows them. """
+        self._buy(100.0, lot_name='PALLET-1')
+        lot = self.env['stock.lot'].search([('name', '=', 'PALLET-1')])
+        PackageType = self.env['stock.package.type']
+        europallet = self.env['product.product'].create({'name': 'Touch Europallet', 'type': 'consu', 'is_box': True})
+        euro = PackageType.create({'name': 'Touch Euro', 'mercas_is_pallet': True, 'base_weight': 25.0,
+                                   'mercas_box_product_id': europallet.id})
+        single = PackageType.create({'name': 'Touch Single', 'mercas_is_pallet': True, 'base_weight': 15.0})
+        draft = self.Touch.save_draft('sale', {'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'lines': [
+            {'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 40.0, 'price_unit': 2.0,
+             'box_qty': 8, 'box_product_id': self.box.id},
+            {'product_id': self.lettuce.id, 'qty': 3.0, 'price_unit': 1.0},
+        ]})
+        pear_line_id = draft['line_ids'][0]
+        data = self.Touch.get_pallets(draft['id'])
+        self.assertEqual([line['id'] for line in data['lines']], [pear_line_id], "Only the lines with boxes")
+        self.assertEqual({t['id'] for t in data['types']} & {euro.id, single.id}, {euro.id, single.id})
+        self.assertFalse(data['order']['delivered'])
+        result = self.Touch.save_pallets(draft['id'], [
+            {'package_type_id': euro.id, 'lines': [{'sale_line_id': pear_line_id, 'box_qty': 5}]},
+            {'package_type_id': single.id, 'height': 1200.0, 'lines': [{'sale_line_id': pear_line_id, 'box_qty': 3}]},
+        ])
+        self.assertEqual(result['pallet_count'], 2)
+        self.assertFalse(result['mismatch'])
+        with self.assertRaises(ValidationError):
+            self.Touch.save_pallets(draft['id'], [{'package_type_id': self.box.id, 'lines': []}])
+        with self.assertRaises(ValidationError):
+            self.Touch.save_pallets(draft['id'], [
+                {'package_type_id': euro.id, 'lines': [{'sale_line_id': pear_line_id, 'box_qty': 9}]},
+            ])
+
+        sold = self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'order_id': draft['id'],
+                                'lines': [
+                                    {'line_id': pear_line_id, 'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 40.0,
+                                     'price_unit': 2.0, 'box_qty': 8, 'box_product_id': self.box.id},
+                                    {'line_id': draft['line_ids'][1], 'product_id': self.lettuce.id, 'qty': 3.0,
+                                     'price_unit': 1.0},
+                                ]})['order']
+        self.assertEqual(sold['pallet_count'], 2)
+        self.assertEqual(sold['box_count'], 8)
+        order = self.env['sale.order'].browse(sold['id'])
+        packages = order.mercas_pallet_ids.package_id
+        pear_lines = order.picking_ids.move_line_ids.filtered(lambda ml: ml.product_id == self.pear)
+        self.assertEqual(sorted(pear_lines.mapped(lambda ml: (ml.result_package_id.id, ml.quantity))),
+                         sorted([(packages[0].id, 25.0), (packages[1].id, 15.0)]))
+        self.assertEqual(pear_lines.lot_id, lot)
+        self.assertEqual(order.order_line.filtered('mercas_pallet_box_line').product_id, europallet)
+
+        # Corrected after the sale: everything on the first pallet, now single-use
+        data = self.Touch.get_pallets(order.id)
+        self.assertTrue(data['order']['delivered'])
+        result = self.Touch.save_pallets(order.id, [{
+            'id': data['pallets'][0]['id'], 'package_type_id': single.id,
+            'lines': [{'sale_line_id': pear_line_id, 'box_qty': 8}],
+        }])
+        self.assertEqual(result['pallet_count'], 1)
+        self.assertEqual(result['mismatch'], [{'product': europallet.display_name, 'pallets': 0, 'sale': 1}])
+        pear_lines = order.picking_ids.move_line_ids.filtered(lambda ml: ml.product_id == self.pear and ml.quantity)
+        self.assertEqual(pear_lines.result_package_id, packages[0])
+        self.assertEqual(sum(pear_lines.mapped('quantity')), 40.0)
+
+        action = self.Touch.get_print_action('sale.order', order.id, 'packing')
+        self.assertEqual(action['report_name'], 'mercas_base.report_mercas_packing_list')
+
+    def test_print_sale_documents(self):
+        """ The documents of a sale for the A4 printer go in a single PDF: the ones checked,
+        in their order (delivery slip, DeCA, packing list, invoice). """
+        self._buy(30.0, lot_name='PRINTALL-1')
+        lot = self.env['stock.lot'].search([('name', '=', 'PRINTALL-1')])
+        pallet_type = self.env['stock.package.type'].create({'name': 'Print Pallet', 'mercas_is_pallet': True})
+        sold = self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'lines': [
+            {'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 10.0, 'price_unit': 2.0,
+             'box_qty': 2, 'box_product_id': self.box.id},
+        ]})['order']
+        self.assertEqual(sold['print']['documents'], ['delivery'], "No pallets, no invoice and the DeCA to complete")
+        self.assertTrue(sold['print']['deca_missing'])
+        order = self.env['sale.order'].browse(sold['id'])
+        pear_line = order.order_line.filtered(lambda line: line.product_id == self.pear)
+        self.Touch.save_pallets(order.id, [
+            {'package_type_id': pallet_type.id, 'lines': [{'sale_line_id': pear_line.id, 'box_qty': 2}]},
+        ])
+        self.Touch.invoice_sale(order.id)
+        summary = self.Touch.get_order_summary('sale', order.id)
+        self.assertEqual(summary['print']['documents'], ['delivery', 'packing', 'invoice'])
+
+        action = self.Touch.get_sale_documents_print_action(order.id, ['invoice', 'delivery', 'packing'])
+        self.assertEqual(action['report_name'], 'mercas_touch.report_sale_documents')
+        self.assertEqual(action['data']['kinds'], ['delivery', 'packing', 'invoice'], "In the order they print")
+        with self.assertRaises(UserError):
+            self.Touch.get_sale_documents_print_action(order.id, ['deca'])
+        with self.assertRaises(ValidationError):
+            self.Touch.get_sale_documents_print_action(order.id, ['labels'])
+
+        Report = self.env['ir.actions.report'].with_user(self.user)
+        html = Report._render_qweb_html(action['report_name'], order.ids, data=action['data'])[0].decode()
+        # Each document is marked with its record: the delivery, the sale (packing list), the invoice
+        markers = [f'data-oe-model="{record._name}" data-oe-id="{record.id}"'
+                   for record in (order.picking_ids, order, order.invoice_ids)]
+        positions = [html.find(marker) for marker in markers]
+        self.assertTrue(all(position >= 0 for position in positions), positions)
+        self.assertEqual(positions, sorted(positions), "In the order they print")
+        html = Report._render_qweb_html(action['report_name'], order.ids, data={'kinds': ['packing']})[0].decode()
+        self.assertNotIn(markers[0], html)
+        self.assertNotIn(markers[2], html)
+
+        # Without PDF rendering in the tests, the report falls back to HTML as the others
+        self.assertEqual(Report._render_qweb_pdf(action['report_name'], order.ids, data=action['data'])[1], 'html')
 
     def test_sale_comment_and_documents_by_email(self):
         """ The comments of a sale are printed on its delivery slip and its invoice, until the
@@ -839,10 +994,29 @@ class TestMercasTouch(MercasTouchCommon):
         self.assertIn(sold['id'], ids('all'))
         self.assertEqual(self.Touch.get_order_summary('sale', sold['id'])['invoice']['id'], invoice['id'])
 
+    def test_bill_only_billing_admins(self):
+        """ The counter buys, but doesn't invoice the purchases: no buttons, nor the calls. """
+        order = self.Touch.purchase({'uuid': str(uuid.uuid4()), 'partner_id': self.supplier.id, 'lines': [
+            {'product_id': self.lettuce.id, 'qty': 5.0, 'price_unit': 0.5},
+        ]})['order']
+        self.assertFalse(self.Touch.get_screen_data()['can_bill'])
+        self.assertFalse(order['bill_pending'])
+        self.assertEqual(order['lot_invoice_modes'], [])
+        with self.assertRaises(AccessError):
+            self.Touch.invoice_purchase(order['id'])
+        with self.assertRaises(AccessError):
+            self.Touch.invoice_purchase_lots(order['id'], 'settle')
+        with self.assertRaises(AccessError):
+            self.Touch.invoice_lots([1], 'settle')
+        admin = self.Touch.with_user(self.billing_admin)
+        self.assertTrue(admin.get_screen_data()['can_bill'])
+        self.assertTrue(admin.get_order_summary('purchase', order['id'])['bill_pending'])
+
     def test_invoice_purchase(self):
         """ The lots under firm negotiation are billed with the standard bill of the purchase,
         sections and boxes included, and count as invoiced in the lot. All the bills can be
         looked up from the purchase, and the drafts deleted. """
+        self.Touch = self.Touch.with_user(self.billing_admin)
         order = self.Touch.purchase({'uuid': str(uuid.uuid4()), 'partner_id': self.supplier.id, 'lines': [
             {'product_id': self.pear.id, 'qty': 10.0, 'price_unit': 1.2, 'lot_name': 'BILL-1', 'firm': True,
              'box_qty': 2, 'box_product_id': self.box.id},
@@ -900,6 +1074,7 @@ class TestMercasTouch(MercasTouchCommon):
         """ A lot under sale settlement is invoiced from the lot: its first invoice, an advance
         or the settlement, also takes the boxes bought with it still to invoice, which aren't
         invoiced again. """
+        self.Touch = self.Touch.with_user(self.billing_admin)
         order = self._buy(20.0, 1.0, lot_name='BOX-SETTLE', box_qty=4, box_product_id=self.box.id)['order']
         lot = self.env['stock.lot'].search([('name', '=', 'BOX-SETTLE')])
 

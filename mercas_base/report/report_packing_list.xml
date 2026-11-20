@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Packing list of a sale: each pallet is a package (marks: its package
+         name), with the boxes of each line on it; then the loose boxes, each
+         one a package. The containers aren't goods: they show as the kind of
+         package and in the gross weight. -->
+
+    <template id="report_mercas_packing_list_document">
+        <t t-set="data" t-value="order._mercas_packing_list()"/>
+        <t t-set="o" t-value="order.with_context(lang=order.partner_id.lang)"/>
+        <t t-set="wuom" t-value="data['weight_uom']"/>
+        <t t-call="web.external_layout">
+            <t t-set="address">
+                <div t-field="order.partner_shipping_id"
+                     t-options="{'widget': 'contact', 'fields': ['address', 'name', 'vat'], 'no_marker': True}"/>
+            </t>
+            <div class="page">
+                <h2>Packing List</h2>
+                <div class="row mb-3" id="informations">
+                    <div class="col-auto">
+                        <strong>Sale</strong>
+                        <div t-field="order.name"/>
+                    </div>
+                    <div class="col-auto" t-if="data['pickings']">
+                        <strong>Delivery</strong>
+                        <div t-out="', '.join(data['pickings'].mapped('name'))"/>
+                    </div>
+                    <div class="col-auto">
+                        <strong>Date</strong>
+                        <div t-out="(data['pickings'][:1].date_done or order.date_order)" t-options="{'widget': 'date'}"/>
+                    </div>
+                    <div class="col-auto" t-if="order.invoice_ids.filtered(lambda i: i.state == 'posted')">
+                        <strong>Invoice</strong>
+                        <div t-out="', '.join(order.invoice_ids.filtered(lambda i: i.state == 'posted').mapped('name'))"/>
+                    </div>
+                    <div class="col-auto" t-if="order.client_order_ref">
+                        <strong>Your Reference</strong>
+                        <div t-field="order.client_order_ref"/>
+                    </div>
+                </div>
+
+                <table class="table table-sm o_mercas_packing_list">
+                    <thead>
+                        <tr>
+                            <th>Marks and numbers</th>
+                            <th>Description of the goods</th>
+                            <th>Lot</th>
+                            <th>Origin</th>
+                            <th class="text-end">Boxes</th>
+                            <th>Kind of package</th>
+                            <th class="text-end">Net (<t t-out="wuom"/>)</th>
+                            <th class="text-end">Tare (<t t-out="wuom"/>)</th>
+                            <th class="text-end">Gross (<t t-out="wuom"/>)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="data['pallets']" t-as="pallet">
+                            <tr class="fw-bold" style="background-color: #f2f2f2;">
+                                <td t-out="pallet['name']"/>
+                                <td colspan="3">
+                                    <t t-out="pallet['type'].name"/>
+                                    <t t-if="pallet['dimensions']">
+                                        · <t t-out="' × '.join('%g' % size for size in pallet['dimensions'])"/> <t t-out="data['length_uom']"/>
+                                    </t>
+                                    <t t-if="pallet['volume']">
+                                        · <t t-out="'%.3f' % pallet['volume']"/> m³
+                                    </t>
+                                </td>
+                                <td class="text-end" t-out="pallet['boxes']"/>
+                                <td>Pallet</td>
+                                <td class="text-end" t-out="pallet['net']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                <td class="text-end" t-out="pallet['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                <td class="text-end">
+                                    <t t-out="pallet['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                    <span t-if="pallet['weighed']" class="small fw-normal">(weighed)</span>
+                                </td>
+                            </tr>
+                            <tr t-foreach="pallet['rows']" t-as="row">
+                                <td/>
+                                <td t-out="row['product'].display_name"/>
+                                <td t-out="row['lot'].name or ''"/>
+                                <td t-out="row['origin']"/>
+                                <td class="text-end" t-out="row['boxes']"/>
+                                <td t-out="row['box_name']"/>
+                                <td class="text-end" t-out="row['net']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                <td class="text-end" t-out="row['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                <td class="text-end" t-out="row['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                            </tr>
+                        </t>
+                        <t t-if="data['loose']">
+                            <tr class="fw-bold" style="background-color: #f2f2f2;">
+                                <td>Loose boxes</td>
+                                <td colspan="3"/>
+                                <td class="text-end" t-out="data['loose_boxes']"/>
+                                <td colspan="4"/>
+                            </tr>
+                            <tr t-foreach="data['loose']" t-as="row">
+                                <td/>
+                                <td t-out="row['product'].display_name"/>
+                                <td t-out="row['lot'].name or ''"/>
+                                <td t-out="row['origin']"/>
+                                <td class="text-end" t-out="row['boxes']"/>
+                                <td t-out="row['box_name']"/>
+                                <td class="text-end" t-out="row['net']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                <td class="text-end" t-out="row['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                                <td class="text-end" t-out="row['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                            </tr>
+                        </t>
+                    </tbody>
+                    <tfoot>
+                        <tr class="fw-bold border-top border-dark">
+                            <td colspan="4">
+                                Total:
+                                <t t-out="data['totals']['packages']"/> packages
+                                (<t t-out="data['totals']['pallets']"/> pallets,
+                                <t t-out="data['totals']['boxes']"/> boxes)
+                                <t t-if="data['totals']['has_volume']">
+                                    · <t t-out="'%.3f' % data['totals']['volume']"/> m³
+                                </t>
+                            </td>
+                            <td class="text-end" t-out="data['totals']['boxes']"/>
+                            <td/>
+                            <td class="text-end" t-out="data['totals']['net']" t-options="{'widget': 'float', 'precision': 2}"/>
+                            <td class="text-end" t-out="data['totals']['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                            <td class="text-end" t-out="data['totals']['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <p t-if="data['returnable']" class="small" name="mercas_returnable_pallets">
+                    Includes returnable pallets:
+                    <t t-out="', '.join('%s %s' % (qty, product.display_name) for product, qty in data['returnable'].items())"/>.
+                </p>
+                <p class="small text-muted">
+                    The net weight of each line is shared out among its boxes. The gross weight is
+                    the net weight plus the tare of the boxes and pallets, unless the pallet was weighed.
+                </p>
+                <p t-if="order.mercas_comment" name="mercas_comment" style="white-space: pre-line;" t-out="order.mercas_comment"/>
+            </div>
+        </t>
+    </template>
+
+    <template id="report_mercas_packing_list">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-set="order" t-value="doc if doc._name == 'sale.order' else doc.sale_id"/>
+                <t t-if="order" t-call="mercas_base.report_mercas_packing_list_document" t-lang="order.partner_id.lang"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- The one of the delivery note, with a name of its own: the reports are looked up by
+         their name (/report/pdf/<report_name>/<ids>), and with the same name as the one of
+         the sale the ids of the pickings would be read as sale orders. -->
+    <template id="report_mercas_packing_list_picking">
+        <t t-call="mercas_base.report_mercas_packing_list"/>
+    </template>
+
+    <record id="action_report_mercas_packing_list" model="ir.actions.report">
+        <field name="name">Packing List</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mercas_base.report_mercas_packing_list</field>
+        <field name="print_report_name">'Packing List - %s' % object.name</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_mercas_packing_list_picking" model="ir.actions.report">
+        <field name="name">Packing List</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mercas_base.report_mercas_packing_list_picking</field>
+        <field name="print_report_name">'Packing List - %s' % (object.sale_id.name or object.name)</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+    </record>
+
+</odoo>

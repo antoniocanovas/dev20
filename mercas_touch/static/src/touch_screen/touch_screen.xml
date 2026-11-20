@@ -48,6 +48,7 @@
                     <t t-elif="this.state.mode === 'labels'" t-call="mercas_touch.TouchScreenLabels"/>
                     <t t-elif="this.hasDrafts() and !this.state.partner and !this.state.choosingCustomer" t-call="mercas_touch.TouchScreenDrafts"/>
                     <t t-elif="!this.state.partner" t-call="mercas_touch.TouchScreenPartners"/>
+                    <t t-elif="this.state.pallets" t-call="mercas_touch.TouchScreenPallets"/>
                     <t t-elif="this.state.done" t-call="mercas_touch.TouchScreenDone"/>
                     <t t-elif="this.state.mode === 'sale' or this.state.mode === 'purchase'" t-call="mercas_touch.TouchScreenOrder"/>
                     <t t-elif="this.state.mode === 'boxes'" t-call="mercas_touch.TouchScreenBoxes"/>
@@ -259,16 +260,36 @@
                                 t-out="value.name"/>
                     </div>
                 </div>
-                <label class="form-label mb-0">Quantity (<t t-out="entry.product.uom"/>)</label>
+                <!-- Weighed on the scale with the boxes: net = gross - boxes × weight of the box -->
+                <t t-if="entry.product.weighed">
+                    <label class="form-label mb-0">Gross (<t t-out="entry.product.uom"/>)</label>
+                    <input type="text" inputmode="decimal" autocomplete="off"
+                           t-att-class="'form-control form-control-lg o_mercas_touch_gross ' + (entry.field === 'gross' ? 'border-primary border-2' : '')"
+                           t-att-value="entry.gross" t-on-focus="() => this.onEntryField('gross')"
+                           t-on-input="(ev) => this.onEntryInput('gross', ev)"
+                           t-on-change="() => this.onFloatChange(entry, 'gross')"
+                           t-on-keydown="(ev) => this.onFloatKeydown(ev, entry, 'gross')"/>
+                    <label class="form-label mb-0">
+                        Net (<t t-out="entry.product.uom"/>)
+                        <span t-if="this.entryTare(entry)" class="text-muted small">
+                            · tare <t t-out="this.formatQty(this.entryTare(entry))"/>
+                        </span>
+                    </label>
+                </t>
+                <label t-else="" class="form-label mb-0">Quantity (<t t-out="entry.product.uom"/>)</label>
                 <input type="text" inputmode="decimal" autocomplete="off"
                        t-att-class="'form-control form-control-lg o_mercas_touch_qty ' + (entry.field === 'qty' ? 'border-primary border-2' : '')"
                        t-att-value="entry.qty" t-on-focus="() => this.onEntryField('qty')"
-                       t-on-input="(ev) => this.onEntryInput('qty', ev)"/>
+                       t-on-input="(ev) => this.onEntryInput('qty', ev)"
+                       t-on-change="() => this.onFloatChange(entry, 'qty')"
+                       t-on-keydown="(ev) => this.onFloatKeydown(ev, entry, 'qty')"/>
                 <label class="form-label mb-0">Price per <t t-out="entry.product.uom"/></label>
                 <input type="text" inputmode="decimal" autocomplete="off"
                        t-att-class="'form-control form-control-lg o_mercas_touch_price ' + (entry.field === 'price' ? 'border-primary border-2' : '')"
                        t-att-value="entry.price" t-on-focus="() => this.onEntryField('price')"
-                       t-on-input="(ev) => this.onEntryInput('price', ev)"/>
+                       t-on-input="(ev) => this.onEntryInput('price', ev)"
+                       t-on-change="() => this.onFloatChange(entry, 'price')"
+                       t-on-keydown="(ev) => this.onFloatKeydown(ev, entry, 'price')"/>
                 <label class="form-label mb-0">Boxes</label>
                 <div class="d-flex flex-wrap gap-2 align-items-center">
                     <div class="input-group input-group-lg o_mercas_touch_box_qty">
@@ -385,6 +406,7 @@
                 <input type="text" inputmode="none" autocomplete="off"
                        class="form-control form-control-lg fs-2 border-primary border-2 o_mercas_touch_price_edit_input"
                        t-att-value="this.state.priceEdit.value" t-on-input="this.onPriceInput"
+                       t-on-change="() => this.onFloatChange(this.state.priceEdit, 'value')"
                        t-on-keydown="this.onPriceKeydown"/>
                 <div class="d-flex justify-content-between fs-5">
                     <span>Subtotal</span>
@@ -475,6 +497,11 @@
                         t-att-disabled="this.state.sending or (!this.state.lines.length and !this.state.order)"
                         t-on-click="this.onClearOperation">
                     <i class="oi" data-icon="clear_all"/>
+                </button>
+                <button t-if="this.state.mode === 'sale' and this.linesBoxes()" class="btn btn-secondary btn-lg o_mercas_touch_open_pallets"
+                        title="Pallets" t-att-disabled="this.state.sending or this.state.entry"
+                        t-on-click="this.onOpenPallets">
+                    <i class="oi" data-icon="grid_view"/><span class="d-none d-xl-inline"> Pallets</span>
                 </button>
                 <button t-if="this.state.mode === 'sale'" class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_sell"
                         t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
@@ -595,6 +622,33 @@
                     <i class="oi" data-icon="check"/> Save comments
                 </button>
             </div>
+            <div t-if="done.printPanel" class="card mt-3 text-start o_mercas_touch_print_panel">
+                <div class="card-body">
+                    <div class="fw-bold mb-2">Print</div>
+                    <t t-foreach="['delivery', 'deca', 'packing', 'invoice']" t-as="kind" t-key="kind">
+                        <t t-set="available" t-value="done.print.documents.includes(kind)"/>
+                        <div t-if="available or (kind === 'deca' and done.print.deca_missing)"
+                             t-attf-class="form-check py-2 o_mercas_touch_print_{{ kind }}">
+                            <input class="form-check-input" type="checkbox" t-att-id="'o_mercas_touch_print_' + kind"
+                                   t-att-disabled="!available"
+                                   t-att-checked="done.printPanel.kinds.includes(kind)"
+                                   t-on-change="() => this.onTogglePrintKind(kind)"/>
+                            <label class="form-check-label fs-5" t-att-for="'o_mercas_touch_print_' + kind"
+                                   t-out="this.printDocumentLabel(kind)"/>
+                            <div t-if="!available" class="small text-muted">Complete the DeCA first (button DeCA).</div>
+                        </div>
+                    </t>
+                    <div class="small text-muted">In a single PDF, for the same printer. The box labels go apart.</div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-primary btn-lg o_mercas_touch_print_send"
+                                t-att-disabled="this.state.sending or !done.printPanel.kinds.length"
+                                t-on-click="this.onPrintDocuments">
+                            <i class="oi" data-icon="print"/> Print
+                        </button>
+                        <button class="btn btn-secondary btn-lg" t-on-click="this.onTogglePrint">Cancel</button>
+                    </div>
+                </div>
+            </div>
             <div t-if="done.mailPanel" class="card mt-3 text-start o_mercas_touch_mail_panel">
                 <div class="card-body">
                     <div class="fw-bold mb-2">Send by email</div>
@@ -634,13 +688,18 @@
                 </div>
             </div>
             <div class="d-flex flex-wrap justify-content-center gap-2 mt-4">
-                <button t-if="done.kind === 'sale' and done.state === 'sale'" class="btn btn-secondary btn-lg o_mercas_touch_print_delivery"
-                        t-on-click="() => this.onPrint('delivery')">
-                    <i class="oi" data-icon="print"/> Delivery slip
+                <button t-if="done.kind === 'sale' and done.state === 'sale' and done.print?.documents.length"
+                        class="btn btn-secondary btn-lg o_mercas_touch_print" t-on-click="this.onTogglePrint">
+                    <i class="oi" data-icon="print"/> Print
                 </button>
                 <button t-if="done.kind === 'sale' and done.state === 'sale'" class="btn btn-secondary btn-lg o_mercas_touch_deca"
                         t-on-click="this.onDeca">
                     <i class="oi" data-icon="local_shipping"/> DeCA
+                </button>
+                <button t-if="done.kind === 'sale' and done.state === 'sale' and done.box_count"
+                        class="btn btn-secondary btn-lg o_mercas_touch_open_pallets" t-att-disabled="this.state.sending"
+                        t-on-click="this.onOpenPallets">
+                    <i class="oi" data-icon="grid_view"/> Pallets
                 </button>
                 <button t-if="(done.kind === 'sale' and done.state === 'sale') or done.kind === 'purchase'"
                         class="btn btn-secondary btn-lg o_mercas_touch_print_labels" t-on-click="() => this.onPrint('labels')">
@@ -672,10 +731,6 @@
                         t-att-disabled="this.state.sending" t-on-click="this.onInvoiceSale">
                     <i class="oi" data-icon="receipt_long"/> Create invoice
                 </button>
-                <button t-if="done.invoice and done.kind === 'sale'" class="btn btn-secondary btn-lg o_mercas_touch_print_invoice"
-                        t-on-click="() => this.onPrint('invoice')">
-                    <i class="oi" data-icon="print"/> Print invoice
-                </button>
                 <button t-if="done.kind === 'sale' and done.state === 'sale' and done.mail?.documents.length"
                         class="btn btn-secondary btn-lg o_mercas_touch_mail" t-on-click="this.onToggleMail">
                     <i class="oi" data-icon="mail"/> Send by email
@@ -696,6 +751,141 @@
                 </button>
             </div>
         </div>
+    </t>
+
+    <!-- Pallets of a sale: tap the boxes of a line, then the pallet to put them on -->
+    <t t-name="mercas_touch.TouchScreenPallets">
+        <t t-set="p" t-value="this.state.pallets"/>
+        <div class="d-flex flex-column gap-3 o_mercas_touch_pallets">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <div class="fs-4 fw-bold flex-grow-1">Pallets of <t t-out="p.order.name"/></div>
+                <div t-if="p.order.delivered" class="alert alert-warning py-2 mb-0 o_mercas_touch_pallets_delivered">
+                    <i class="oi" data-icon="warning"/> Sale already delivered: its delivery will be corrected.
+                </div>
+            </div>
+            <div t-if="!p.types.length" class="alert alert-danger mb-0">
+                There is no pallet type: create one in Inventory, Package Types, marked as Pallet.
+            </div>
+            <div t-else="" class="d-flex flex-wrap align-items-center gap-2 border rounded p-2 o_mercas_touch_pallets_quick">
+                <span class="fw-bold">Quick:</span>
+                <div class="btn-group">
+                    <button class="btn btn-secondary btn-lg" t-on-click="() => this.onQuickCount(-1)"><i class="oi" data-icon="remove"/></button>
+                    <span class="btn btn-light btn-lg fw-bold o_mercas_touch_pallets_quick_count" t-out="p.quickCount"/>
+                    <button class="btn btn-secondary btn-lg" t-on-click="() => this.onQuickCount(1)"><i class="oi" data-icon="add"/></button>
+                </div>
+                <span>pallets of</span>
+                <select class="form-select form-select-lg w-auto o_mercas_touch_pallets_quick_type" t-on-change="this.onQuickType">
+                    <option t-foreach="p.types" t-as="type" t-key="type.id" t-att-value="type.id"
+                            t-att-selected="type.id === p.quickTypeId" t-out="type.name"/>
+                </select>
+                <button class="btn btn-primary btn-lg o_mercas_touch_pallets_spread" t-on-click="this.onQuickSpread">
+                    <i class="oi" data-icon="shuffle"/> Spread the boxes
+                </button>
+            </div>
+            <div class="d-flex flex-column flex-lg-row gap-3">
+                <div class="flex-grow-1 d-flex flex-wrap gap-2 align-content-start">
+                    <t t-set="looseChips" t-value="this.palletChips(null)"/>
+                    <div t-att-class="'card o_mercas_touch_pallet o_mercas_touch_pallet_loose' + (p.selected and p.selected.from !== null ? ' border-primary border-2' : '')"
+                         style="width: 17rem; min-height: 12rem;" role="button" t-on-click="() => this.onDropOnPallet(null)">
+                        <div class="card-header fw-bold">
+                            Not on a pallet
+                            <span class="badge text-bg-secondary ms-1"><t t-out="looseChips.reduce((total, chip) => total + chip.boxes, 0)"/> boxes</span>
+                        </div>
+                        <div class="card-body d-flex flex-column gap-1 p-2">
+                            <t t-foreach="looseChips" t-as="chip" t-key="chip.line.id">
+                                <t t-call="mercas_touch.TouchScreenPalletChip"/>
+                            </t>
+                            <div t-if="!looseChips.length" class="small text-muted">All the boxes are on pallets.</div>
+                            <button t-if="p.selected and p.selected.from !== null" class="btn btn-primary btn-lg mt-auto o_mercas_touch_pallet_drop">
+                                <i class="oi" data-icon="arrow_downward"/> Take them off here
+                            </button>
+                        </div>
+                    </div>
+                    <div t-foreach="p.pallets" t-as="pallet" t-key="pallet.key"
+                         t-att-class="'card o_mercas_touch_pallet' + (p.selected and p.selected.from !== pallet.key ? ' border-primary border-2' : '')"
+                         style="width: 17rem; min-height: 12rem;" role="button" t-on-click="() => this.onDropOnPallet(pallet)">
+                        <div class="card-header d-flex align-items-center gap-2">
+                            <div class="flex-grow-1 min-w-0">
+                                <div class="fw-bold text-truncate">
+                                    Pallet <t t-out="pallet_index + 1"/>
+                                    <span t-if="pallet.package" class="small text-muted fw-normal"> · <t t-out="pallet.package"/></span>
+                                </div>
+                                <span class="badge text-bg-primary"><t t-out="this.palletBoxes(pallet)"/> boxes</span>
+                            </div>
+                            <button class="btn btn-sm btn-link text-danger o_mercas_touch_pallet_remove" title="Remove the pallet"
+                                    t-on-click.stop="() => this.onRemovePallet(pallet)">
+                                <i class="oi fs-5" data-icon="delete"/>
+                            </button>
+                        </div>
+                        <div class="card-body d-flex flex-column gap-1 p-2">
+                            <div class="d-flex gap-1" t-on-click.stop="() => {}">
+                                <select class="form-select o_mercas_touch_pallet_type" t-on-change="(ev) => this.onPalletType(pallet, ev)">
+                                    <option t-foreach="p.types" t-as="type" t-key="type.id" t-att-value="type.id"
+                                            t-att-selected="type.id === pallet.typeId"
+                                            t-out="type.name + (type.returnable ? ' ↺' : '')"/>
+                                </select>
+                                <input type="text" inputmode="decimal" class="form-control o_mercas_touch_pallet_height" style="width: 6rem;"
+                                       t-att-placeholder="p.lengthUom" title="Height of the loaded pallet (optional)"
+                                       t-att-value="pallet.height" t-on-input="(ev) => this.onPalletHeight(pallet, ev)"
+                                       t-on-change="() => this.onFloatChange(pallet, 'height')"
+                                       t-on-keydown="(ev) => this.onFloatKeydown(ev, pallet, 'height')"/>
+                            </div>
+                            <t t-foreach="this.palletChips(pallet)" t-as="chip" t-key="chip.line.id">
+                                <t t-call="mercas_touch.TouchScreenPalletChip"/>
+                            </t>
+                            <div t-if="!this.palletBoxes(pallet) and !p.selected" class="small text-muted">
+                                Empty: choose some boxes and put them here.
+                            </div>
+                            <button t-if="p.selected and p.selected.from !== pallet.key" class="btn btn-primary btn-lg mt-auto o_mercas_touch_pallet_drop">
+                                <i class="oi" data-icon="arrow_downward"/> Put <t t-out="p.moveQty || 0"/> here
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-primary btn-lg align-self-start o_mercas_touch_pallet_add"
+                            t-att-disabled="!p.types.length" t-on-click="this.onAddPallet">
+                        <i class="oi" data-icon="add"/> Pallet
+                    </button>
+                </div>
+                <div t-if="p.selected" class="d-flex flex-column gap-2 o_mercas_touch_pallets_move">
+                    <t t-set="line" t-value="this.palletLine(p.selected.lineId)"/>
+                    <div>
+                        <div class="fw-bold" t-out="line.product"/>
+                        <div class="small text-muted"><t t-if="line.lot">Lot <t t-out="line.lot"/> · </t><t t-out="this.selectedAvailable()"/> boxes here</div>
+                    </div>
+                    <label class="form-label mb-0">Boxes to move</label>
+                    <div class="input-group input-group-lg">
+                        <button class="btn btn-secondary" t-on-click="() => this.onMoveStep(-1)"><i class="oi" data-icon="remove"/></button>
+                        <input type="text" inputmode="none" readonly="readonly" class="form-control fs-3 text-center o_mercas_touch_pallets_move_qty"
+                               t-att-value="p.moveQty"/>
+                        <button class="btn btn-secondary" t-on-click="() => this.onMoveStep(1)"><i class="oi" data-icon="add"/></button>
+                    </div>
+                    <div class="small text-muted">Tap the pallet to put them on, or "Not on a pallet".</div>
+                    <TouchNumpad onKey="(key) => this.onNumpadKey(key)" decimals="false" calculator="false"/>
+                </div>
+            </div>
+            <div class="d-flex gap-2 border-top pt-2">
+                <button class="btn btn-secondary btn-lg o_mercas_touch_pallets_cancel" t-att-disabled="this.state.sending"
+                        t-on-click="this.onClosePallets">Cancel</button>
+                <button class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_pallets_save" t-att-disabled="this.state.sending"
+                        t-on-click="this.onSavePallets">
+                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>
+                    <i t-else="" class="oi" data-icon="check"/> Save the pallets
+                </button>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="mercas_touch.TouchScreenPalletChip">
+        <button t-att-class="'btn text-start d-flex align-items-center gap-2 o_mercas_touch_pallet_chip ' + (this.isChipSelected(pallet, chip) ? 'btn-primary' : 'btn-outline-secondary')"
+                t-on-click.stop="() => this.onSelectChip(pallet, chip)">
+            <span class="flex-grow-1 min-w-0">
+                <span class="d-block fw-bold text-truncate" t-out="chip.line.product"/>
+                <span t-if="chip.line.lot" class="d-block small text-truncate">Lot <t t-out="chip.line.lot"/></span>
+            </span>
+            <span class="badge text-bg-light fs-6 text-nowrap">
+                <t t-out="chip.boxes"/> <t t-if="chip.line.box_name" t-out="chip.line.box_name"/><t t-else="">boxes</t>
+            </span>
+        </button>
     </t>
 
     <t t-name="mercas_touch.TouchScreenBoxes">
@@ -758,7 +948,9 @@
                     <div class="text-muted"><t t-out="scrap.lot.product"/> · <t t-out="this.formatQty(scrap.lot.stock)"/> <t t-out="scrap.lot.uom"/> in stock</div>
                     <label class="form-label mb-0">Quantity (<t t-out="scrap.lot.uom"/>)</label>
                     <input type="text" inputmode="decimal" class="form-control form-control-lg border-primary border-2 o_mercas_touch_scrap_qty"
-                           autocomplete="off" t-att-value="scrap.qty" t-on-input="(ev) => this.onScrapInput(ev.target.value)"/>
+                           autocomplete="off" t-att-value="scrap.qty" t-on-input="(ev) => this.onScrapInput(ev.target.value)"
+                           t-on-change="() => this.onFloatChange(scrap, 'qty')"
+                           t-on-keydown="(ev) => this.onFloatKeydown(ev, scrap, 'qty')"/>
                     <div class="d-flex gap-2 mt-2">
                         <button class="btn btn-secondary btn-lg" t-on-click="this.onBack">Cancel</button>
                         <button class="btn btn-danger btn-lg flex-grow-1 o_mercas_touch_confirm_scrap"
@@ -829,12 +1021,14 @@
                 <span class="me-auto"><t t-out="this.selectedLotIds().length"/> lots selected</span>
                 <button class="btn btn-secondary btn-lg o_mercas_touch_selected_labels" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
                         t-on-click="() => this.onPrintLotLabels(this.selectedLotIds())"><i class="oi" data-icon="label"/> Labels</button>
-                <button class="btn btn-primary btn-lg o_mercas_touch_settle" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
-                        t-on-click="() => this.onInvoiceLots('settle')">Settle</button>
-                <button class="btn btn-secondary btn-lg o_mercas_touch_advance" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
-                        t-on-click="() => this.onInvoiceLots('advance')">Invoice advance</button>
-                <button class="btn btn-secondary btn-lg o_mercas_touch_firm_invoice" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
-                        t-on-click="() => this.onInvoiceLots('firm')">Firm invoice</button>
+                <t t-if="this.state.data.can_bill">
+                    <button class="btn btn-primary btn-lg o_mercas_touch_settle" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
+                            t-on-click="() => this.onInvoiceLots('settle')">Settle</button>
+                    <button class="btn btn-secondary btn-lg o_mercas_touch_advance" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
+                            t-on-click="() => this.onInvoiceLots('advance')">Invoice advance</button>
+                    <button class="btn btn-secondary btn-lg o_mercas_touch_firm_invoice" t-att-disabled="this.state.sending or !this.selectedLotIds().length"
+                            t-on-click="() => this.onInvoiceLots('firm')">Firm invoice</button>
+                </t>
             </div>
         </t>
     </t>
@@ -895,7 +1089,9 @@
                 </label>
                 <label class="form-label mb-0 mt-2">Amount</label>
                 <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-lg border-primary border-2 o_mercas_touch_amount"
-                       t-att-value="this.state.amount" t-on-input="(ev) => this.onAmountInput(ev.target.value)"/>
+                       t-att-value="this.state.amount" t-on-input="(ev) => this.onAmountInput(ev.target.value)"
+                       t-on-change="() => this.onFloatChange(this.state, 'amount')"
+                       t-on-keydown="(ev) => this.onFloatKeydown(ev, this.state, 'amount')"/>
                 <div class="d-flex flex-wrap gap-2 o_mercas_touch_journals">
                     <button t-foreach="this.state.data.journals" t-as="journal" t-key="journal.id"
                             t-att-class="'btn btn-lg ' + (journal.id === this.state.journalId ? 'btn-primary' : 'btn-secondary')"
@@ -915,16 +1111,28 @@
     </t>
 
     <t t-name="mercas_touch.TouchNumpad">
-        <div class="o_mercas_touch_numpad d-grid gap-2">
-            <button t-foreach="this.keys" t-as="key" t-key="key" class="btn btn-secondary btn-lg o_mercas_touch_numpad_key"
-                    t-on-click="() => this.onKey(key)" t-out="key"/>
+        <!-- 3 columns of digits and 1 of operators, disabled (not hidden) without decimals so the
+             keypad keeps its size when the field changes -->
+        <div t-att-class="'o_mercas_touch_numpad d-grid gap-2' + (this.props.calculator ? ' o_mercas_touch_numpad_calculator' : '')">
+            <t t-foreach="this.rows" t-as="row" t-key="row_index">
+                <t t-foreach="row" t-as="key" t-key="key">
+                    <button t-if="!this.isOperator(key)" class="btn btn-secondary btn-lg o_mercas_touch_numpad_key"
+                            t-on-click="() => this.onKey(key)" t-out="key"/>
+                    <button t-elif="this.props.calculator" class="btn btn-info btn-lg o_mercas_touch_numpad_operator"
+                            t-att-disabled="!this.props.decimals" t-on-click="() => this.onKey(key)" t-out="key"/>
+                </t>
+            </t>
             <button class="btn btn-secondary btn-lg" t-att-disabled="!this.props.decimals"
                     t-on-click="() => this.onKey(this.decimalPoint)" t-out="this.decimalPoint"/>
             <button class="btn btn-secondary btn-lg o_mercas_touch_numpad_key" t-on-click="() => this.onKey('0')">0</button>
             <button class="btn btn-secondary btn-lg" title="Delete" t-on-click="() => this.onKey('backspace')">
                 <i class="oi" data-icon="backspace"/>
             </button>
+            <button t-if="this.props.calculator" class="btn btn-info btn-lg o_mercas_touch_numpad_operator" t-att-disabled="!this.props.decimals"
+                    t-on-click="() => this.onKey('+')">+</button>
             <button class="btn btn-warning btn-lg o_mercas_touch_numpad_clear" style="grid-column: span 3" t-on-click="() => this.onKey('clear')">Clear</button>
+            <button t-if="this.props.calculator" class="btn btn-primary btn-lg o_mercas_touch_numpad_equals" t-att-disabled="!this.props.decimals"
+                    t-on-click="() => this.onKey('=')">=</button>
         </div>
     </t>
 

@@ -61,6 +61,13 @@
                 <field name="box_product_id"
                        invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"
                        optional="show"/>
+                <field name="mercas_weighed" column_invisible="1"/>
+                <field name="mercas_gross_weight"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"
+                       readonly="not mercas_weighed" optional="hide"/>
+                <field name="mercas_tare"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"
+                       optional="hide"/>
             </xpath>
 
             <!-- Boxes and Box on the line's form (mobile form/kanban view) -->
@@ -70,6 +77,12 @@
                 <field name="box_qty"
                        invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"/>
                 <field name="box_product_id"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"/>
+                <field name="mercas_weighed" invisible="1"/>
+                <field name="mercas_gross_weight"
+                       invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"
+                       readonly="not mercas_weighed"/>
+                <field name="mercas_tare"
                        invisible="display_type != False or box_sale_line_id != False or mercas_product_is_box"/>
             </xpath>
 

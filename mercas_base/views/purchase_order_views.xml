@@ -67,6 +67,9 @@
                    position="after">
                 <field name="box_qty" optional="show"/>
                 <field name="box_product_id" optional="show"/>
+                <field name="mercas_weighed" column_invisible="1"/>
+                <field name="mercas_gross_weight" readonly="not mercas_weighed" optional="hide"/>
+                <field name="mercas_tare" optional="hide"/>
                 <field name="mercas_firm_negotiation" string="FN" optional="show"
                        help="FN: Firm Negotiation. The supplier is paid in full for what was received on this line, regardless of what was sold. Defaults to the value configured on the supplier, but can be changed here. It is carried over to the lot when the purchase is confirmed."/>
             </xpath>

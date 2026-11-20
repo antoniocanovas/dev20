@@ -4,10 +4,16 @@ from . import res_country
 from . import account_move
 from . import account_move_line
 from . import mercas_box_order_mixin
+from . import mercas_weighed_line_mixin
 from . import purchase_order
 from . import product_attribute
+from . import product_category
 from . import product_template
 from . import sale_order_line
 from . import sale_order
+from . import sale_order_pallet
+from . import mercas_sale_pallet
 from . import stock_lot
 from . import stock_picking
+from . import stock_move_line
+from . import stock_package_type

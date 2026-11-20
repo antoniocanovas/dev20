@@ -2,11 +2,13 @@ import uuid
 from collections import defaultdict
 
 from odoo import Command, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tools import float_round
 from odoo.tools.sql import escape_like_value
 
 from odoo.addons.web.controllers.utils import clean_action
+
+from .ir_actions_report import SALE_DOCUMENT_REPORTS
 
 # Characters of the comments of a sale
 MAX_COMMENT = 2000
@@ -28,6 +30,8 @@ MAX_LINES = 100
 MAX_NOTE_LENGTH = 500
 # Sent to every internal user when the stock of some lots changes
 LOTS_CHANGED = 'mercas_touch/lots_changed'
+# Most pallets of a sale
+MAX_PALLETS = 100
 # Ways of invoicing lots to their supplier, as the buttons of the settlement wizard
 LOT_INVOICE_MODES = ('settle', 'advance', 'firm')
 
@@ -72,14 +76,20 @@ class MercasTouch(models.AbstractModel):
 
     @api.model
     def get_screen_data(self):
-        """ Products by category, box products, payment journals and origin options. """
+        """ Products by category, box products, payment journals and origin options. The
+        catalog has only the goods of the market: the products of the categories marked as
+        such (product.category.is_merca). """
         company = self.env.company
         Product = self.env['product.product']
         products = Product.search([
             ('type', '=', 'consu'),
+            # Without category, as with a new one: it is shown
+            '|', ('categ_id', '=', False), ('categ_id.is_merca', '=', True),
             '|', ('sale_ok', '=', True), ('purchase_ok', '=', True),
             *Product._check_company_domain(company),
         ], limit=PRODUCT_LIMIT, order='default_code, name, id')
+        # Only the categories with goods of the market: not an empty one, nor the one of the boxes
+        categories = products.filtered(lambda product: not product.is_box).categ_id
         # All the kinds of box, even past the limit: each line chooses its box among them
         products |= Product.search([
             ('is_box', '=', True), ('id', 'not in', products.ids),
@@ -99,7 +109,7 @@ class MercasTouch(models.AbstractModel):
             'products': [self._get_product_data(product) for product in products],
             'categories': [
                 {'id': category.id, 'name': category.display_name}
-                for category in products.categ_id.sorted('complete_name')
+                for category in categories.sorted('complete_name')
             ],
             'journals': [{'id': journal.id, 'name': journal.name, 'type': journal.type} for journal in journals],
             'origin': {
@@ -108,7 +118,17 @@ class MercasTouch(models.AbstractModel):
                 'countries': [{'id': country.id, 'name': country.name} for country in countries],
             },
             'has_risk': 'risk_exception' in self.env['res.partner']._fields,
+            'can_bill': self._can_bill(),
         }
+
+    def _can_bill(self):
+        """ Whether the user invoices the purchases to their suppliers (bills, settlements,
+        advances and firm invoices of lots): only the billing administrators. """
+        return self.env.user.has_group('account.group_account_manager')
+
+    def _check_can_bill(self):
+        if not self._can_bill():
+            raise AccessError(self.env._("Only the billing administrators can invoice the purchases."))
 
     @api.model
     def get_origin_states(self, country_id):
@@ -135,11 +155,24 @@ class MercasTouch(models.AbstractModel):
             'sale_ok': product.sale_ok,
             'purchase_ok': product.purchase_ok,
             'box_product_id': product.product_tmpl_id.box_product_id.id,
+            # Weighed with its boxes: the screen works out the net weight from the gross one
+            # (scale) less the weight of the boxes
+            'weight': product.weight,
+            'weighed': product._mercas_is_weighed(product.uom_id),
+            'uom_per_weight': self._uom_per_weight(product),
             'price': product.lst_price,
             'attributes': self._get_product_attributes(product),
             # Changes with the image, so that the browser cache is refreshed
             'image_unique': fields.Datetime.to_string(product.write_date) if product.image_128 else False,
         }
+
+    def _uom_per_weight(self, product):
+        """ Units of the product in one unit of weight (1 when it is sold by weight in the
+        weight unit of the products, as kg). """
+        if not product._mercas_is_weighed(product.uom_id):
+            return 1.0
+        weight_uom = self.env['product.template']._get_weight_uom_id_from_ir_config_parameter()
+        return weight_uom._compute_quantity(1.0, product.uom_id, round=False)
 
     def _get_product_attributes(self, product):
         """ Attributes chosen on each sale of the product, as the quality and the size of goods
@@ -588,6 +621,7 @@ class MercasTouch(models.AbstractModel):
         """ The standard bill of a received purchase, in draft, to review it in a dialog. Its
         lines with a lot under sale settlement are invoiced from their lots
         (invoice_purchase_lots). """
+        self._check_can_bill()
         order = self._get_purchase_order(order_id)
         if not order._mercas_standard_bill_lines():
             raise UserError(self.env._("There is nothing to invoice in %s.", order.name))
@@ -599,6 +633,7 @@ class MercasTouch(models.AbstractModel):
     def invoice_purchase_lots(self, order_id, mode):
         """ Invoice the lots of a received purchase in the given way (see invoice_lots), and
         open the invoice made in a dialog. """
+        self._check_can_bill()
         if mode not in LOT_INVOICE_MODES:
             raise ValidationError(self.env._("Invalid way of invoicing."))
         order = self._get_purchase_order(order_id)
@@ -969,7 +1004,10 @@ class MercasTouch(models.AbstractModel):
             **self._get_order_states(order),
             'comment': order.mercas_comment or '',
             'comment_locked': order._mercas_comment_locked(),
+            'box_count': sum(order._mercas_product_lines().mapped('box_qty')),
+            'pallet_count': order.mercas_pallet_count,
             'mail': self._get_sale_mail_data(order),
+            'print': self._get_sale_print_data(order),
         }
 
     def _get_purchase_lot(self, line):
@@ -1000,10 +1038,12 @@ class MercasTouch(models.AbstractModel):
             'received': bool(order.picking_ids) and all(
                 picking.state in ('done', 'cancel') for picking in order.picking_ids),
             **self._get_order_states(order),
-            'bill_pending': order.state == 'purchase' and bool(order._mercas_standard_bill_lines()),
+            # The buttons to invoice it, only for the billing administrators
+            'bill_pending': self._can_bill() and order.state == 'purchase'
+            and bool(order._mercas_standard_bill_lines()),
             'lot_invoice_modes': [
                 mode for mode, lots in self._get_purchase_lots_to_invoice(order).items() if lots
-            ] if order.state == 'purchase' else [],
+            ] if order.state == 'purchase' and self._can_bill() else [],
             'invoice_count': len(self._get_purchase_invoices(order)),
             # Left out of the bill of the purchase: invoiced from their lot
             'settlement_lines': [{
@@ -1115,6 +1155,7 @@ class MercasTouch(models.AbstractModel):
 
         :return: the action opening the invoices made
         """
+        self._check_can_bill()
         if mode not in LOT_INVOICE_MODES:
             raise ValidationError(self.env._("Invalid way of invoicing."))
         if not are_record_ids(lot_ids):
@@ -1231,9 +1272,13 @@ class MercasTouch(models.AbstractModel):
     def get_print_action(self, model, order_id, kind):
         """ What to print after an operation: the delivery slip of a sale, or the box labels
         of a sale or a purchase (the wizard of `mercas_base`, to choose how many). """
-        if model not in ('sale.order', 'purchase.order') or kind not in ('delivery', 'labels', 'invoice'):
+        if model not in ('sale.order', 'purchase.order') or kind not in ('delivery', 'labels', 'invoice', 'packing'):
             raise ValidationError(self.env._("Nothing to print."))
         order = self._browse_order(model, order_id)
+        if kind == 'packing':
+            if model != 'sale.order' or not order.mercas_pallet_count:
+                raise UserError(self.env._("The sale has no pallets."))
+            return self._get_client_action(order.action_print_mercas_packing_list())
         if kind == 'labels':
             return self._get_client_action(order.action_print_mercas_labels())
         if kind == 'invoice':
@@ -1245,6 +1290,100 @@ class MercasTouch(models.AbstractModel):
         if model != 'sale.order' or not pickings:
             raise UserError(self.env._("There is no delivery to print."))
         return self._get_client_action(self.env.ref('stock.action_report_delivery').report_action(pickings))
+
+    # ------------------------------------------------------------------
+    # Pallets
+    # ------------------------------------------------------------------
+
+    @api.model
+    def get_pallets(self, order_id):
+        """ The pallets of a sale, with its lines that have boxes and the pallet types. """
+        order = self._browse_order('sale.order', order_id)
+        order.check_access('read')
+        return self._get_pallet_data(order)
+
+    def _get_pallet_data(self, order):
+        lines = order._mercas_product_lines().filtered(lambda line: line.box_qty > 0)
+        types = self.env['stock.package.type'].search([('mercas_is_pallet', '=', True)])
+        return {
+            'order': {
+                'id': order.id,
+                'name': order.name,
+                'state': order.state,
+                'delivered': bool(order._mercas_delivered_pickings()),
+            },
+            'lines': [{
+                'id': line.id,
+                'product': line.product_id.display_name,
+                'lot': line.lot_id.name or '',
+                'box_qty': line.box_qty,
+                'box_name': line.box_product_id.name or '',
+                'qty': line.product_uom_qty,
+                'uom': line.product_uom_id.name,
+            } for line in lines],
+            'pallets': [{
+                'id': pallet.id,
+                'package_type_id': pallet.package_type_id.id,
+                'height': pallet.height,
+                'package': pallet.package_id.name or '',
+                'lines': [{'sale_line_id': pl.sale_line_id.id, 'box_qty': pl.box_qty} for pl in pallet.line_ids],
+            } for pallet in order.mercas_pallet_ids],
+            'types': [{
+                'id': package_type.id,
+                'name': package_type.name,
+                'height': package_type.height,
+                'returnable': bool(package_type.mercas_box_product_id),
+            } for package_type in types],
+            'length_uom': self.env['product.template']._get_length_uom_name_from_ir_config_parameter(),
+        }
+
+    @api.model
+    def save_pallets(self, order_id, pallets):
+        """ Replace the pallets of a sale, in draft or already delivered: then its delivery is
+        corrected (see sale.order._mercas_set_pallets).
+
+        :param list pallets: [{'id': int or False, 'package_type_id': int, 'height': float,
+            'lines': [{'sale_line_id': int, 'box_qty': int}]}]
+        :return: as `get_pallets`, plus the returnable pallets that now differ from the sale:
+            'mismatch': [{'product', 'pallets', 'sale'}]
+        """
+        order = self._browse_order('sale.order', order_id)
+        order.check_access('write')
+        if order.state == 'cancel':
+            raise UserError(self.env._("%s is cancelled.", order.name))
+        if not isinstance(pallets, list) or len(pallets) > MAX_PALLETS:
+            raise ValidationError(self.env._("Add up to %s pallets.", MAX_PALLETS))
+        type_ids = set(self.env['stock.package.type'].search([('mercas_is_pallet', '=', True)]).ids)
+        line_ids = set(order._mercas_product_lines().filtered(lambda line: line.box_qty > 0).ids)
+        pallet_ids = set(order.mercas_pallet_ids.ids)
+        prepared = []
+        for pallet in pallets:
+            if not isinstance(pallet, dict) or pallet.get('package_type_id') not in type_ids:
+                raise ValidationError(self.env._("Choose the type of each pallet."))
+            height = pallet.get('height') or 0.0
+            lines = pallet.get('lines') or []
+            if not is_number(height) or height < 0 or not isinstance(lines, list):
+                raise ValidationError(self.env._("Invalid pallet."))
+            for line in lines:
+                if (not isinstance(line, dict) or line.get('sale_line_id') not in line_ids
+                        or not isinstance(line.get('box_qty'), int) or isinstance(line.get('box_qty'), bool)
+                        or line['box_qty'] <= 0):
+                    raise ValidationError(self.env._("Invalid boxes on a pallet."))
+            prepared.append({
+                'id': pallet.get('id') if pallet.get('id') in pallet_ids else False,
+                'package_type_id': pallet['package_type_id'],
+                'height': height,
+                'lines': [{'sale_line_id': line['sale_line_id'], 'box_qty': line['box_qty']} for line in lines],
+            })
+        mismatch = order._mercas_set_pallets(prepared)
+        return {
+            **self._get_pallet_data(order),
+            'pallet_count': order.mercas_pallet_count,
+            'mismatch': [
+                {'product': product.display_name, 'pallets': on_pallets, 'sale': on_sale}
+                for product, on_pallets, on_sale in mismatch
+            ],
+        }
 
     @api.model
     def set_sale_comment(self, order_id, comment):
@@ -1269,6 +1408,41 @@ class MercasTouch(models.AbstractModel):
             'deca': deca if deca and not deca.mercas_deca_missing else deca.browse(),
             'invoice': invoice,
         }
+
+    def _get_sale_print_documents(self, order):
+        """ What can be printed of a sale on the A4 printer: as what can be sent by email
+        (see `_get_sale_mail_documents`), and its packing list if it has pallets. """
+        return {
+            **self._get_sale_mail_documents(order),
+            'packing': order if order.mercas_pallet_count else order.browse(),
+        }
+
+    def _get_sale_print_data(self, order):
+        """ For the button "Print": the documents available, in the order they are printed. """
+        if order.state != 'sale':
+            return False
+        documents = self._get_sale_print_documents(order)
+        return {
+            'documents': [kind for kind in SALE_DOCUMENT_REPORTS if documents[kind]],
+            'deca_missing': bool(not documents['deca'] and documents['delivery']),
+        }
+
+    @api.model
+    def get_sale_documents_print_action(self, order_id, kinds):
+        """ Print in a single PDF the documents of a sale chosen on the screen (`kinds`:
+        'delivery', 'deca', 'packing', 'invoice'), with the report "Sale documents". """
+        if not isinstance(kinds, list) or not kinds or any(kind not in SALE_DOCUMENT_REPORTS for kind in kinds):
+            raise ValidationError(self.env._("Choose the documents to print."))
+        order = self._browse_order('sale.order', order_id)
+        if order.state != 'sale':
+            raise UserError(self.env._("Only the documents of a confirmed sale can be printed."))
+        order.check_access('read')
+        documents = self._get_sale_print_documents(order)
+        if any(not documents[kind] for kind in kinds):
+            raise UserError(self.env._("Some of the documents chosen aren't available anymore: reload the sale."))
+        kinds = [kind for kind in SALE_DOCUMENT_REPORTS if kind in kinds]
+        action = self.env.ref('mercas_touch.action_report_sale_documents').report_action(order, data={'kinds': kinds})
+        return self._get_client_action(action)
 
     def _get_sale_mail_partners(self, order):
         return {'invoice': order.partner_invoice_id, 'shipping': order.partner_shipping_id}

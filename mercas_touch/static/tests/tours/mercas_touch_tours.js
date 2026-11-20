@@ -263,12 +263,31 @@ registry.category("web_tour.tours").add("mercas_touch_payment_tour", {
             run: "click",
         },
         {
-            trigger: ".o_mercas_touch_numpad_key:text(6)",
+            content: "60 as an operation of the keypad: 2 × 30 =",
+            trigger: ".o_mercas_touch_numpad_key:text(2)",
+            run: "click",
+        },
+        {
+            trigger: ".o_mercas_touch_numpad_operator:text(×)",
+            run: "click",
+        },
+        {
+            trigger: ".o_mercas_touch_numpad_key:text(3)",
             run: "click",
         },
         {
             trigger: ".o_mercas_touch_numpad_key:text(0)",
             run: "click",
+        },
+        {
+            trigger: ".o_mercas_touch_amount:value(2×30)",
+        },
+        {
+            trigger: ".o_mercas_touch_numpad_equals",
+            run: "click",
+        },
+        {
+            trigger: ".o_mercas_touch_amount:value(60)",
         },
         {
             trigger: ".o_mercas_touch_register_payment",

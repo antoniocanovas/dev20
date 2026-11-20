@@ -3,6 +3,8 @@
 
     <record id="product_category_envases" model="product.category">
         <field name="name">Envases</field>
+        <!-- The boxes are chosen apart in the counter: not in its catalog -->
+        <field name="is_merca" eval="False"/>
     </record>
 
     <record id="product_category_frutas" model="product.category">

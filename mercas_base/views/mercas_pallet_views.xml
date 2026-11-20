@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Package types: pallets and the box product of each type -->
+    <record id="view_stock_package_type_form_mercas" model="ir.ui.view">
+        <field name="name">stock.package.type.form.mercas</field>
+        <field name="model">stock.package.type</field>
+        <field name="inherit_id" ref="stock.stock_package_type_form"/>
+        <field name="arch" type="xml">
+            <group name="delivery" position="inside">
+                <field name="mercas_is_pallet"/>
+                <field name="mercas_box_product_id" context="{'default_is_box': True}"/>
+            </group>
+        </field>
+    </record>
+
+    <record id="view_stock_package_type_list_mercas" model="ir.ui.view">
+        <field name="name">stock.package.type.list.mercas</field>
+        <field name="model">stock.package.type</field>
+        <field name="inherit_id" ref="stock.stock_package_type_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="mercas_is_pallet" optional="show"/>
+                <field name="mercas_box_product_id" optional="show"/>
+                <field name="base_weight" optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_mercas_sale_pallet_form" model="ir.ui.view">
+        <field name="name">mercas.sale.pallet.form</field>
+        <field name="model">mercas.sale.pallet</field>
+        <field name="arch" type="xml">
+            <form string="Pallet">
+                <group>
+                    <group>
+                        <field name="order_id" invisible="1"/>
+                        <field name="package_type_id" options="{'no_create': True}"/>
+                        <field name="height"/>
+                    </group>
+                    <group>
+                        <field name="package_id"/>
+                        <field name="box_qty"/>
+                    </group>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom">
+                        <field name="sale_line_id" options="{'no_create': True}"
+                               domain="[('order_id', '=', parent.order_id), ('box_qty', '>', 0)]"/>
+                        <field name="box_qty" sum="Boxes"/>
+                    </list>
+                </field>
+            </form>
+        </field>
+    </record>
+
+    <!-- Sale: Pallets tab -->
+    <record id="view_sale_order_form_mercas_pallets" model="ir.ui.view">
+        <field name="name">sale.order.form.mercas.pallets</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <page name="order_lines" position="after">
+                <page string="Pallets" name="mercas_pallets">
+                    <field name="mercas_pallet_ids">
+                        <list>
+                            <field name="sequence" widget="handle"/>
+                            <field name="name"/>
+                            <field name="package_type_id"/>
+                            <field name="box_qty" sum="Boxes"/>
+                            <field name="height" optional="hide"/>
+                            <field name="package_id"/>
+                        </list>
+                    </field>
+                    <div class="text-muted">
+                        The pallets of a sale already delivered can be corrected: the
+                        delivery is changed to match them.
+                    </div>
+                </page>
+            </page>
+            <button name="action_print_mercas_labels" position="after">
+                <button name="action_print_mercas_packing_list"
+                        string="Packing List"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="state not in ('sale', 'done') or not mercas_pallet_count"/>
+                <field name="mercas_pallet_count" invisible="1"/>
+            </button>
+        </field>
+    </record>
+
+</odoo>

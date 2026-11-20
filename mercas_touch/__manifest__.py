@@ -10,6 +10,7 @@
     'data': [
         'data/mail_template_data.xml',
         'views/mercas_touch_views.xml',
+        'report/report_sale_documents.xml',
     ],
     'assets': {
         'web.assets_backend': [

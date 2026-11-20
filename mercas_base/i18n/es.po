@@ -80,6 +80,7 @@ msgstr "Lote actual"
 #: code:addons/mercas_base/models/stock_lot.py:0
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_change_wizard_line__quantity
 #: model:ir.model.fields,field_description:mercas_base.field_stock_lot_invoice_wizard_line__product_qty
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_saleorder_document_mercas_weights
 #: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
 msgid "Quantity"
 msgstr "Cantidad"
@@ -1625,3 +1626,459 @@ msgstr ""
 #: model:ir.model.fields,field_description:mercas_base.field_sale_order__mercas_comment
 msgid "Comments"
 msgstr "Comentarios"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_sale_pallet.py:0
+msgid "%(product)s has %(boxes)s boxes but %(pallets)s are on pallets."
+msgstr "%(product)s tiene %(boxes)s cajas pero hay %(pallets)s en palets."
+
+#. module: mercas_base
+#: model:ir.actions.report,print_report_name:mercas_base.action_report_mercas_packing_list_picking
+msgid "'Packing List - %s' % (object.sale_id.name or object.name)"
+msgstr "'Packing list - %s' % (object.sale_id.name or object.name)"
+
+#. module: mercas_base
+#: model:ir.actions.report,print_report_name:mercas_base.action_report_mercas_packing_list
+msgid "'Packing List - %s' % object.name"
+msgstr "'Packing list - %s' % object.name"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "(weighed)"
+msgstr "(pesado)"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "<strong>Date</strong>"
+msgstr "<strong>Fecha</strong>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "<strong>Delivery</strong>"
+msgstr "<strong>Albarán</strong>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "<strong>Invoice</strong>"
+msgstr "<strong>Factura</strong>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "<strong>Sale</strong>"
+msgstr "<strong>Venta</strong>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "<strong>Your Reference</strong>"
+msgstr "<strong>Su referencia</strong>"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_sale_pallet.py:0
+msgid "A pallet can only hold lines of its own sale."
+msgstr "Un palet solo puede llevar líneas de su propia venta."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_stock_package_type__mercas_box_product_id
+msgid "Box Product"
+msgstr "Producto envase"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_mercas_sale_pallet_line
+msgid "Boxes of a Sale Line on a Pallet"
+msgstr "Cajas de una línea de venta en un palet"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__mercas_pallet_line_ids
+msgid "Boxes on Pallets"
+msgstr "Cajas en palets"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_sale_pallet__line_ids
+msgid "Contents"
+msgstr "Contenido"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Description of the goods"
+msgstr "Descripción de la mercancía"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Gross ("
+msgstr "Bruto ("
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_sale_pallet__height
+msgid "Height"
+msgstr "Altura"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_mercas_sale_pallet__height
+msgid ""
+"Height of this pallet, loaded, in the length unit of the package types. "
+"Empty: the height of its type. Used for the volume of the packing list."
+msgstr ""
+"Altura de este palet cargado, en la unidad de longitud de los tipos de "
+"paquete. Vacía: la altura de su tipo. Se usa para el volumen del packing "
+"list."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Includes returnable pallets:"
+msgstr "Incluye palets retornables:"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Kind of package"
+msgstr "Clase de bulto"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_sale_order_line__mercas_pallet_box_line
+msgid "Line of the returnable pallets of the sale, kept by its pallets."
+msgstr ""
+"Línea de los palets retornables de la venta, mantenida según sus palets."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Loose boxes"
+msgstr "Cajas sueltas"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Marks and numbers"
+msgstr "Marcas y números"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Net ("
+msgstr "Neto ("
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Origin"
+msgstr "Origen"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_sale_pallet__package_id
+msgid "Package"
+msgstr "Paquete"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_mercas_sale_pallet__package_id
+msgid ""
+"Package of the delivery for this pallet, created when the sale is delivered."
+msgstr "Paquete del albarán para este palet, creado al entregar la venta."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_stock_package_type__mercas_is_pallet
+msgid ""
+"Package type of the pallets of a sale: the boxes of its lines are spread "
+"over pallets of these types, and the packing list shows each pallet as a "
+"package."
+msgstr ""
+"Tipo de paquete de los palets de una venta: las cajas de sus líneas se "
+"reparten en palets de estos tipos y el packing list muestra cada palet como "
+"un bulto."
+
+#. module: mercas_base
+#: model:ir.actions.report,name:mercas_base.action_report_mercas_packing_list
+#: model:ir.actions.report,name:mercas_base.action_report_mercas_packing_list_picking
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas_pallets
+msgid "Packing List"
+msgstr "Packing list"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_sale_pallet_line__pallet_id
+#: model:ir.model.fields,field_description:mercas_base.field_stock_package_type__mercas_is_pallet
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_mercas_sale_pallet_form
+msgid "Pallet"
+msgstr "Palet"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_sale_pallet.py:0
+msgid "Pallet %s"
+msgstr "Palet %s"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order__mercas_pallet_count
+msgid "Pallet Count"
+msgstr "Nº de palets"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_sale_pallet__package_type_id
+msgid "Pallet Type"
+msgstr "Tipo de palet"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_mercas_sale_pallet
+msgid "Pallet of a Sale"
+msgstr "Palet de una venta"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order__mercas_pallet_ids
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas_pallets
+msgid "Pallets"
+msgstr "Palets"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__mercas_pallet_box_line
+msgid "Returnable Pallets Line"
+msgstr "Línea de palets retornables"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_sale_pallet__order_id
+msgid "Sale"
+msgstr "Venta"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_sale_pallet_line__sale_line_id
+msgid "Sale Line"
+msgstr "Línea de venta"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Tare ("
+msgstr "Tara ("
+
+#. module: mercas_base
+#: model:ir.model.constraint,message:mercas_base.constraint_mercas_sale_pallet_line_box_qty_positive
+msgid "The boxes of a line on a pallet must be more than zero."
+msgstr "Las cajas de una línea en un palet deben ser más de cero."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid ""
+"The net weight of each line is shared out among its boxes. The gross weight is\n"
+"                    the net weight plus the tare of the boxes and pallets, unless the pallet was weighed."
+msgstr ""
+"El peso neto de cada línea se reparte entre sus cajas. El peso bruto es el "
+"neto más la tara de cajas y palets, salvo que el palet se haya pesado."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_sale_order_form_mercas_pallets
+msgid ""
+"The pallets of a sale already delivered can be corrected: the\n"
+"                        delivery is changed to match them."
+msgstr ""
+"Los palets de una venta ya entregada se pueden corregir: el albarán se "
+"ajusta a ellos."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "Total:"
+msgstr "Total:"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "boxes)"
+msgstr "cajas)"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "m³"
+msgstr "m³"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid ""
+"packages\n"
+"                                ("
+msgstr ""
+"bultos\n"
+"                                ("
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_mercas_packing_list_document
+msgid "pallets,"
+msgstr "palets,"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_product_category__is_merca
+msgid "Market Goods"
+msgstr "Mercancía de mercado"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_product_category__is_merca
+msgid ""
+"Category of the goods of the market (fruit and vegetables): only its "
+"products are offered in the catalog of the counter screen (mercas_touch), in"
+" sales and purchases. The boxes are chosen apart, whatever their category."
+msgstr ""
+"Categoría de la mercancía del mercado (fruta y verdura): solo sus productos "
+"se ofrecen en el catálogo del mostrador táctil (mercas_touch), en ventas y "
+"compras. Las cajas se eligen aparte, sea cual sea su categoría."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+msgid "(pallets weighed)"
+msgstr "(palets pesados)"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+msgid "<span>Amount</span>"
+msgstr "<span>Importe</span>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchaseorder_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchasequotation_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_saleorder_document_mercas_weights
+msgid "<span>Boxes</span>"
+msgstr "<span>Cajas</span>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchaseorder_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchasequotation_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_saleorder_document_mercas_weights
+msgid "<span>Gross</span> ("
+msgstr "<span>Bruto</span> ("
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+msgid "<span>Packaging</span>"
+msgstr "<span>Envases</span>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+msgid "<span>Quantity</span>"
+msgstr "<span>Cantidad</span>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchaseorder_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchasequotation_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_saleorder_document_mercas_weights
+msgid "<span>Tare</span> ("
+msgstr "<span>Tara</span> ("
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+msgid "<span>Taxes</span>"
+msgstr "<span>Impuestos</span>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+msgid "<span>Unit Price</span>"
+msgstr "<span>Precio</span>"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_account_move_line__box_qty
+msgid ""
+"Boxes of the goods of the line, from the order line it invoices (in "
+"proportion when it invoices only a part)."
+msgstr "Cajas de la mercancía de la línea, de la línea de pedido que factura (en proporción cuando factura solo una parte)."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_weighed_line_mixin__mercas_gross_weight
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__mercas_gross_weight
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__mercas_gross_weight
+msgid "Gross Weight"
+msgstr "Peso bruto"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+msgid "Gross weight"
+msgstr "Peso bruto"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_invoice_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchaseorder_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_purchasequotation_document_mercas_weights
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_saleorder_document_mercas_weights
+msgid "Net"
+msgstr "Neto"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+msgid "Net weight"
+msgstr "Peso neto"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_mercas_weighed_line_mixin
+msgid "Order Line Weighed with its Boxes"
+msgstr "Línea de pedido pesada con sus cajas"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+msgid "Packaging"
+msgstr "Envases"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+msgid "Unit Price"
+msgstr "Precio"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_account_move_line__mercas_tare
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_weighed_line_mixin__mercas_tare
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__mercas_tare
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__mercas_tare
+msgid "Tare"
+msgstr "Tara"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+msgid "Tare of the boxes"
+msgstr "Tara de las cajas"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.report_delivery_document_mercas_weights
+msgid "Tare of the pallets ("
+msgstr "Tara de los palets ("
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_mercas_weighed_line_mixin__mercas_weighed
+#: model:ir.model.fields,help:mercas_base.field_purchase_order_line__mercas_weighed
+#: model:ir.model.fields,help:mercas_base.field_sale_order_line__mercas_weighed
+msgid "The line is in a unit of weight: its quantity is its net weight."
+msgstr "La línea está en una unidad de peso: su cantidad es su peso neto."
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_weighed_line_mixin__mercas_weighed
+#: model:ir.model.fields,field_description:mercas_base.field_purchase_order_line__mercas_weighed
+#: model:ir.model.fields,field_description:mercas_base.field_sale_order_line__mercas_weighed
+msgid "Weighed"
+msgstr "Pesada"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_account_move_line__mercas_tare
+msgid ""
+"Weight of the boxes of the line, kept from the order line: printed with the "
+"gross and net weight on the invoice."
+msgstr "Peso de las cajas de la línea, tomado de la línea de pedido: se imprime con el peso bruto y el neto en la factura."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_mercas_weighed_line_mixin__mercas_tare
+#: model:ir.model.fields,help:mercas_base.field_purchase_order_line__mercas_tare
+#: model:ir.model.fields,help:mercas_base.field_sale_order_line__mercas_tare
+msgid ""
+"Weight of the boxes of the line: boxes × weight of the box product. Set when"
+" the boxes change, so it can be corrected by hand."
+msgstr "Peso de las cajas de la línea: cajas × peso del producto envase. Se calcula al cambiar las cajas, así que se puede corregir a mano."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_mercas_weighed_line_mixin__mercas_gross_weight
+#: model:ir.model.fields,help:mercas_base.field_purchase_order_line__mercas_gross_weight
+#: model:ir.model.fields,help:mercas_base.field_sale_order_line__mercas_gross_weight
+msgid ""
+"Weight on the scale: net weight + tare. On lines in a unit of weight, "
+"setting it sets the quantity (net weight = gross - tare)."
+msgstr "Peso en la báscula: peso neto + tara. En las líneas en una unidad de peso, al escribirlo se calcula la cantidad (peso neto = bruto - tara)."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_stock_package_type__mercas_box_product_id
+msgid ""
+"Returnable container of this pallet type: each pallet of a sale adds one "
+"unit of this product to the sale, as the boxes do, so it counts in the box "
+"balance of the customer. Leave it empty for single-use pallets. The tare of "
+"the boxes is the weight of their box product."
+msgstr "Envase retornable de este tipo de palet: cada palet de una venta añade una unidad de este producto a la venta, como las cajas, así que cuenta en el saldo de envases del cliente. Déjalo vacío para los palets de un solo uso. La tara de las cajas es el peso de su producto envase."

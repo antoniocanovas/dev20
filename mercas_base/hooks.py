@@ -6,6 +6,7 @@ def post_init_hook(env):
     - Products: Variants
     - Products: Units of Measure & Packagings
     - Signature (asks for a signature on delivery orders)
+    - Packages (the pallets of the sales are packages of their deliveries)
 
     Done by instantiating and executing `res.config.settings` (instead of
     touching `implied_ids` directly) because several of these settings
@@ -22,5 +23,6 @@ def post_init_hook(env):
             "group_product_variant": True,
             "group_uom": True,
             "group_stock_sign_delivery": True,
+            "group_stock_tracking_lot": True,
         }
     ).execute()

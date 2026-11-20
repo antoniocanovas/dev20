@@ -40,6 +40,41 @@ Cada línea de pedido tiene los campos **Cajas** (`box_qty`) y **Caja** (`box_pr
 - Por cada línea con `box_qty > 0` se crea automáticamente una línea de caja vinculada (`box_sale_line_id`) usando el producto indicado en `box_product_id` de la línea (que se inicializa desde la plantilla del producto y puede modificarse manualmente antes de confirmar).
 - Si después de confirmar se modifica `box_qty`, `box_product_id` o el producto de una línea, la línea de caja se actualiza o elimina en consecuencia.
 
+### Ventas — Palets y packing list
+
+Las cajas de una venta se reparten en **palets** (pestaña **Palets** del pedido, o el botón **Palets** del mostrador táctil). El reparto lo decide quien prepara la venta, sin control de peso ni de número de cajas.
+
+**Configuración** (Inventario › Configuración › Tipos de paquete; el módulo activa la opción **Paquetes** al instalarse):
+
+- La tara de cada caja es el **Peso** de su producto envase (ver *Pesos: bruto, tara y neto*); las cajas no necesitan tipo de paquete.
+- Un tipo por cada palet, marcado como **Palet**, con su peso (tara), sus medidas y, si es retornable (europalet), su **Producto envase**. Con prefijo de secuencia (p. ej. `PAL`), los palets se numeran `PAL0000001`…
+
+**Funcionamiento**:
+
+- Cada palet (`mercas.sale.pallet`) dice cuántas cajas de cada línea lleva (`mercas.sale.pallet.line`). Las cajas que no están en ningún palet son **cajas sueltas**. Si una línea pasa a tener menos cajas que las que hay en palets, se quitan de los últimos palets.
+- Al entregar la venta, cada palet es un **paquete** (`stock.package`) del albarán: las líneas del albarán de cada producto se reparten entre los paquetes de sus palets en proporción a sus cajas, partiéndolas si hace falta, con el mismo lote y ubicaciones. Las cajas sueltas quedan sin paquete. Las cajas y los propios palets (envases) no se meten en los palets: son el continente, no la mercancía.
+- Los **palets retornables** añaden al confirmar una línea de envase en la sección **Envases** (un europalet por palet), como las cajas, y cuentan en el saldo de envases del cliente.
+- **Corrección después de vender**: si se cambian los palets de una venta ya entregada (desde el pedido o el táctil), se reescriben las líneas hechas del albarán; Odoo mueve las existencias por sí mismo (sin cambiar el total, el lote ni el destino) y deja la corrección en el historial del albarán. Los palets que siguen conservan su paquete (y su número o SSCC). Si cambia el número de europalets, no se toca la venta: se avisa para regularizarlo como una entrega o devolución de envases.
+
+**Packing list** (botón del pedido, menú Imprimir del pedido y del albarán, y el táctil): cada palet es un bulto (marcas: su número de paquete), con tipo, medidas y volumen (largo × ancho del tipo × altura del palet o, si no tiene, la del tipo); debajo, las cajas de cada línea con producto, lote, origen, nº de cajas y tipo de caja; después las cajas sueltas; y los totales de bultos, cajas, neto, tara, bruto y volumen.
+
+- **Neto**: los kg entregados de la línea (los pedidos si aún no se ha entregado) repartidos por cajas, convertidos a la unidad de peso de los productos (o con el peso del producto si se vende por unidades).
+- **Tara**: la de las cajas de cada línea (ver *Pesos: bruto, tara y neto*), en proporción a las cajas del palet, más el peso del tipo de palet.
+- **Bruto**: neto + tara; si el paquete del palet tiene **Peso de envío** (pesado en báscula), se usa ese.
+
+### Ventas y compras — Pesos: bruto, tara y neto
+
+La mercancía se pesa por línea en la báscula con sus cajas. La **cantidad** de la línea es el **peso neto**, el que lleva el precio (precio por kg neto): factura, existencias y precio son los estándar.
+
+- **Tara** (`mercas_tare`, en la línea de venta y de compra): cajas × **Peso** del producto envase. Se calcula al cambiar las cajas o el tipo de caja y se guarda, así que un cambio posterior del peso de la caja no cambia lo ya pesado; se puede corregir a mano.
+- **Bruto** (`mercas_gross_weight`): neto + tara. En las líneas en una unidad de peso, al escribir el bruto se calcula el neto (bruto − tara). En las que se venden por unidades, el neto sale del peso del producto y el bruto es solo de lectura.
+- **Factura** (venta, proveedor y autofactura): la línea guarda sus **Cajas** y su **Tara** (`account.move.line.box_qty` y `mercas_tare`), tomadas de la línea de pedido, en proporción si se factura solo una parte. Si alguna línea de mercancía tiene cajas o tara, el PDF muestra **Cajas · Bruto · Tara · Neto · Precio · Importe**; si no (una liquidación de lote, un servicio…), las columnas estándar.
+- **Pedido de venta, pedido de compra y solicitud de presupuesto**: las mismas columnas que la factura (**Cajas · Bruto · Tara**, y la cantidad como **Neto**) cuando alguna línea de mercancía tiene cajas o tara (`_mercas_order_weights` del mixin de pedidos). Los envases siguen en su sección *Envases* del pedido.
+- **Albarán**: valorado para todos los clientes (dependencia `stock_picking_report_valued` de OCA, que marca *Albarán valorado* en los contactos al instalarse). Una vez hecho, con las mismas columnas por línea del albarán: las cajas de cada línea de venta se reparten en cajas enteras entre sus líneas de albarán (lotes, palets), en proporción a su cantidad. Debajo, los totales: cajas, peso neto, tara de las cajas, **tara de los palets** (el peso de su tipo) y peso bruto; un palet pesado (*Peso de envío* de su paquete) cuenta con su peso, igual que en el packing list.
+- **Envases**: las líneas de los productos envase (cajas y europalets) y su sección *Envases* salen de la tabla de la mercancía y van en una tabla aparte, **agrupadas por envase y precio**: envase, cantidad, precio e importe (y en la factura, impuestos). Se siguen facturando como hasta ahora (fianza que se abona al devolverlos). Una factura o albarán que solo tiene envases (una devolución o entrega de cajas) los muestra como líneas normales.
+
+En `mercas_touch` la línea tiene el campo **Bruto** para los productos que se venden por peso (ver su README).
+
 ### Ventas — Comentarios
 
 El pedido de venta tiene el campo **Comentarios** (`mercas_comment`, encima de los términos y condiciones), un texto libre que se imprime en el PDF del pedido, en sus albaranes y en sus facturas (`report/report_comment.xml`); en la factura se toma de los pedidos facturados (`account.move.mercas_comment`, calculado). No se puede cambiar cuando alguna factura del pedido se ha enviado o tiene su PDF guardado: el PDF ya no se regenera y quedaría desfasado. Desde `mercas_touch` se escribe en la pantalla de la venta.
@@ -182,6 +217,10 @@ Para los proveedores cuyas facturas expedimos nosotros en su nombre (facturació
 - **Número:** el estándar numera con una serie por proveedor (`AF` + id del proveedor + año/mes/número). Al confirmar, si la factura no tiene referencia del proveedor, toma ese número: es el número de la factura del proveedor (el que se envía al SII y el del 347).
 - **PDF:** el informe estándar se titula *Autofactura*; además lleva la mención **Facturación por el destinatario** y los datos del **emisor** (el proveedor: nombre, dirección y NIF) y del **destinatario** (la empresa).
 - **Envío:** con el botón *Enviar* de la factura, que usa la plantilla estándar de autofacturación, para su aceptación por el proveedor según el acuerdo.
+
+### Maestros — Categoría: mercancía de mercado
+
+Las categorías de producto tienen la casilla **Mercancía de mercado** (`product.category.is_merca`, marcada por defecto). En el mostrador táctil (`mercas_touch`), el catálogo de ventas y compras solo ofrece los productos de las categorías marcadas (y los que no tienen categoría); también al escanear un código. Los envases se eligen aparte, en cada línea, sea cual sea su categoría. Para ocultar del mostrador material o servicios, se desmarca su categoría.
 
 ### Maestros — Producto: caja/envase
 
@@ -408,13 +447,13 @@ El módulo crea un menú raíz **Mercas** con accesos directos a las pantallas e
 
 ## Instalación
 
-El `post_init_hook` activa automáticamente, como si un usuario marcase las casillas en *Inventario > Configuración > Ajustes*, las opciones: ubicaciones de almacenamiento, números de serie y lote, variantes de producto, unidades de medida y embalajes, y firma en las órdenes de entrega. No requiere configuración manual adicional tras instalar el módulo. Al instalar o actualizar, además, cada compañía con plan contable recibe su diario de autofacturas, seleccionado en la empresa (ver *Contabilidad — Autofacturación de proveedores*).
+El `post_init_hook` activa automáticamente, como si un usuario marcase las casillas en *Inventario > Configuración > Ajustes*, las opciones: ubicaciones de almacenamiento, números de serie y lote, variantes de producto, unidades de medida y embalajes, firma en las órdenes de entrega y paquetes. Las **fechas de caducidad** (*Inventario > Configuración > Ajustes*) quedan activadas porque el módulo depende de `product_expiry`, que es lo que instala esa opción; cada producto decide si las usa con su casilla *Fechas de caducidad*. No requiere configuración manual adicional tras instalar el módulo, salvo, para imprimir en PDF (albarán, factura, packing list), que el parámetro del sistema `report.url` apunte al propio servidor tal como lo ve wkhtmltopdf (en local, `http://127.0.0.1:8069`): sin él se usa `web.base.url`, y si no es accesible desde el servidor los PDF salen sin estilos o no se generan. Al instalar o actualizar, además, cada compañía con plan contable recibe su diario de autofacturas, seleccionado en la empresa (ver *Contabilidad — Autofacturación de proveedores*).
 
 ## Notas técnicas
 
 - **Secciones y cajas en ventas y compras:** la lógica común (secciones PRODUCTOS/Envases, una línea de caja por línea de producto y la renumeración) está en el mixin abstracto `mercas.box.order.mixin` (`models/mercas_box_order_mixin.py`). `sale.order` y `purchase.order` solo indican el campo que enlaza la caja con su línea (`_mercas_box_link_field`), el de cantidad (`_mercas_box_qty_field`) y los valores extra de las secciones (`_mercas_section_vals`).
 - **Cálculos del lote:** `_mercas_posted_net` (suma con signo de las líneas de facturas y abonos de proveedor publicados), `_mercas_sale_move_lines`, `_mercas_scrap_move_lines` y `_mercas_confirmed_purchase_lines` reúnen los criterios que comparten los campos calculados, las facturas y el asistente. El precio neto de una línea de venta es `sale.order.line._mercas_net_price`.
-- **Tests:** `tests/` cubre liquidación y anticipos, factura estándar sin líneas de lote, aviso de líneas vacías, autofacturación (`test_self_billing.py`), cajas, clasificación, etiquetas, cambio de lote y autocompletar de la factura. Se pasan con `--test-tags /mercas_base` sobre una base con el módulo instalado (por ejemplo `test_mercas_touch19`).
+- **Tests:** `tests/` cubre liquidación y anticipos, factura estándar sin líneas de lote, aviso de líneas vacías, autofacturación (`test_self_billing.py`), cajas, clasificación, etiquetas, cambio de lote, autocompletar de la factura, palets y packing list (`test_mercas_pallets.py`) y pesos bruto, tara y neto en pedidos, factura y albarán (`test_mercas_weights.py`). Se pasan con `--test-tags /mercas_base` sobre una base con el módulo instalado (por ejemplo `test_mercas_touch19`).
 
 ## Dependencias
 
@@ -423,14 +462,17 @@ El `post_init_hook` activa automáticamente, como si un usuario marcase las casi
 - `stock`
 - `account`
 - `sale_stock`
+- `sale_management` — aplicación Ventas (menús, plantillas de presupuesto y productos opcionales)
 - `purchase_stock` — recepciones de los pedidos de compra en el autocompletar de la factura de proveedor
 - `contacts`
 - `bus` — aviso en tiempo real de edición concurrente en pedidos de venta
 - `product` — asistente de impresión de etiquetas (reutiliza `product.label.layout`)
+- `product_expiry` — fechas de caducidad de los lotes
 
 ### OCA
 - `purchase_lot` — campo `lot_id` en líneas de pedido de compra
 - `sale_order_lot_selection` — selección de lote en líneas de venta
+- `stock_picking_report_valued` — albarán valorado, con las cajas y los pesos de cada línea
 
 ### OCA opcionales
 - `sale_financial_risk` — control de riesgo financiero en ventas

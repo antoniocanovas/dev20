@@ -451,6 +451,12 @@ msgstr "Producto no válido."
 #. module: mercas_touch
 #. odoo-python
 #: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Only the billing administrators can invoice the purchases."
+msgstr "Solo los administradores de facturación pueden facturar las compras."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "Invalid way of invoicing."
 msgstr "Forma de facturar no válida."
 
@@ -1628,3 +1634,276 @@ msgid ""
 "{{ object.company_id.name }} - {{ object.sale_id.name or object.name }}"
 msgstr ""
 "{{ object.company_id.name }} - {{ object.sale_id.name or object.name }}"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid ""
+"%(product)s: %(pallets)s on the pallets and %(sale)s on the sale. Register "
+"the difference in Boxes (F3)."
+msgstr ""
+"%(product)s: %(pallets)s en los palets y %(sale)s en la venta. Registra la "
+"diferencia en Cajas (F3)."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "%s is cancelled."
+msgstr "%s está cancelado."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Add up to %s pallets."
+msgstr "Añade como máximo %s palets."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "All the boxes are on pallets."
+msgstr "Todas las cajas están en palets."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Boxes to move"
+msgstr "Cajas a mover"
+
+#. module: mercas_touch
+#. odoo-javascript
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Choose the type of each pallet."
+msgstr "Elige el tipo de cada palet."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Empty: choose some boxes and put them here."
+msgstr "Vacío: elige unas cajas y ponlas aquí."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Enter how many boxes to move."
+msgstr "Indica cuántas cajas mover."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Height of the loaded pallet (optional)"
+msgstr "Altura del palet cargado (opcional)"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid boxes on a pallet."
+msgstr "Cajas no válidas en un palet."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid pallet."
+msgstr "Palet no válido."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Keep editing"
+msgstr "Seguir editando"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Not on a pallet"
+msgstr "Sin palet"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Packing list"
+msgstr "Packing list"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Pallet"
+msgstr "Palet"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Pallets"
+msgstr "Palets"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Pallets of"
+msgstr "Palets de"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Pallets saved."
+msgstr "Palets guardados."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Pallets saved: the delivery has been corrected."
+msgstr "Palets guardados: se ha corregido el albarán."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Put"
+msgstr "Poner"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Quick:"
+msgstr "Rápido:"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Remove the pallet"
+msgstr "Quitar el palet"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Returnable pallets"
+msgstr "Palets retornables"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Sale already delivered: its delivery will be corrected."
+msgstr "Venta ya entregada: se corregirá su albarán."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Save the pallets"
+msgstr "Guardar los palets"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Save the sale first: add a line or try again."
+msgstr "Guarda primero la venta: añade una línea o vuelve a intentarlo."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Spread the boxes"
+msgstr "Repartir las cajas"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Take them off here"
+msgstr "Quitarlas del palet"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Tap the pallet to put them on, or \"Not on a pallet\"."
+msgstr "Toca el palet donde ponerlas, o \"Sin palet\"."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "The changes of the pallets will be lost."
+msgstr "Se perderán los cambios de los palets."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "The sale has no pallets."
+msgstr "La venta no tiene palets."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid ""
+"There is no pallet type: create one in Inventory, Package Types, marked as "
+"Pallet."
+msgstr ""
+"No hay ningún tipo de palet: crea uno en Inventario, Tipos de paquete, "
+"marcado como Palet."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "boxes here"
+msgstr "cajas aquí"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "here"
+msgstr "aquí"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "pallets of"
+msgstr "palets de"
+
+#. module: mercas_touch
+#: model:ir.actions.report,name:mercas_touch.action_report_sale_documents
+msgid "Sale Documents"
+msgstr "Documentos de la venta"
+
+#. module: mercas_touch
+#: model:ir.actions.report,print_report_name:mercas_touch.action_report_sale_documents
+msgid "'Documents - %s' % object.name"
+msgstr "'Documentos - %s' % object.name"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/ir_actions_report.py:0
+msgid "There is nothing to print."
+msgstr "No hay nada que imprimir."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Choose the documents to print."
+msgstr "Elige los documentos a imprimir."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Only the documents of a confirmed sale can be printed."
+msgstr "Solo se pueden imprimir los documentos de una venta confirmada."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "In a single PDF, for the same printer. The box labels go apart."
+msgstr "En un solo PDF, para la misma impresora. Las etiquetas de caja van aparte."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Gross ("
+msgstr "Bruto ("
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Net ("
+msgstr "Neto ("
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "· tare"
+msgstr "· tara"

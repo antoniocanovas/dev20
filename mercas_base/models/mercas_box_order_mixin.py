@@ -17,6 +17,26 @@ class MercasBoxOrderMixin(models.AbstractModel):
         link = self._mercas_box_link_field
         return self.order_line.filtered(lambda l: not l.display_type and not l[link])
 
+    def _mercas_order_weights(self):
+        """{line id: boxes, net, tare and gross weight} of the goods, for the
+        columns of the printed order, or False when none of them has boxes or
+        tare: the order keeps the standard columns then. As the invoice
+        (account.move._mercas_invoice_weights)."""
+        self.ensure_one()
+        goods = self._mercas_product_lines().filtered(lambda l: not l.product_id.is_box)
+        if not any(line.box_qty or line.mercas_tare for line in goods):
+            return False
+        weights = {}
+        for line in goods:
+            net = line._mercas_net_weight()
+            weights[line.id] = {
+                "boxes": line.box_qty,
+                "net": net,
+                "tare": line.mercas_tare,
+                "gross": net + line.mercas_tare,
+            }
+        return weights
+
     def _mercas_box_lines_by_parent(self):
         link = self._mercas_box_link_field
         return {bl[link].id: bl for bl in self.order_line.filtered(lambda l: l[link])}

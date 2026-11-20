@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Goods weighed with their boxes: boxes, gross weight (the one of the scale), tare (the
+         boxes) and net weight (the quantity, the one priced) on each line; the packaging (box
+         products) in a table of its own under the goods. -->
+
+    <!-- Invoice (sales, vendor bills and self-billing) -->
+    <template id="report_invoice_document_mercas_weights" inherit_id="account.report_invoice_document">
+        <xpath expr="//t[@t-set='lines_to_report']" position="after">
+            <t t-set="mercas_weights" t-value="o._mercas_invoice_weights()"/>
+            <t t-set="mercas_packaging" t-value="o._mercas_packaging_lines().filtered(lambda l: l.display_type == 'product')"/>
+            <t t-set="mercas_weight_uom" t-value="o.env['product.template']._get_weight_uom_name_from_ir_config_parameter()"/>
+        </xpath>
+        <th name="th_quantity" position="before">
+            <t t-if="mercas_weights">
+                <th name="th_mercas_boxes" class="text-end"><span>Boxes</span></th>
+                <th name="th_mercas_gross" class="text-end text-nowrap"><span>Gross</span> (<t t-out="mercas_weight_uom"/>)</th>
+                <th name="th_mercas_tare" class="text-end text-nowrap"><span>Tare</span> (<t t-out="mercas_weight_uom"/>)</th>
+            </t>
+        </th>
+        <xpath expr="//th[@name='th_quantity']/span" position="attributes">
+            <attribute name="t-if">not mercas_weights</attribute>
+        </xpath>
+        <xpath expr="//th[@name='th_quantity']/span" position="after">
+            <span t-if="mercas_weights">Net</span>
+        </xpath>
+        <!-- The sections across the new columns too -->
+        <xpath expr="//t[@t-set='line_colspan']" position="after">
+            <t t-set="line_colspan" t-value="line_colspan + (3 if mercas_weights else 0)"/>
+        </xpath>
+        <td name="td_quantity" position="before">
+            <t t-if="mercas_weights">
+                <t t-set="mercas_row" t-value="mercas_weights.get(line.id, {})"/>
+                <td name="td_mercas_boxes" class="text-end">
+                    <span t-if="mercas_row.get('boxes')" t-out="mercas_row['boxes']"/>
+                </td>
+                <td name="td_mercas_gross" class="text-end text-nowrap">
+                    <span t-if="mercas_row" t-out="mercas_row['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+                <td name="td_mercas_tare" class="text-end text-nowrap">
+                    <span t-if="mercas_row.get('tare')" t-out="mercas_row['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+            </t>
+        </td>
+        <xpath expr="//table[@name='invoice_line_table']" position="after">
+            <table t-if="mercas_packaging" class="table table-sm table-borderless mt-3 mb-0" name="mercas_packaging_table">
+                <thead>
+                    <tr>
+                        <th class="text-start"><span>Packaging</span></th>
+                        <th class="text-end"><span>Quantity</span></th>
+                        <th class="text-end"><span>Unit Price</span></th>
+                        <th t-if="display_taxes" class="text-end"><span>Taxes</span></th>
+                        <th class="text-end"><span>Amount</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="o._mercas_packaging_summary()" t-as="packaging">
+                        <td><span t-out="packaging['name']"/></td>
+                        <td class="text-end text-nowrap">
+                            <span t-out="packaging['quantity']" t-options="{'widget': 'float', 'decimal_precision': 'Product Unit'}"/>
+                            <span t-out="packaging['uom'].name" groups="uom.group_uom"/>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <span t-out="packaging['price_unit']" t-options="{'widget': 'float', 'decimal_precision': 'Product Price'}"/>
+                        </td>
+                        <td t-if="display_taxes" class="text-end"><span t-out="packaging['taxes']"/></td>
+                        <td class="text-end text-nowrap">
+                            <span t-out="packaging['amount']" t-options="{'widget': 'monetary', 'display_currency': o.currency_id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+
+    <!-- Delivery note: valued (stock_picking_report_valued) once done, with the move lines -->
+    <template id="report_delivery_document_mercas_weights" inherit_id="stock.report_delivery_document" priority="20">
+        <!-- Before the first table: between the t-if and t-elif tables it would break them -->
+        <xpath expr="//table[@name='stock_move_table']" position="before">
+            <t t-set="mercas_weights" t-value="o.picking_type_code == 'outgoing' and o.valued and o.sale_id and o.move_line_ids and o.state == 'done' and o._mercas_delivery_weights()"/>
+            <t t-set="mercas_packaging" t-value="mercas_weights and mercas_weights['packaging'] or o.env['stock.move.line']"/>
+        </xpath>
+        <th name="th_sml_quantity" position="before">
+            <t t-if="mercas_weights">
+                <th name="th_mercas_boxes" class="text-end">Boxes</th>
+                <th name="th_mercas_gross" class="text-end text-nowrap"><span>Gross</span> (<t t-out="mercas_weights['weight_uom']"/>)</th>
+                <th name="th_mercas_tare" class="text-end text-nowrap"><span>Tare</span> (<t t-out="mercas_weights['weight_uom']"/>)</th>
+            </t>
+        </th>
+        <th name="th_sml_quantity" position="attributes">
+            <attribute name="t-if">not mercas_weights</attribute>
+        </th>
+        <th name="th_sml_quantity" position="after">
+            <th name="th_mercas_net" class="text-end" t-else="">Net</th>
+        </th>
+        <!-- The packaging goes in its own table: out of the lines without a package (pallet) -->
+        <xpath expr="//t[@t-set='move_lines']" position="attributes">
+            <attribute name="t-value">o.move_ids.move_line_ids.filtered(lambda l: not l.result_package_id) - mercas_packaging</attribute>
+        </xpath>
+        <xpath expr="//t[@name='no_package_move_lines']" position="attributes">
+            <attribute name="t-if">move_lines or (aggregated_lines and not mercas_weights)</attribute>
+        </xpath>
+        <xpath expr="//tr[@t-foreach='o.move_ids.move_line_ids']" position="attributes">
+            <attribute name="t-foreach">o.move_ids.move_line_ids - mercas_packaging</attribute>
+        </xpath>
+        <xpath expr="//table[@name='stock_move_line_table']" position="after">
+            <table t-if="mercas_packaging" class="table table-sm table-borderless mt-3" name="mercas_packaging_table">
+                <thead>
+                    <tr>
+                        <th>Packaging</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr t-foreach="mercas_weights['packaging_summary']" t-as="packaging">
+                        <td><span t-out="packaging['product'].display_name"/></td>
+                        <td class="text-end text-nowrap">
+                            <span t-out="format_number(packaging['quantity'])"/>
+                            <span t-out="packaging['uom'].name" groups="uom.group_uom"/>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <span t-out="packaging['price_unit']" t-options="{'widget': 'float', 'decimal_precision': 'Product Price'}"/>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <span t-out="packaging['amount']" t-options="{'widget': 'monetary', 'display_currency': o.sale_id.currency_id}"/>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table t-if="mercas_weights" class="table table-sm table-borderless mt-3 w-50 ms-auto" name="mercas_weights_table">
+                <t t-set="mercas_totals" t-value="mercas_weights['totals']"/>
+                <tbody>
+                    <tr>
+                        <td>Boxes</td>
+                        <td class="text-end" t-out="mercas_totals['boxes']"/>
+                    </tr>
+                    <tr>
+                        <td>Net weight</td>
+                        <td class="text-end text-nowrap"><t t-out="mercas_totals['net']" t-options="{'widget': 'float', 'precision': 2}"/> <t t-out="mercas_weights['weight_uom']"/></td>
+                    </tr>
+                    <tr>
+                        <td>Tare of the boxes</td>
+                        <td class="text-end text-nowrap"><t t-out="mercas_totals['box_tare']" t-options="{'widget': 'float', 'precision': 2}"/> <t t-out="mercas_weights['weight_uom']"/></td>
+                    </tr>
+                    <tr t-if="mercas_totals['pallets']">
+                        <td>Tare of the pallets (<t t-out="mercas_totals['pallets']"/>)</td>
+                        <td class="text-end text-nowrap"><t t-out="mercas_totals['pallet_tare']" t-options="{'widget': 'float', 'precision': 2}"/> <t t-out="mercas_weights['weight_uom']"/></td>
+                    </tr>
+                    <tr class="fw-bold">
+                        <td>Gross weight<t t-if="mercas_totals['weighed']"> (pallets weighed)</t></td>
+                        <td class="text-end text-nowrap"><t t-out="mercas_totals['gross']" t-options="{'widget': 'float', 'precision': 2}"/> <t t-out="mercas_weights['weight_uom']"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+
+    <template id="stock_report_delivery_has_serial_move_line_mercas_weights" inherit_id="stock.stock_report_delivery_has_serial_move_line">
+        <td name="move_line_lot_quantity" position="before">
+            <t t-if="mercas_weights">
+                <t t-set="mercas_row" t-value="mercas_weights['lines'].get(move_line.id, {})"/>
+                <td name="td_mercas_boxes" class="text-end">
+                    <span t-if="mercas_row.get('boxes')" t-out="mercas_row['boxes']"/>
+                </td>
+                <td name="td_mercas_gross" class="text-end text-nowrap">
+                    <span t-if="mercas_row" t-out="mercas_row['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+                <td name="td_mercas_tare" class="text-end text-nowrap">
+                    <span t-if="mercas_row.get('tare')" t-out="mercas_row['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+            </t>
+        </td>
+    </template>
+
+    <!-- Sale order and quotation: the same columns as the invoice; the packaging stays in its
+         Envases section -->
+    <template id="report_saleorder_document_mercas_weights" inherit_id="sale.report_saleorder_document">
+        <xpath expr="//t[@t-set='lines_to_report']" position="after">
+            <t t-set="mercas_weights" t-value="doc._mercas_order_weights()"/>
+            <t t-set="mercas_weight_uom" t-value="doc.env['product.template']._get_weight_uom_name_from_ir_config_parameter()"/>
+        </xpath>
+        <th name="th_quantity" position="before">
+            <t t-if="mercas_weights">
+                <t t-set="colspan_count" t-value="colspan_count + 3"/>
+                <th name="th_mercas_boxes" class="text-end"><span>Boxes</span></th>
+                <th name="th_mercas_gross" class="text-end text-nowrap"><span>Gross</span> (<t t-out="mercas_weight_uom"/>)</th>
+                <th name="th_mercas_tare" class="text-end text-nowrap"><span>Tare</span> (<t t-out="mercas_weight_uom"/>)</th>
+            </t>
+        </th>
+        <th name="th_quantity" position="replace">
+            <th name="th_quantity" class="text-end text-nowrap">
+                <t t-set="colspan_count" t-value="colspan_count + 1"/>
+                <span t-if="mercas_weights">Net</span>
+                <span t-else="">Quantity</span>
+            </th>
+        </th>
+        <td name="td_product_quantity" position="before">
+            <t t-if="mercas_weights">
+                <t t-set="mercas_row" t-value="mercas_weights.get(line.id, {})"/>
+                <td name="td_mercas_boxes" class="text-end">
+                    <span t-if="mercas_row.get('boxes')" t-out="mercas_row['boxes']"/>
+                </td>
+                <td name="td_mercas_gross" class="text-end text-nowrap">
+                    <span t-if="mercas_row" t-out="mercas_row['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+                <td name="td_mercas_tare" class="text-end text-nowrap">
+                    <span t-if="mercas_row.get('tare')" t-out="mercas_row['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+            </t>
+        </td>
+        <!-- A collapsed section, summed up: empty cells under the new columns -->
+        <td name="td_section_group_quantity" position="before">
+            <t t-if="mercas_weights">
+                <td/><td/><td/>
+            </t>
+        </td>
+    </template>
+
+    <!-- Purchase order -->
+    <template id="report_purchaseorder_document_mercas_weights" inherit_id="purchase.report_purchaseorder_document">
+        <xpath expr="//table[hasclass('o_main_table')]" position="before">
+            <t t-set="mercas_weights" t-value="o._mercas_order_weights()"/>
+            <t t-set="mercas_weight_uom" t-value="o.env['product.template']._get_weight_uom_name_from_ir_config_parameter()"/>
+        </xpath>
+        <th name="th_quantity" position="before">
+            <t t-if="mercas_weights">
+                <th name="th_mercas_boxes" class="text-end"><span>Boxes</span></th>
+                <th name="th_mercas_gross" class="text-end text-nowrap"><span>Gross</span> (<t t-out="mercas_weight_uom"/>)</th>
+                <th name="th_mercas_tare" class="text-end text-nowrap"><span>Tare</span> (<t t-out="mercas_weight_uom"/>)</th>
+            </t>
+        </th>
+        <xpath expr="//th[@name='th_quantity']/strong" position="attributes">
+            <attribute name="t-if">not mercas_weights</attribute>
+        </xpath>
+        <xpath expr="//th[@name='th_quantity']/strong" position="after">
+            <strong t-if="mercas_weights">Net</strong>
+        </xpath>
+        <xpath expr="//td[@id='product']" position="after">
+            <t t-if="mercas_weights">
+                <t t-set="mercas_row" t-value="mercas_weights.get(line.id, {})"/>
+                <td name="td_mercas_boxes" class="text-end">
+                    <span t-if="mercas_row.get('boxes')" t-out="mercas_row['boxes']"/>
+                </td>
+                <td name="td_mercas_gross" class="text-end text-nowrap">
+                    <span t-if="mercas_row" t-out="mercas_row['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+                <td name="td_mercas_tare" class="text-end text-nowrap">
+                    <span t-if="mercas_row.get('tare')" t-out="mercas_row['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Request for quotation -->
+    <template id="report_purchasequotation_document_mercas_weights" inherit_id="purchase.report_purchasequotation_document">
+        <xpath expr="//table" position="before">
+            <t t-set="mercas_weights" t-value="o._mercas_order_weights()"/>
+            <t t-set="mercas_weight_uom" t-value="o.env['product.template']._get_weight_uom_name_from_ir_config_parameter()"/>
+        </xpath>
+        <th name="th_quantity" position="before">
+            <t t-if="mercas_weights">
+                <th name="th_mercas_boxes" class="text-end"><span>Boxes</span></th>
+                <th name="th_mercas_gross" class="text-end text-nowrap"><span>Gross</span> (<t t-out="mercas_weight_uom"/>)</th>
+                <th name="th_mercas_tare" class="text-end text-nowrap"><span>Tare</span> (<t t-out="mercas_weight_uom"/>)</th>
+            </t>
+        </th>
+        <xpath expr="//th[@name='th_quantity']/strong" position="attributes">
+            <attribute name="t-if">not mercas_weights</attribute>
+        </xpath>
+        <xpath expr="//th[@name='th_quantity']/strong" position="after">
+            <strong t-if="mercas_weights">Net</strong>
+        </xpath>
+        <xpath expr="//td[@id='product']/following-sibling::td[1]" position="after">
+            <t t-if="mercas_weights">
+                <t t-set="mercas_row" t-value="mercas_weights.get(order_line.id, {})"/>
+                <td name="td_mercas_boxes" class="text-end">
+                    <span t-if="mercas_row.get('boxes')" t-out="mercas_row['boxes']"/>
+                </td>
+                <td name="td_mercas_gross" class="text-end text-nowrap">
+                    <span t-if="mercas_row" t-out="mercas_row['gross']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+                <td name="td_mercas_tare" class="text-end text-nowrap">
+                    <span t-if="mercas_row.get('tare')" t-out="mercas_row['tare']" t-options="{'widget': 'float', 'precision': 2}"/>
+                </td>
+            </t>
+        </xpath>
+    </template>
+
+</odoo>

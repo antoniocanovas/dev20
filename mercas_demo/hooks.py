@@ -9,6 +9,7 @@ PRODUCE_TEMPLATE_XMLIDS = [
 BOX_PRODUCT_XMLIDS = [
     "mercas_demo.product_caja1",
     "mercas_demo.product_caja2",
+    "mercas_demo.product_europalet",
 ]
 
 # xmlid: (cost, sale price)
@@ -23,19 +24,22 @@ PRODUCE_PRICES = {
 BOX_PRICES = {
     "mercas_demo.product_caja1": (0.35, 0.60),
     "mercas_demo.product_caja2": (0.50, 0.85),
+    "mercas_demo.product_europalet": (8.00, 12.00),
 }
+
+# Quotation with its boxes on pallets, to try the packing list
+PALLET_SALE_REF = "Demo palets"
 
 
 def post_init_hook(env):
-    """Idempotent setup, called on fresh install (post_init_hook) and re-run on
-    upgrade via migrations/<version>/post-mercas_demo.py so it also applies to
-    databases where mercas_demo was already installed before this logic existed.
-    """
+    """Setup on install: lot tracking, company defaults, taxes, prices and the
+    quotation of the pallets."""
     _activate_lot_tracking(env)
     _configure_company(env)
     _assign_compensation_journal(env)
     _assign_taxes(env)
     _assign_prices(env)
+    _create_pallet_sale(env)
 
 
 def _activate_lot_tracking(env):
@@ -133,3 +137,99 @@ def _assign_prices(env):
             template = template.product_tmpl_id
         template.write({"list_price": price})
         template.product_variant_ids.write({"standard_price": cost})
+
+
+def _create_pallet_sale(env):
+    """A quotation of Cliente1 with its boxes on two pallets: a europallet
+    (returnable) with tomatoes and pears, and a single-use pallet with the
+    rest of the tomatoes and the bananas. Its goods are bought first from
+    Proveedor1 and received with their lots (see _receive_pallet_stock), so
+    "Sold & Sent" works right away. Created once; deleting it doesn't bring
+    it back unless the module is installed again."""
+    customer = env.ref("mercas_demo.res_partner_cliente1", raise_if_not_found=False)
+    euro = env.ref("mercas_demo.package_type_palet_europeo", raise_if_not_found=False)
+    single = env.ref("mercas_demo.package_type_palet_desechable", raise_if_not_found=False)
+    if not (customer and euro and single):
+        return
+    SaleOrder = env["sale.order"]
+    if SaleOrder.search_count([("client_order_ref", "=", PALLET_SALE_REF)], limit=1):
+        return
+
+    def variant(xmlid):
+        return env.ref(xmlid).product_variant_ids[:1]
+
+    tomato = variant("mercas_demo.product_template_tomate")
+    pear = variant("mercas_demo.product_template_pera")
+    banana = variant("mercas_demo.product_template_platano")
+    caja1 = env.ref("mercas_demo.product_caja1")
+    caja2 = env.ref("mercas_demo.product_caja2")
+    lots = _receive_pallet_stock(env, [
+        (tomato, 200.0, 20, caja2, "DEMO-TOMATE"),
+        (pear, 100.0, 10, caja1, "DEMO-PERA"),
+        (banana, 100.0, 10, caja2, "DEMO-PLATANO"),
+    ])
+    order = SaleOrder.create({
+        "partner_id": customer.id,
+        "client_order_ref": PALLET_SALE_REF,
+        "order_line": [
+            (0, 0, {"product_id": tomato.id, "product_uom_qty": 150.0, "box_qty": 15, "box_product_id": caja2.id,
+                    "lot_id": lots.get(tomato, env["stock.lot"]).id}),
+            (0, 0, {"product_id": pear.id, "product_uom_qty": 80.0, "box_qty": 8, "box_product_id": caja1.id,
+                    "lot_id": lots.get(pear, env["stock.lot"]).id}),
+            (0, 0, {"product_id": banana.id, "product_uom_qty": 60.0, "box_qty": 6, "box_product_id": caja2.id,
+                    "lot_id": lots.get(banana, env["stock.lot"]).id}),
+        ],
+    })
+    tomato_line, pear_line, banana_line = order.order_line
+    order._mercas_set_pallets([
+        {
+            "package_type_id": euro.id,
+            "lines": [
+                {"sale_line_id": tomato_line.id, "box_qty": 10},
+                {"sale_line_id": pear_line.id, "box_qty": 8},
+            ],
+        },
+        {
+            "package_type_id": single.id,
+            "height": 1100.0,
+            "lines": [
+                {"sale_line_id": tomato_line.id, "box_qty": 5},
+                {"sale_line_id": banana_line.id, "box_qty": 6},
+            ],
+        },
+    ])
+
+
+def _receive_pallet_stock(env, lines):
+    """Buy and receive from Proveedor1, with "Purchase & Receive", the goods of
+    the pallet quotation, each in a lot of its own (with its boxes).
+
+    :param list lines: [(product, kg, boxes, box product, lot name)]
+    :return: {product: its lot}; empty if Proveedor1 is missing
+    """
+    supplier = env.ref("mercas_demo.res_partner_proveedor1", raise_if_not_found=False)
+    if not supplier:
+        return {}
+    Lot = env["stock.lot"]
+    lots = {}
+    order_lines = []
+    for product, qty, boxes, box, lot_name in lines:
+        lot = Lot.search([("name", "=", lot_name), ("product_id", "=", product.id)], limit=1) or Lot.create({
+            "name": lot_name,
+            "product_id": product.id,
+        })
+        lots[product] = lot
+        order_lines.append((0, 0, {
+            "product_id": product.id,
+            "product_qty": qty,
+            "price_unit": product.standard_price,
+            "lot_id": lot.id,
+            "box_qty": boxes,
+            "box_product_id": box.id,
+        }))
+    europallet = env.ref("mercas_demo.product_europalet", raise_if_not_found=False)
+    if europallet:
+        order_lines.append((0, 0, {"product_id": europallet.id, "product_qty": 5.0, "price_unit": europallet.standard_price}))
+    purchase = env["purchase.order"].create({"partner_id": supplier.id, "order_line": order_lines})
+    purchase.button_purchase_and_receive()
+    return lots

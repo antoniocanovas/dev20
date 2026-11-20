@@ -14,7 +14,7 @@ import { formatFloat } from "@web/core/utils/numbers";
 import { imageUrl } from "@web/core/utils/urls";
 import { parseFloat } from "@web/views/fields/parsers";
 import { standardActionServiceProps } from "@web/webclient/actions/action_plugin";
-import { applyNumpadKey, TouchNumpad } from "./touch_numpad";
+import { applyNumpadKey, evalNumpadExpression, isNumpadExpression, TouchNumpad } from "./touch_numpad";
 import { localization } from "@web/core/l10n/localization";
 
 const MODEL = "mercas.touch";
@@ -96,6 +96,8 @@ export class TouchScreen extends Component {
             originStates: {},
             // Price of a line being changed from the ticket: { key, value, fresh }
             priceEdit: null,
+            // Pallets of the sale being arranged (see openPallets)
+            pallets: null,
             // Result of the last operation, shown until the next one starts
             done: null,
             // Boxes
@@ -215,6 +217,7 @@ export class TouchScreen extends Component {
         this.state.entry = null;
         this.state.lines = [];
         this.state.priceEdit = null;
+        this.state.pallets = null;
         this.state.done = null;
         this.state.categoryId = false;
         this.state.productSearch = "";
@@ -239,7 +242,9 @@ export class TouchScreen extends Component {
         if (this.state.sending) {
             return;
         }
-        if (this.state.priceEdit) {
+        if (this.state.pallets) {
+            this.onClosePallets();
+        } else if (this.state.priceEdit) {
             this.onClosePriceEdit();
         } else if (this.state.entry) {
             this.state.entry = null;
@@ -722,6 +727,9 @@ export class TouchScreen extends Component {
             price: line ? this.formatInput(line.price) : partner ? "" : this.formatInput(product.price),
             boxQty: line ? line.boxQty : 0,
             boxProductId: line ? line.boxProductId : defaultBox,
+            // Weight on the scale, with the boxes: the net weight (qty) is worked out from it.
+            // Empty when the net weight is typed
+            gross: "",
             // Text typed to look for a box; null while the list of boxes is closed
             boxSearch: null,
             note: line ? line.note : "",
@@ -731,9 +739,14 @@ export class TouchScreen extends Component {
             firm: line ? line.firm : Boolean(partner?.firm_negotiation),
             lotName: line ? line.lotName : "",
             attributeValueIds: line ? [...(line.attributeValueIds || [])] : [],
-            // Field written by the keypad
-            field: "qty",
+            // Field written by the keypad: a new line of goods sold by weight starts with the
+            // weight on the scale
+            field: !line && product.weighed ? "gross" : "qty",
         };
+        const entry = this.state.entry;
+        if (line && product.weighed && entry.boxQty && this.entryTare(entry)) {
+            entry.gross = this.formatInput(line.qty + this.entryTare(entry));
+        }
         this.loadOriginStates(this.state.entry.originCountryId);
         if (!line && partner) {
             this.loadLinePrice(this.state.entry);
@@ -788,6 +801,7 @@ export class TouchScreen extends Component {
     onEntryInput(field, ev) {
         this.state.entry[field] = ev.target.value;
         this.state.entry.field = field;
+        this.onEntryWeightChanged(field);
     }
 
     onNumpadInput(value) {
@@ -796,6 +810,39 @@ export class TouchScreen extends Component {
             entry.boxQty = Math.max(0, parseInt(value || "0", 10) || 0);
         } else {
             entry[entry.field] = value;
+        }
+        this.onEntryWeightChanged(entry.field);
+    }
+
+    /**
+     * Tare of the boxes of the line being added, in the unit of its product: boxes × weight of
+     * the box product.
+     */
+    entryTare(entry) {
+        const box = entry.boxQty && entry.boxProductId ? this.productById(entry.boxProductId) : null;
+        return box ? entry.boxQty * (box.weight || 0) * (entry.product.uom_per_weight || 1) : 0;
+    }
+
+    /**
+     * The scale weighs the goods with their boxes: with a gross weight, the net weight (the
+     * quantity of the line) is the gross one less the tare of the boxes, also when the boxes
+     * change. Typing the net weight leaves the gross one empty.
+     */
+    onEntryWeightChanged(field) {
+        const entry = this.state.entry;
+        if (!entry || !entry.product.weighed) {
+            return;
+        }
+        if (field === "qty") {
+            entry.gross = "";
+            return;
+        }
+        if (!String(entry.gross || "").trim()) {
+            return;
+        }
+        const gross = this.parseNumber(entry.gross);
+        if (Number.isFinite(gross)) {
+            entry.qty = this.formatInput(Math.max(0, gross - this.entryTare(entry)));
         }
     }
 
@@ -807,17 +854,26 @@ export class TouchScreen extends Component {
     onNumpadKey(key) {
         const priceEdit = this.state.priceEdit;
         const entry = this.state.entry;
-        if (priceEdit) {
-            // The first key replaces the price, as on a till
-            priceEdit.value = applyNumpadKey(priceEdit.fresh ? "" : priceEdit.value, key);
+        const pallets = this.state.pallets;
+        if (pallets) {
+            // Boxes to move: whole boxes only
+            if (pallets.selected && (/^[0-9]$/.test(key) || ["backspace", "clear"].includes(key))) {
+                pallets.moveQty = applyNumpadKey(pallets.moveFresh ? "" : pallets.moveQty, key);
+                pallets.moveFresh = false;
+            }
+        } else if (priceEdit) {
+            // The first digit replaces the price, as on a till; an operator works on it
+            const replace = priceEdit.fresh && (/^[0-9]$/.test(key) || key === localization.decimalPoint);
+            priceEdit.value = applyNumpadKey(replace ? "" : priceEdit.value, key);
             priceEdit.fresh = false;
         } else if (entry) {
             if (entry.field === "boxQty") {
-                if (key !== localization.decimalPoint) {
+                if (/^[0-9]$/.test(key) || ["backspace", "clear"].includes(key)) {
                     this.onNumpadInput(applyNumpadKey(String(entry.boxQty || ""), key));
                 }
             } else {
                 entry[entry.field] = applyNumpadKey(entry[entry.field], key);
+                this.onEntryWeightChanged(entry.field);
             }
         } else if (this.state.scrap) {
             this.state.scrap.qty = applyNumpadKey(this.state.scrap.qty, key);
@@ -828,6 +884,7 @@ export class TouchScreen extends Component {
 
     onBoxQtyStep(step) {
         this.state.entry.boxQty = Math.max(0, (this.state.entry.boxQty || 0) + step);
+        this.onEntryWeightChanged("boxQty");
     }
 
     /**
@@ -875,6 +932,7 @@ export class TouchScreen extends Component {
     onSelectBox(boxProductId) {
         this.state.entry.boxProductId = boxProductId || false;
         this.state.entry.boxSearch = null;
+        this.onEntryWeightChanged("boxProductId");
         document.activeElement?.blur();
     }
 
@@ -947,7 +1005,41 @@ export class TouchScreen extends Component {
         this.state.entry.showNote = !this.state.entry.showNote;
     }
 
+    /**
+     * The text of a float field when it's left or on Enter: an operation typed on the keyboard
+     * ("50*2-3", "12,5x3") or on the keypad ("12,5×3") becomes its result. The "=" in front of
+     * the fields of Odoo ("=(50*2-3)^2") is also understood, for parentheses and powers. An operation that can't be
+     * worked out stays, to be corrected.
+     */
+    resolveFloatInput(value) {
+        if (!isNumpadExpression(value)) {
+            return value;
+        }
+        const number = evalNumpadExpression(value);
+        return Number.isNaN(number) ? value : this.formatInput(number);
+    }
+
+    /** A float field left: `record[key]` gets the result of the operation it holds. */
+    onFloatChange(record, key) {
+        record[key] = this.resolveFloatInput(record[key]);
+        if (record === this.state.entry && key === "gross") {
+            this.onEntryWeightChanged(key);
+        }
+    }
+
+    /** Enter in a float field works out the operation typed, without leaving the field. */
+    onFloatKeydown(ev, record, key) {
+        if (ev.key === "Enter") {
+            ev.preventDefault();
+            this.onFloatChange(record, key);
+        }
+    }
+
+    /** The number of a field, also when it holds an operation of the keypad ("12,5×3"). */
     parseNumber(value) {
+        if (isNumpadExpression(value)) {
+            return evalNumpadExpression(value);
+        }
         try {
             return parseFloat(String(value || "").trim() || "0");
         } catch {
@@ -1137,6 +1229,303 @@ export class TouchScreen extends Component {
 
     boxName(boxProductId, fallback = _t("boxes")) {
         return this.productById(boxProductId)?.name || fallback;
+    }
+
+    // ------------------------------------------------------------------
+    // Pallets
+    // ------------------------------------------------------------------
+
+    /**
+     * Arrange the boxes of the sale on pallets: from the ticket, while the sale is a draft, or
+     * from the sale done, to correct them (its delivery is corrected then).
+     */
+    async onOpenPallets() {
+        if (this.state.sending) {
+            return;
+        }
+        let orderId = this.state.done?.id;
+        if (!this.state.done) {
+            if (!this.commitPrice()) {
+                return;
+            }
+            this.state.entry = null;
+            this.state.product = null;
+            this.state.lots = [];
+            await this.flushSave();
+            if (!this.state.order || this.state.saveState === "error") {
+                this.notification.add(_t("Save the sale first: add a line or try again."), { type: "warning" });
+                return;
+            }
+            orderId = this.state.order.id;
+        }
+        const data = await this.run("get_pallets", [orderId]);
+        if (data) {
+            this.loadPallets(data);
+        }
+    }
+
+    loadPallets(data) {
+        this.palletKey = 0;
+        this.state.pallets = {
+            order: data.order,
+            lines: data.lines,
+            types: data.types,
+            lengthUom: data.length_uom,
+            pallets: data.pallets.map((pallet) => this.newPallet(pallet)),
+            // Chip chosen to move: { lineId, from: key of its pallet or null (not on a pallet) }
+            selected: null,
+            moveQty: "",
+            moveFresh: true,
+            quickCount: Math.max(1, data.pallets.length),
+            quickTypeId: data.pallets[0]?.package_type_id || data.types[0]?.id || false,
+            dirty: false,
+        };
+    }
+
+    newPallet(vals = {}) {
+        const items = {};
+        for (const line of vals.lines || []) {
+            items[line.sale_line_id] = (items[line.sale_line_id] || 0) + line.box_qty;
+        }
+        return {
+            key: ++this.palletKey,
+            id: vals.id || false,
+            typeId: vals.package_type_id || this.state.pallets?.quickTypeId || this.state.pallets?.types[0]?.id,
+            height: vals.height ? this.formatInput(vals.height) : "",
+            package: vals.package || "",
+            items,
+        };
+    }
+
+    palletLine(lineId) {
+        return this.state.pallets.lines.find((line) => line.id === lineId);
+    }
+
+    /** Boxes of a line on no pallet. */
+    looseBoxes(line) {
+        const onPallets = this.state.pallets.pallets.reduce((total, pallet) => total + (pallet.items[line.id] || 0), 0);
+        return line.box_qty - onPallets;
+    }
+
+    /** The chips of a pallet, or of the boxes on no pallet (`pallet` null): [{ line, boxes }]. */
+    palletChips(pallet) {
+        return this.state.pallets.lines
+            .map((line) => ({ line, boxes: pallet ? pallet.items[line.id] || 0 : this.looseBoxes(line) }))
+            .filter((chip) => chip.boxes > 0);
+    }
+
+    palletBoxes(pallet) {
+        return Object.values(pallet.items).reduce((total, boxes) => total + boxes, 0);
+    }
+
+    palletTypeName(typeId) {
+        return this.state.pallets.types.find((type) => type.id === typeId)?.name || "";
+    }
+
+    totalPalletBoxes() {
+        return this.state.pallets.lines.reduce((total, line) => total + line.box_qty, 0);
+    }
+
+    isChipSelected(pallet, chip) {
+        const selected = this.state.pallets.selected;
+        return Boolean(selected) && selected.lineId === chip.line.id && selected.from === (pallet ? pallet.key : null);
+    }
+
+    /** Tap a chip to move its boxes; tap it again to leave it. */
+    onSelectChip(pallet, chip) {
+        const pallets = this.state.pallets;
+        if (this.isChipSelected(pallet, chip)) {
+            pallets.selected = null;
+            return;
+        }
+        pallets.selected = { lineId: chip.line.id, from: pallet ? pallet.key : null };
+        pallets.moveQty = String(chip.boxes);
+        pallets.moveFresh = true;
+    }
+
+    /** Boxes of the chip chosen still where they are. */
+    selectedAvailable() {
+        const pallets = this.state.pallets;
+        const selected = pallets.selected;
+        if (!selected) {
+            return 0;
+        }
+        const from = pallets.pallets.find((pallet) => pallet.key === selected.from);
+        return from ? from.items[selected.lineId] || 0 : this.looseBoxes(this.palletLine(selected.lineId));
+    }
+
+    onMoveStep(step) {
+        const pallets = this.state.pallets;
+        const qty = (parseInt(pallets.moveQty || "0", 10) || 0) + step;
+        pallets.moveQty = String(Math.min(this.selectedAvailable(), Math.max(1, qty)));
+        pallets.moveFresh = false;
+    }
+
+    /** Put the boxes of the chip chosen on `target` (a pallet, or null: on no pallet). */
+    onDropOnPallet(target) {
+        const pallets = this.state.pallets;
+        const selected = pallets.selected;
+        if (!selected || selected.from === (target ? target.key : null)) {
+            return;
+        }
+        const qty = Math.min(parseInt(pallets.moveQty || "0", 10) || 0, this.selectedAvailable());
+        if (qty <= 0) {
+            this.notification.add(_t("Enter how many boxes to move."), { type: "warning" });
+            return;
+        }
+        const from = pallets.pallets.find((pallet) => pallet.key === selected.from);
+        if (from) {
+            from.items[selected.lineId] -= qty;
+            if (!from.items[selected.lineId]) {
+                delete from.items[selected.lineId];
+            }
+        }
+        if (target) {
+            target.items[selected.lineId] = (target.items[selected.lineId] || 0) + qty;
+        }
+        pallets.selected = null;
+        pallets.dirty = true;
+    }
+
+    onAddPallet() {
+        const pallets = this.state.pallets;
+        const pallet = this.newPallet();
+        pallets.pallets.push(pallet);
+        pallets.dirty = true;
+        // With a chip chosen, the new pallet takes its boxes
+        if (pallets.selected) {
+            this.onDropOnPallet(pallet);
+        }
+    }
+
+    /** Remove a pallet: its boxes go back to no pallet. */
+    onRemovePallet(pallet) {
+        const pallets = this.state.pallets;
+        pallets.pallets = pallets.pallets.filter((other) => other !== pallet);
+        if (pallets.selected?.from === pallet.key) {
+            pallets.selected = null;
+        }
+        pallets.dirty = true;
+    }
+
+    onPalletType(pallet, ev) {
+        pallet.typeId = parseInt(ev.target.value, 10) || false;
+        this.state.pallets.dirty = true;
+    }
+
+    onPalletHeight(pallet, ev) {
+        pallet.height = ev.target.value;
+        this.state.pallets.dirty = true;
+    }
+
+    onQuickCount(step) {
+        const pallets = this.state.pallets;
+        pallets.quickCount = Math.min(Math.max(1, pallets.quickCount + step), Math.max(1, this.totalPalletBoxes()));
+    }
+
+    onQuickType(ev) {
+        this.state.pallets.quickTypeId = parseInt(ev.target.value, 10) || false;
+    }
+
+    /**
+     * Spread all the boxes over the number of pallets chosen: each line goes whole, the biggest
+     * first, on the pallet with the fewest boxes; a line is split only when a pallet would be
+     * left empty. The pallets already there keep their package, in order.
+     */
+    onQuickSpread() {
+        const pallets = this.state.pallets;
+        const total = this.totalPalletBoxes();
+        if (!total) {
+            return;
+        }
+        const count = Math.min(pallets.quickCount, total);
+        const previous = pallets.pallets;
+        const result = Array.from({ length: count }, (_, index) => ({
+            ...this.newPallet({ id: previous[index]?.id, package: previous[index]?.package }),
+            typeId: pallets.quickTypeId,
+            height: previous[index]?.height || "",
+        }));
+        const loads = new Array(count).fill(0);
+        const lines = [...pallets.lines].sort((a, b) => b.box_qty - a.box_qty);
+        for (const line of lines) {
+            const index = loads.indexOf(Math.min(...loads));
+            result[index].items[line.id] = line.box_qty;
+            loads[index] += line.box_qty;
+        }
+        // An empty pallet takes half of the biggest line of the fullest one
+        let empty = loads.indexOf(0);
+        while (empty >= 0) {
+            const full = loads.indexOf(Math.max(...loads));
+            const [lineId, boxes] = Object.entries(result[full].items).sort((a, b) => b[1] - a[1])[0];
+            const take = Math.max(1, Math.floor(Math.min(boxes, loads[full]) / 2));
+            result[full].items[lineId] -= take;
+            if (!result[full].items[lineId]) {
+                delete result[full].items[lineId];
+            }
+            result[empty].items[lineId] = take;
+            loads[full] -= take;
+            loads[empty] = take;
+            empty = loads.indexOf(0);
+        }
+        pallets.pallets = result;
+        pallets.selected = null;
+        pallets.dirty = true;
+    }
+
+    palletsPayload() {
+        return this.state.pallets.pallets
+            .filter((pallet) => this.palletBoxes(pallet) > 0)
+            .map((pallet) => ({
+                id: pallet.id || false,
+                package_type_id: pallet.typeId,
+                height: this.parseNumber(pallet.height) > 0 ? this.parseNumber(pallet.height) : 0,
+                lines: Object.entries(pallet.items)
+                    .filter(([, boxes]) => boxes > 0)
+                    .map(([lineId, boxes]) => ({ sale_line_id: parseInt(lineId, 10), box_qty: boxes })),
+            }));
+    }
+
+    async onSavePallets() {
+        const pallets = this.state.pallets;
+        if (pallets.pallets.some((pallet) => this.palletBoxes(pallet) > 0 && !pallet.typeId)) {
+            this.notification.add(_t("Choose the type of each pallet."), { type: "warning" });
+            return;
+        }
+        const result = await this.run("save_pallets", [pallets.order.id, this.palletsPayload()]);
+        if (!result) {
+            return;
+        }
+        this.notification.add(
+            pallets.order.delivered ? _t("Pallets saved: the delivery has been corrected.") : _t("Pallets saved."),
+            { type: "success" }
+        );
+        for (const mismatch of result.mismatch) {
+            this.notification.add(
+                _t("%(product)s: %(pallets)s on the pallets and %(sale)s on the sale. Register the difference in Boxes (F3).", mismatch),
+                { title: _t("Returnable pallets"), type: "warning", sticky: true }
+            );
+        }
+        if (this.state.done?.id === pallets.order.id) {
+            this.state.done.pallet_count = result.pallet_count;
+        }
+        this.state.pallets = null;
+    }
+
+    onClosePallets() {
+        if (!this.state.pallets.dirty) {
+            this.state.pallets = null;
+            return;
+        }
+        this.dialog.add(ConfirmationDialog, {
+            title: _t("Pallets"),
+            body: _t("The changes of the pallets will be lost."),
+            confirmLabel: _t("Discard"),
+            cancelLabel: _t("Keep editing"),
+            confirm: () => {
+                this.state.pallets = null;
+            },
+            cancel: () => {},
+        });
     }
 
     // ------------------------------------------------------------------
@@ -1373,6 +1762,54 @@ export class TouchScreen extends Component {
         return done.mail.names[kind === "invoice" ? "invoice" : "shipping"];
     }
 
+    printDocumentLabel(kind) {
+        return {
+            delivery: _t("Delivery slip"),
+            deca: _t("DeCA"),
+            packing: _t("Packing list"),
+            invoice: _t("Invoice"),
+        }[kind];
+    }
+
+    /** Open (with the documents available, checked) or close the printing. */
+    async onTogglePrint() {
+        const done = this.state.done;
+        if (done.printPanel) {
+            done.printPanel = null;
+            return;
+        }
+        done.mailPanel = null;
+        // An invoice, a DeCA or pallets made meanwhile
+        await this.refreshOrderSummary();
+        if (this.state.done !== done || !done.print) {
+            return;
+        }
+        done.printPanel = { kinds: [...done.print.documents] };
+    }
+
+    onTogglePrintKind(kind) {
+        const panel = this.state.done.printPanel;
+        panel.kinds = panel.kinds.includes(kind)
+            ? panel.kinds.filter((other) => other !== kind)
+            : [...panel.kinds, kind];
+    }
+
+    /** The documents checked, in a single PDF for the A4 printer. */
+    async onPrintDocuments() {
+        const done = this.state.done;
+        const kinds = ["delivery", "deca", "packing", "invoice"].filter((kind) => done.printPanel.kinds.includes(kind));
+        const action = await this.run("get_sale_documents_print_action", [done.id, kinds]);
+        if (!action) {
+            return;
+        }
+        await this.action.doAction(action);
+        if (this.state.done === done) {
+            done.printPanel = null;
+            // The invoice printed keeps its PDF: its comments can't be changed anymore
+            await this.refreshOrderSummary();
+        }
+    }
+
     /** Open (with the documents available and an email, checked) or close the sending. */
     async onToggleMail() {
         const done = this.state.done;
@@ -1380,6 +1817,7 @@ export class TouchScreen extends Component {
             done.mailPanel = null;
             return;
         }
+        done.printPanel = null;
         // An invoice or a DeCA made meanwhile
         await this.refreshOrderSummary();
         if (this.state.done !== done || !done.mail) {

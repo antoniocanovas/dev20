@@ -4,7 +4,10 @@ MERCAS_LINES_BUS_NOTIFICATION_TYPE = "mercas_sale_order_lines_updated"
 
 
 class SaleOrderLine(models.Model):
-    _inherit = "sale.order.line"
+    _name = "sale.order.line"
+    _inherit = ["sale.order.line", "mercas.weighed.line.mixin"]
+
+    _mercas_qty_field = "product_uom_qty"
 
     box_qty = fields.Integer(
         string="Boxes",
@@ -28,6 +31,16 @@ class SaleOrderLine(models.Model):
         domain=[("is_box", "=", True)],
     )
     mercas_product_is_box = fields.Boolean(related="product_id.is_box")
+    mercas_pallet_box_line = fields.Boolean(
+        string="Returnable Pallets Line",
+        copy=False,
+        help="Line of the returnable pallets of the sale, kept by its pallets.",
+    )
+    mercas_pallet_line_ids = fields.One2many(
+        comodel_name="mercas.sale.pallet.line",
+        inverse_name="sale_line_id",
+        string="Boxes on Pallets",
+    )
     mercas_has_assigned_lot = fields.Boolean(
         compute="_compute_mercas_has_assigned_lot",
         help="Has at least one delivery move line (done or pending) with a "
@@ -129,10 +142,10 @@ class SaleOrderLine(models.Model):
             order._mercas_prepare_box_lines()
         return lines
 
-    @api.depends("product_id", "product_uom_id", "product_uom_qty")
+    @api.depends("product_id", "product_id.uom_ids", "product_id.extra_uom_ids", "product_uom_id", "product_uom_qty")
     def _compute_box_qty(self):
         for line in self:
-            if line.product_uom_id and line.product_uom_id in line.product_id.uom_ids:
+            if line.product_uom_id and line.product_uom_id in (line.product_id.uom_ids | line.product_id.extra_uom_ids):
                 line.box_qty = line.product_uom_qty
             else:
                 line.box_qty = line.box_qty
@@ -149,6 +162,7 @@ class SaleOrderLine(models.Model):
         vals = super()._prepare_invoice_line(**optional_values)
         if self.lot_id:
             vals["lot_id"] = self.lot_id.id
+        vals.update(self._mercas_invoice_weight_vals(vals.get("quantity", 0.0)))
         return vals
 
     def get_available_lots_for_line(self):
@@ -181,6 +195,8 @@ class SaleOrderLine(models.Model):
                 lambda l: l.product_uom_qty != vals["product_uom_qty"]
             )
         result = super().write(vals)
+        if {"box_qty", "product_uom_qty", "product_uom_id", "product_id"} & set(vals):
+            self._mercas_trim_pallets()
         if changed_qty_lines:
             changed_qty_lines.product_qty_datetime = fields.Datetime.now()
         if "box_qty" in vals or "box_product_id" in vals or "product_id" in vals:
@@ -223,6 +239,24 @@ class SaleOrderLine(models.Model):
                     order._mercas_prepare_box_lines()
         self._mercas_notify_lines_changed(self.order_id)
         return result
+
+    def _mercas_trim_pallets(self):
+        """Take off the pallets the boxes a line no longer has, from its last
+        pallets."""
+        pallet_lines = self.env["mercas.sale.pallet.line"].search([("sale_line_id", "in", self.ids)])
+        for line, on_pallets in pallet_lines.grouped("sale_line_id").items():
+            excess = sum(on_pallets.mapped("box_qty")) - line.box_qty
+            for pallet_line in on_pallets.sorted(
+                lambda pl: (pl.pallet_id.sequence, pl.pallet_id.id, pl.id), reverse=True
+            ):
+                if excess <= 0:
+                    break
+                take = min(excess, pallet_line.box_qty)
+                excess -= take
+                if take == pallet_line.box_qty:
+                    pallet_line.unlink()
+                else:
+                    pallet_line.box_qty -= take
 
     def unlink(self):
         orders = self.order_id

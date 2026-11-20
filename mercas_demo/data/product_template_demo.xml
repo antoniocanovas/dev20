@@ -13,6 +13,8 @@
         <field name="tracking" eval="False"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
         <field name="is_box">True</field>
+        <!-- Peso de la caja vacía (kg): la tara de cada caja -->
+        <field name="weight">0.5</field>
     </record>
 
     <record id="product_caja2" model="product.product">
@@ -23,6 +25,8 @@
         <field name="tracking" eval="False"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
         <field name="is_box">True</field>
+        <!-- Peso de la caja vacía (kg): la tara de cada caja -->
+        <field name="weight">0.8</field>
     </record>
 
     <!-- ============================================================= -->
