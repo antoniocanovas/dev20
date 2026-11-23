@@ -5,9 +5,12 @@
         max-width: 36rem;
     }
 
-    // Beside the menu on a wide screen, under it on a narrow one
+    // Beside the menu on a wide screen, under it on a narrow one. min-width: 0 lets a column
+    // shrink to a phone's width: otherwise its truncated (nowrap) texts set its minimum width
+    // and it overflows the screen on both sides
     .o_mercas_touch_home_columns > .container {
         flex: 1 1 28rem;
+        min-width: 0;
         width: auto;
         margin-left: 0;
         margin-right: 0;
