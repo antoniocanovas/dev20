@@ -12,6 +12,12 @@
                 <field name="box_product_id"
                        invisible="not is_storable or is_box"
                        context="{'default_is_box': True}"/>
+                <field name="mercas_no_expiration" invisible="is_box or tracking == 'none'"/>
+                <!-- The native alert days, also for the products without the expiration dates of
+                     product_expiry, whose lots take the expiry date by hand -->
+                <field name="alert_time" string="Expiry Warning (days)"
+                       help="The lots in stock are shown on the counter screen as about to expire these days before their expiry date (0: on the same day)."
+                       invisible="is_box or tracking == 'none' or use_expiration_date or mercas_no_expiration"/>
             </xpath>
         </field>
     </record>
@@ -24,6 +30,7 @@
             <filter name="filter_to_sell" position="after">
                 <separator/>
                 <filter string="Boxes" name="mercas_is_box" domain="[('is_box', '=', True)]"/>
+                <filter string="No Expiry Date" name="mercas_no_expiration" domain="[('mercas_no_expiration', '=', True)]"/>
             </filter>
         </field>
     </record>

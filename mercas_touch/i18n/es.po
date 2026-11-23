@@ -2011,3 +2011,171 @@ msgstr "Saldos a favor no válidos."
 #: code:addons/mercas_touch/models/mercas_touch.py:0
 msgid "Some credits can't be used anymore."
 msgstr "Algún saldo a favor ya no se puede usar."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "1 sale"
+msgstr "1 venta"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s sales"
+msgstr "%s ventas"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "1 box"
+msgstr "1 caja"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s boxes"
+msgstr "%s cajas"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "1 quotation in progress"
+msgstr "1 presupuesto a medias"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "1 sale to deliver"
+msgstr "1 venta por entregar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s quotations in progress"
+msgstr "%s presupuestos a medias"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "%s sales to deliver"
+msgstr "%s ventas por entregar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Expired"
+msgstr "Caducado"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "In %s days"
+msgstr "En %s días"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Lots about to expire"
+msgstr "Lotes a punto de caducar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Lots without expiry date"
+msgstr "Lotes sin fecha de caducidad"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No lot in stock is about to expire."
+msgstr "Ningún lote con stock está a punto de caducar."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No product on promotion has stock. Mark them with the star of their product form."
+msgstr "Ningún producto en promoción tiene stock. Márcalos con la estrella de su ficha de producto."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "On promotion"
+msgstr "En promoción"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "On promotion with stock"
+msgstr "En promoción con stock"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Sales of the day"
+msgstr "Ventas del día"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Set their expiry date, or mark them as \"No Expiry Date\" in the lot or in its product."
+msgstr "Pon su fecha de caducidad, o márcalos como «Sin caducidad» en el lote o en su producto."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Today"
+msgstr "Hoy"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Tomorrow"
+msgstr "Mañana"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "kg"
+msgstr "kg"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Show the dashboard"
+msgstr "Mostrar el panel"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Hide the dashboard"
+msgstr "Ocultar el panel"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Messages"
+msgstr "Mensajes"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Mark all as read"
+msgstr "Marcar todo como leído"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "No unread messages."
+msgstr "No hay mensajes sin leer."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+msgid "Mark as read"
+msgstr "Marcar como leído"
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid channels."
+msgstr "Canales no válidos."

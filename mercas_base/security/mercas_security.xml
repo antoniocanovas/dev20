@@ -9,4 +9,33 @@
             already has supplier invoicing recorded.</field>
     </record>
 
+    <record id="group_mercas_management" model="res.groups">
+        <field name="name">Mercas: Management</field>
+        <field name="comment">Sees the management summary (Mercas > Management): sales and
+            purchases in amount and kg, scrap, debt and payments.</field>
+    </record>
+
+    <!-- Who receives the summary by email, apart from who can see it: on the user form,
+         in Sales -->
+    <record id="res_groups_privilege_mercas_summary_mail" model="res.groups.privilege">
+        <field name="name">Management Summary by Email</field>
+        <field name="sequence">90</field>
+        <field name="category_id" ref="base.module_category_sales"/>
+    </record>
+
+    <record id="group_mercas_summary_mail" model="res.groups">
+        <field name="name">Every Evening</field>
+        <field name="privilege_id" ref="res_groups_privilege_mercas_summary_mail"/>
+        <field name="implied_ids" eval="[(4, ref('group_mercas_management'))]"/>
+        <field name="comment">Receives the management summary of the day by email each evening.</field>
+    </record>
+
+    <!-- The sales and billing administrators see it too -->
+    <record id="sales_team.group_sale_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_mercas_management'))]"/>
+    </record>
+    <record id="account.group_account_manager" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('group_mercas_management'))]"/>
+    </record>
+
 </odoo>

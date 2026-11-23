@@ -22,12 +22,20 @@ import { localization } from "@web/core/l10n/localization";
 const MODEL = "mercas.touch";
 // Sent by the server when the stock of some lots changes
 const LOTS_CHANGED = "mercas_touch/lots_changed";
+// Sent by Discuss: a new message in a channel of the user, and the read messages
+const NEW_MESSAGE = "discuss.channel/new_message";
+const MAIL_RECORDS = "mail.record/insert";
+// Time to wait before reloading the dashboard after the messages change
+const MESSAGES_DELAY = 1000;
 // Time to wait after typing before searching partners or lots
 const SEARCH_DELAY = 300;
 // Resolución especial para móvil: whether the catalog is hidden, remembered on the device
 const HIDE_CATALOG_KEY = "mercas_touch.hide_catalog";
+const HIDE_HOME_KEY = "mercas_touch.hide_home";
 // Kinds of box listed at once while looking for the box of a line
 const BOX_CHOICES_LIMIT = 50;
+// The home dashboard is also reloaded on its own, for the sales made in the backend
+const HOME_REFRESH_DELAY = 5 * 60 * 1000;
 
 /** A random uuid (version 4); crypto.randomUUID() needs HTTPS, the counter may use plain HTTP. */
 function randomUuid() {
@@ -74,6 +82,8 @@ export class TouchScreen extends Component {
             // false (main menu) or the key of a mode
             mode: false,
             data: null,
+            // Dashboard of the main menu (see loadHome)
+            home: null,
             sending: false,
             // Sale and purchase: the drafts to resume, or the partner of a new one
             drafts: [],
@@ -107,6 +117,8 @@ export class TouchScreen extends Component {
             pallets: null,
             // Resolución especial para móvil: catalog hidden to reach the ticket and its buttons
             hideCatalog: this.loadHideCatalog(),
+            // The dashboard of the main menu can be hidden on each device (see onToggleHome)
+            hideHome: this.loadHideHome(),
             // Result of the last operation, shown until the next one starts
             done: null,
             // Boxes
@@ -160,9 +172,15 @@ export class TouchScreen extends Component {
         });
 
         onWillStart(async () => {
-            this.state.data = await this.orm.call(MODEL, "get_screen_data", []);
+            const [data] = await Promise.all([this.orm.call(MODEL, "get_screen_data", []), this.loadHome()]);
+            this.state.data = data;
             this.state.journalId = this.state.data.journals[0]?.id || false;
         });
+        this.homeInterval = browser.setInterval(() => {
+            if (!this.state.mode) {
+                this.loadHome();
+            }
+        }, HOME_REFRESH_DELAY);
 
         // F1-F5 open the modes, Escape goes back. Captured on the window, before the shortcuts
         // of mercas_keys, which open the backend lists with the same keys.
@@ -175,9 +193,22 @@ export class TouchScreen extends Component {
         const bus = usePlugin(BusPlugin);
         const onLotsChanged = (payload) => this.onLotsChanged(payload);
         bus.subscribe(LOTS_CHANGED, onLotsChanged);
+        // The messages of the dashboard, read or arrived on any screen (or in the top bar)
+        const onNewMessage = () => this.onMessagesChanged();
+        const onMailRecords = (payload) => {
+            if (payload?.["discuss.channel.member"]) {
+                this.onMessagesChanged();
+            }
+        };
+        bus.subscribe(NEW_MESSAGE, onNewMessage);
+        bus.subscribe(MAIL_RECORDS, onMailRecords);
         onWillUnmount(() => {
             bus.unsubscribe(LOTS_CHANGED, onLotsChanged);
+            bus.unsubscribe(NEW_MESSAGE, onNewMessage);
+            bus.unsubscribe(MAIL_RECORDS, onMailRecords);
+            browser.clearTimeout(this.messagesTimeout);
             browser.clearTimeout(this.searchTimeout);
+            browser.clearInterval(this.homeInterval);
         });
     }
 
@@ -287,7 +318,110 @@ export class TouchScreen extends Component {
             this.searchPartners();
         } else {
             this.state.mode = false;
+            this.loadHome();
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Home dashboard
+    // ------------------------------------------------------------------
+
+    /** Sales of the day, products on promotion, lots that expire or have no date, pending sales. */
+    async loadHome() {
+        if (this.state.hideHome) {
+            return;
+        }
+        try {
+            this.state.home = await this.orm.silent.call(MODEL, "get_home_dashboard", []);
+        } catch {
+            // Only informative: the menu works without it, it is loaded again later
+        }
+    }
+
+    homeSalesText() {
+        const { count, boxes } = this.state.home.sales;
+        const sales = count === 1 ? _t("1 sale") : _t("%s sales", count);
+        return `${sales} · ${boxes === 1 ? _t("1 box") : _t("%s boxes", boxes)}`;
+    }
+
+    homeDraftsText() {
+        const drafts = this.state.home.pending.drafts;
+        return drafts === 1 ? _t("1 quotation in progress") : _t("%s quotations in progress", drafts);
+    }
+
+    get homeShowLabel() {
+        return _t("Show the dashboard");
+    }
+
+    get homeHideLabel() {
+        return _t("Hide the dashboard");
+    }
+
+    homeToDeliverText() {
+        const sales = this.state.home.pending.to_deliver;
+        return sales === 1 ? _t("1 sale to deliver") : _t("%s sales to deliver", sales);
+    }
+
+    /** Class of the badge of the days left of a lot: expired, expires today or soon. */
+    expiryClass(lot) {
+        if (lot.days_left < 0) {
+            return "text-bg-danger";
+        }
+        return lot.days_left === 0 ? "text-bg-warning" : "text-bg-info";
+    }
+
+    expiryText(lot) {
+        if (lot.days_left < 0) {
+            return _t("Expired");
+        }
+        if (lot.days_left === 0) {
+            return _t("Today");
+        }
+        return lot.days_left === 1 ? _t("Tomorrow") : _t("In %s days", lot.days_left);
+    }
+
+    onMessagesChanged() {
+        if (this.state.mode || this.state.hideHome) {
+            return;
+        }
+        browser.clearTimeout(this.messagesTimeout);
+        this.messagesTimeout = browser.setTimeout(() => this.loadHome(), MESSAGES_DELAY);
+    }
+
+    get markReadLabel() {
+        return _t("Mark as read");
+    }
+
+    messageIcon(message) {
+        return { chat: "person", group: "group" }[message.type] || "tag";
+    }
+
+    /** The time of a message of today, else its date. */
+    formatMessageDate(value) {
+        const date = deserializeDateTime(value);
+        return date.hasSame(luxon.DateTime.now(), "day")
+            ? date.toLocaleString(luxon.DateTime.TIME_SIMPLE)
+            : formatDate(date);
+    }
+
+    /** The conversation in a chat window, to read it all and answer. */
+    async onHomeMessage(message) {
+        const store = this.env.services["mail.store"];
+        if (!store) {
+            return;
+        }
+        const thread = await store.Thread.getOrFetch({ model: "discuss.channel", id: message.id });
+        thread?.open({ focus: true, bypassCompact: true });
+    }
+
+    async onMarkMessagesRead(message) {
+        await this.orm.call(MODEL, "mark_messages_read", [message ? [message.id] : null]);
+        await this.loadHome();
+    }
+
+    /** The form of a lot of the dashboard, to change its data or set its expiry date. */
+    onHomeLot(lot) {
+        this.onOpenLot(lot, () => this.loadHome());
     }
 
     hasWork() {
@@ -651,13 +785,18 @@ export class TouchScreen extends Component {
 
     visibleProducts() {
         const search = normalize(this.state.productSearch.trim());
-        return this.state.data.products.filter(
+        const products = this.state.data.products.filter(
             (product) =>
                 this.isProductAllowed(product) &&
                 (search
                     ? normalize(`${product.default_code} ${product.name} ${product.barcode}`).includes(search)
                     : !this.state.categoryId || product.categ_id === this.state.categoryId)
         );
+        if (this.state.mode === "purchase") {
+            return products;
+        }
+        // The products on promotion (favourite) first, in the order of the catalog
+        return [...products.filter((p) => p.is_favorite), ...products.filter((p) => !p.is_favorite)];
     }
 
     boxProducts() {
@@ -1279,6 +1418,26 @@ export class TouchScreen extends Component {
             return browser.localStorage.getItem(HIDE_CATALOG_KEY) === "1";
         } catch {
             return false;
+        }
+    }
+
+    loadHideHome() {
+        try {
+            return browser.localStorage.getItem(HIDE_HOME_KEY) === "1";
+        } catch {
+            return false;
+        }
+    }
+
+    onToggleHome() {
+        this.state.hideHome = !this.state.hideHome;
+        try {
+            browser.localStorage.setItem(HIDE_HOME_KEY, this.state.hideHome ? "1" : "0");
+        } catch {
+            // Without the storage of the browser it isn't remembered
+        }
+        if (!this.state.hideHome) {
+            this.loadHome();
         }
     }
 
@@ -2098,7 +2257,8 @@ export class TouchScreen extends Component {
 
     /** The form of the lot of the Mercas menu: purchases, sales, invoices, scraps and its
      * buttons (inventory, scrap, labels...). The lots are reloaded when it is closed. */
-    async onOpenLot(lot) {
+    /** The form of the lot, in a dialog: its data, the expiry date... */
+    async onOpenLot(lot, onClose = () => this.loadLots()) {
         await this.action.doAction({
             type: "ir.actions.act_window",
             name: lot.name,
@@ -2107,7 +2267,7 @@ export class TouchScreen extends Component {
             views: [[false, "form"]],
             target: "new",
             context: { dialog_size: "extra-large" },
-        }, { onClose: () => this.loadLots() });
+        }, { onClose });
     }
 
     onScrapLot(lot) {
@@ -2340,6 +2500,8 @@ export class TouchScreen extends Component {
             await this.loadProductLots();
         } else if (this.state.mode === "lots" && !this.state.scrap) {
             await this.loadLots();
+        } else if (!this.state.mode) {
+            await this.loadHome();
         }
     }
 

@@ -79,11 +79,16 @@
     <!-- Main menu: one big button per task, also opened with its function key -->
     <t t-name="mercas_touch.TouchScreenHome">
         <div class="flex-grow-1 overflow-auto w-100 pt-sm-3 bg-body-tertiary o_mercas_touch_home">
+          <div class="d-flex flex-wrap justify-content-center align-items-start gap-3 pb-3 o_mercas_touch_home_columns">
             <div class="container d-flex flex-column bg-view shadow o_mercas_touch_home_menu">
                 <header class="d-flex align-items-center justify-content-between my-3 column-gap-2">
                     <a href="#" title="Odoo" aria-label="Odoo" class="oi fs-2 me-3 text-body o_mercas_touch_odoo_home"
                        data-icon="apps" t-on-click.prevent="this.onOdooHome"/>
                     <span class="fs-2 me-auto">Market Counter</span>
+                    <button type="button" t-att-aria-pressed="this.state.hideHome ? 'false' : 'true'"
+                            t-att-aria-label="this.state.hideHome ? this.homeShowLabel : this.homeHideLabel"
+                            t-att-class="'btn d-flex align-items-center justify-content-center oi o_mercas_touch_toggle_home ' + (this.state.hideHome ? 'btn-secondary' : 'btn-primary')"
+                            data-icon="speed" t-on-click="this.onToggleHome"/>
                     <a t-if="this.canInstall()" href="#" role="button"
                        title="Install the app on this device" aria-label="Install the app on this device"
                        class="btn btn-secondary d-flex align-items-center justify-content-center oi o_mercas_touch_pwa_install"
@@ -102,6 +107,127 @@
                     </button>
                 </footer>
             </div>
+            <t t-if="this.state.home and !this.state.hideHome" t-call="mercas_touch.TouchScreenHomeDashboard"/>
+          </div>
+        </div>
+    </t>
+
+    <!-- Dashboard of the main menu: what the counter has to know at a glance, kept up to date
+         by the sales, purchases and scraps of all the screens -->
+    <t t-name="mercas_touch.TouchScreenHomeDashboard">
+        <t t-set="home" t-value="this.state.home"/>
+        <div class="container d-flex flex-column gap-3 bg-view shadow py-3 o_mercas_touch_home_dashboard">
+            <section class="p-3 rounded o_mercas_touch_summary o_mercas_touch_home_sales">
+                <div class="small text-muted text-uppercase fw-bold">Sales of the day</div>
+                <div class="d-flex flex-wrap align-items-baseline column-gap-4">
+                    <span class="fs-2 fw-bold o_mercas_touch_home_sales_amount" t-out="this.formatAmount(home.sales.amount)"/>
+                    <span class="fs-5"><t t-out="this.formatQty(home.sales.kg)"/> kg</span>
+                    <span class="text-muted" t-out="this.homeSalesText()"/>
+                </div>
+            </section>
+
+            <section t-if="home.pending.drafts or home.pending.to_deliver" class="d-flex flex-wrap gap-2 o_mercas_touch_home_pending">
+                <button t-if="home.pending.drafts" class="btn btn-warning" t-on-click="() => this.openMode('sale')">
+                    <i class="oi" data-icon="edit"/> <t t-out="this.homeDraftsText()"/>
+                </button>
+                <span t-if="home.pending.to_deliver" class="btn btn-light border pe-none">
+                    <i class="oi" data-icon="local_shipping"/> <t t-out="this.homeToDeliverText()"/>
+                </span>
+            </section>
+
+            <section class="o_mercas_touch_home_messages">
+                <h5 class="mb-2 d-flex align-items-center gap-2">
+                    <i class="oi text-primary" data-icon="forum"/> Messages
+                    <span t-if="home.messages.length" class="badge text-bg-primary o_mercas_touch_home_messages_count"
+                          t-out="home.messages.length"/>
+                    <button t-if="home.messages.length" class="btn btn-sm btn-light border ms-auto o_mercas_touch_messages_read_all"
+                            t-on-click="() => this.onMarkMessagesRead()">
+                        <i class="oi" data-icon="check"/> Mark all as read
+                    </button>
+                </h5>
+                <div t-if="!home.messages.length" class="text-muted small">No unread messages.</div>
+                <div t-else="" class="list-group o_mercas_touch_home_messages_list">
+                    <div t-foreach="home.messages" t-as="message" t-key="message.id"
+                         class="list-group-item d-flex align-items-center gap-2 p-0 o_mercas_touch_home_message">
+                        <button class="btn btn-link text-reset text-decoration-none text-start d-flex align-items-center gap-2 flex-grow-1 min-w-0 px-3 py-2"
+                                t-on-click="() => this.onHomeMessage(message)">
+                            <span class="badge text-bg-primary flex-shrink-0" t-out="message.unread"/>
+                            <span class="d-flex flex-column min-w-0 me-auto">
+                                <span class="fw-bold text-truncate">
+                                    <i class="oi me-1" t-att-data-icon="this.messageIcon(message)"/>
+                                    <t t-out="message.name"/>
+                                    <span class="small text-muted fw-normal"> · <t t-out="this.formatMessageDate(message.date)"/></span>
+                                </span>
+                                <span class="small text-muted text-truncate">
+                                    <t t-if="message.author and message.type !== 'chat'"><t t-out="message.author"/>: </t>
+                                    <t t-out="message.body"/>
+                                </span>
+                            </span>
+                        </button>
+                        <button class="btn btn-light border me-2 flex-shrink-0 o_mercas_touch_message_read"
+                                t-att-aria-label="this.markReadLabel" t-on-click="() => this.onMarkMessagesRead(message)">
+                            <i class="oi" data-icon="check"/>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="o_mercas_touch_home_promotion">
+                <h5 class="mb-2"><i class="oi text-warning" data-icon="star"/> On promotion with stock</h5>
+                <div t-if="!home.promotion.length" class="text-muted small">
+                    No product on promotion has stock. Mark them with the star of their product form.
+                </div>
+                <ul t-else="" class="list-group">
+                    <li t-foreach="home.promotion" t-as="product" t-key="product.id"
+                        class="list-group-item d-flex align-items-center gap-2 o_mercas_touch_home_promotion_product">
+                        <i class="oi text-warning" data-icon="star"/>
+                        <span class="fw-bold me-auto text-truncate" t-out="product.name"/>
+                        <span class="text-nowrap"><t t-out="this.formatQty(product.available)"/> <t t-out="product.uom"/></span>
+                        <span class="text-muted text-nowrap"><t t-out="this.formatAmount(product.price)"/> / <t t-out="product.uom"/></span>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="o_mercas_touch_home_expiring">
+                <h5 class="mb-2"><i class="oi text-danger" data-icon="schedule"/> Lots about to expire</h5>
+                <div t-if="!home.expiring.length" class="text-muted small">No lot in stock is about to expire.</div>
+                <div t-else="" class="list-group">
+                    <button t-foreach="home.expiring" t-as="lot" t-key="lot.id"
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-2 o_mercas_touch_home_expiring_lot"
+                            t-on-click="() => this.onHomeLot(lot)">
+                        <span t-att-class="'badge ' + this.expiryClass(lot)" t-out="this.expiryText(lot)"/>
+                        <span class="d-flex flex-column min-w-0 me-auto">
+                            <span class="fw-bold text-truncate"><t t-out="lot.name"/> · <t t-out="lot.product"/></span>
+                            <span class="small text-muted text-truncate">
+                                <t t-out="this.formatDate(lot.expiration_date)"/>
+                                <t t-if="lot.supplier"> · <t t-out="lot.supplier"/></t>
+                            </span>
+                        </span>
+                        <span class="text-nowrap"><t t-out="this.formatQty(lot.qty)"/> <t t-out="lot.uom"/></span>
+                    </button>
+                </div>
+            </section>
+
+            <section t-if="home.undated.count" class="o_mercas_touch_home_undated">
+                <h5 class="mb-2">
+                    <i class="oi text-warning" data-icon="event_busy"/> Lots without expiry date
+                    <span class="badge text-bg-warning o_mercas_touch_home_undated_count" t-out="home.undated.count"/>
+                </h5>
+                <div class="small text-muted mb-2">
+                    Set their expiry date, or mark them as "No Expiry Date" in the lot or in its product.
+                </div>
+                <div class="list-group o_mercas_touch_home_undated_list">
+                    <button t-foreach="home.undated.lots" t-as="lot" t-key="lot.id"
+                            class="list-group-item list-group-item-action d-flex align-items-center gap-2 o_mercas_touch_home_undated_lot"
+                            t-on-click="() => this.onHomeLot(lot)">
+                        <span class="d-flex flex-column min-w-0 me-auto">
+                            <span class="text-truncate"><t t-out="lot.name"/> · <t t-out="lot.product"/></span>
+                            <span class="small text-muted">Received <t t-out="this.formatDate(lot.date)"/></span>
+                        </span>
+                        <span class="text-nowrap"><t t-out="this.formatQty(lot.qty)"/> <t t-out="lot.uom"/></span>
+                    </button>
+                </div>
+            </section>
         </div>
     </t>
 
@@ -222,7 +348,10 @@
                     <i class="oi fs-2 text-muted" data-icon="eco"/>
                 </span>
                 <span class="d-flex flex-column min-w-0">
-                    <span class="fw-bold text-truncate" t-out="product.name"/>
+                    <span class="fw-bold text-truncate">
+                        <i t-if="product.is_favorite and this.state.mode !== 'purchase'" class="oi text-warning me-1 o_mercas_touch_product_favorite" data-icon="star" aria-label="On promotion"/>
+                        <t t-out="product.name"/>
+                    </span>
                     <span class="small text-muted">
                         <!-- The sale price: a purchase proposes the one of the supplier -->
                         <t t-if="this.state.mode !== 'purchase'"><t t-out="this.formatAmount(product.price)"/> / </t><t t-out="product.uom"/>
@@ -248,6 +377,8 @@
                     t-on-click="() => this.onSelectLot(lot)">
                 <div class="d-flex align-items-start gap-2">
                     <span class="fs-5 fw-bold text-truncate me-auto" t-out="lot.name"/>
+                    <span t-if="lot.expiry_alert" t-att-class="'badge fs-6 o_mercas_touch_lot_expiry ' + this.expiryClass(lot)"
+                          t-out="this.expiryText(lot)"/>
                     <span class="badge text-bg-success fs-6">
                         <t t-out="this.formatQty(this.lotAvailable(lot))"/> <t t-out="this.state.product.uom"/>
                     </span>

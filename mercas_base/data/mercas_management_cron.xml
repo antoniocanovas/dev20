@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+
+    <!-- The summary of the day to the management, each evening (19:00 UTC: 20:00 in Spain in
+         winter, 21:00 in summer) -->
+    <record id="ir_cron_mercas_management_summary" model="ir.cron">
+        <field name="name">Mercas: management summary by email</field>
+        <field name="model_id" ref="model_mercas_management_dashboard"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_send_summary()</field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="DateTime.now().strftime('%Y-%m-%d 19:00:00')"/>
+    </record>
+
+</odoo>

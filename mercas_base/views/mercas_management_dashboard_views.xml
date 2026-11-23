@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- Summary for the management, shown in the backend and sent by email: inline styles only,
+         as the mail clients ignore the style sheets -->
+    <!-- Horizontal bar of the charts: a table of coloured cells (see bar() of the summary), as
+         the mail clients draw tables and not the graphics -->
+    <template id="management_bar">
+        <table role="presentation" t-attf-style="width:100%;border-collapse:collapse;table-layout:fixed;margin:{{ bar_margin or '2px 0' }};">
+            <tr>
+                <td t-foreach="bar_data['cells']" t-as="cell"
+                    t-attf-style="width:{{ cell[0] }}%;background:{{ cell[1] }};height:{{ bar_height or 10 }}px;padding:0;font-size:0;line-height:0;">&#160;</td>
+                <td t-if="bar_data['rest'] &gt; 0"
+                    t-attf-style="width:{{ bar_data['rest'] }}%;background:#e9ecef;height:{{ bar_height or 10 }}px;padding:0;font-size:0;line-height:0;">&#160;</td>
+            </tr>
+        </table>
+    </template>
+
+    <template id="management_summary">
+        <t t-set="th" t-value="'padding:6px 8px;text-align:right;border-bottom:2px solid #dee2e6;white-space:nowrap;'"/>
+        <t t-set="th_left" t-value="'padding:6px 8px;text-align:left;border-bottom:2px solid #dee2e6;'"/>
+        <t t-set="td" t-value="'padding:6px 8px;text-align:right;border-bottom:1px solid #dee2e6;white-space:nowrap;'"/>
+        <t t-set="td_left" t-value="'padding:6px 8px;text-align:left;border-bottom:1px solid #dee2e6;'"/>
+        <t t-set="table" t-value="'border-collapse:collapse;width:100%;max-width:820px;margin-bottom:20px;font-size:14px;'"/>
+        <t t-set="h2" t-value="'font-size:17px;margin:24px 0 8px;color:#714B67;'"/>
+        <div style="font-family:Arial,Helvetica,sans-serif;color:#212529;">
+            <h1 style="font-size:20px;margin:0 0 4px;">
+                <t t-out="company.name"/> · <t t-out="format_date(date)"/>
+            </h1>
+            <div style="color:#6c757d;font-size:13px;">Untaxed amounts; net kg, without the boxes.</div>
+
+            <!-- How we are doing: the sales of each period against the same one a year before and,
+                 but for the year, against the day of the week before, the whole week or month before -->
+            <div style="margin:16px 0 4px;font-size:0;">
+                <div t-foreach="sales" t-as="row" class="o_mercas_summary_tile"
+                     style="display:inline-block;vertical-align:top;width:192px;margin:0 8px 8px 0;padding:10px 12px;border:1px solid #dee2e6;border-radius:6px;font-size:14px;box-sizing:border-box;">
+                    <t t-set="figures" t-value="row['figures']"/>
+                    <t t-set="reference" t-value="row['year_before']"/>
+                    <t t-set="delta" t-value="year_note(row)"/>
+                    <div style="color:#6c757d;font-size:12px;text-transform:uppercase;font-weight:bold;" t-out="row['name']"/>
+                    <div style="font-size:20px;font-weight:bold;white-space:nowrap;" t-out="money(figures['amount'])"/>
+                    <div style="white-space:nowrap;">
+                        <span t-out="kg(figures['kg'])"/>
+                        <span t-attf-style="color:{{ delta[1] }};font-weight:bold;margin-left:6px;">
+                            <t t-out="delta[2]"/> <t t-out="delta[0]"/>
+                        </span>
+                    </div>
+                    <div style="margin-top:6px;font-size:11px;color:#6c757d;">Now</div>
+                    <t t-call="mercas_base.management_bar" bar_data="bar([(figures['amount'], '#714B67')], row['scale'])" bar_height="10" bar_margin="False"/>
+                    <t t-set="chart_reference" t-value="row['chart_reference']"/>
+                    <t t-if="chart_reference">
+                        <t t-set="note" t-value="reference_note(row)"/>
+                        <div style="font-size:11px;color:#6c757d;" class="o_mercas_summary_tile_reference">
+                            <t t-out="chart_reference['label']"/> <t t-out="money(chart_reference['amount'])"/>
+                            <span t-attf-style="color:{{ note[1] }};font-weight:bold;" t-out="note[0]"/>
+                        </div>
+                        <t t-call="mercas_base.management_bar" bar_data="bar([(chart_reference['amount'], '#6ea8fe')], row['scale'])" bar_height="10" bar_margin="False"/>
+                    </t>
+                    <div style="font-size:11px;color:#6c757d;">
+                        Last year <t t-out="money(reference['amount'])"/>
+                    </div>
+                    <t t-call="mercas_base.management_bar" bar_data="bar([(reference['amount'], '#adb5bd')], row['scale'])" bar_height="10" bar_margin="False"/>
+                </div>
+            </div>
+
+            <!-- Pace of the month and the year: up to now, the forecast of the close and last year -->
+            <table t-att-style="table">
+                <tr t-foreach="pace" t-as="row" class="o_mercas_summary_pace">
+                    <t t-set="delta" t-value="change(row['forecast'], row['last_year'])"/>
+                    <td t-att-style="td_left + 'width:70px;'"><b t-out="row['name']"/></td>
+                    <td style="padding:6px 8px;border-bottom:1px solid #dee2e6;">
+                        <div style="font-size:12px;">
+                            <t t-out="pace_text(row)"/>
+                            <span t-attf-style="color:{{ delta[1] }};font-weight:bold;" t-out="pace_change(delta)"/>
+                        </div>
+                        <t t-call="mercas_base.management_bar" bar_data="bar([(row['current'], '#714B67'), (row['forecast'] - row['current'], '#c9b3c4')], row['scale'])" bar_height="12" bar_margin="False"/>
+                        <t t-call="mercas_base.management_bar" bar_data="bar([(row['year_before'], '#6c757d'), (row['last_year'] - row['year_before'], '#ced4da')], row['scale'])" bar_height="12" bar_margin="False"/>
+                        <div style="font-size:12px;color:#6c757d;" t-out="pace_last_year_text(row)"/>
+                    </td>
+                </tr>
+            </table>
+
+            <!-- Open debt of the customers by age, today and a month ago -->
+            <div style="font-size:13px;font-weight:bold;color:#495057;margin-top:-8px;">Customers' open debt</div>
+            <table t-att-style="table">
+                <tr t-foreach="debt_history" t-as="row" class="o_mercas_summary_debt_bar">
+                    <td t-att-style="td_left + 'width:110px;white-space:nowrap;'">
+                        <b t-out="row['name']"/><br/>
+                        <span style="font-size:12px;" t-out="money(row['total'])"/>
+                    </td>
+                    <td style="padding:6px 8px;border-bottom:1px solid #dee2e6;">
+                        <t t-call="mercas_base.management_bar" bar_data="bar(row['segments'], debt_scale)" bar_height="18" bar_margin="False"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td/>
+                    <td style="padding:4px 8px;font-size:12px;color:#495057;">
+                        <span t-foreach="age_names" t-as="age_name" style="white-space:nowrap;margin-right:12px;">
+                            <span t-attf-style="display:inline-block;width:10px;height:10px;background:{{ age_colors[age_name_index] }};"/>
+                            <t t-out="age_name"/>
+                        </span>
+                    </td>
+                </tr>
+            </table>
+
+            <h2 t-att-style="h2">Sales</h2>
+            <table t-att-style="table">
+                <tr>
+                    <th t-att-style="th_left">Period</th>
+                    <th t-att-style="th">Amount</th>
+                    <th t-att-style="th">vs previous</th>
+                    <th t-att-style="th">vs last year</th>
+                    <th t-att-style="th">Net kg</th>
+                    <th t-att-style="th">vs last year</th>
+                    <th t-att-style="th">Price/kg</th>
+                    <th t-att-style="th">Sales</th>
+                    <th t-att-style="th">Boxes</th>
+                </tr>
+                <tr t-foreach="sales" t-as="row" class="o_mercas_summary_sales_row">
+                    <t t-set="figures" t-value="row['figures']"/>
+                    <td t-att-style="td_left"><b t-out="row['name']"/></td>
+                    <td t-att-style="td"><b t-out="money(figures['amount'])"/></td>
+                    <t t-set="delta" t-value="change(figures['amount'], row['previous']['amount']) if row['previous'] else ('—', '#6c757d')"/>
+                    <td t-att-style="td + 'color:' + delta[1] + ';'" t-out="delta[0]"/>
+                    <t t-set="delta" t-value="year_note(row)"/>
+                    <td t-att-style="td + 'color:' + delta[1] + ';'" t-out="delta[0]"/>
+                    <td t-att-style="td" t-out="kg(figures['kg'])"/>
+                    <t t-set="delta" t-value="year_note(row, 'kg')"/>
+                    <td t-att-style="td + 'color:' + delta[1] + ';'" t-out="delta[0]"/>
+                    <td t-att-style="td" t-out="price_kg(figures)"/>
+                    <td t-att-style="td" t-out="figures['count']"/>
+                    <td t-att-style="td" t-out="figures['boxes']"/>
+                </tr>
+            </table>
+            <div style="color:#6c757d;font-size:12px;margin-top:-14px;margin-bottom:16px;">
+                Last year: the day is the same weekday of the week with the same number, and the week the whole week with that number.
+            </div>
+
+            <h2 t-att-style="h2">Purchases and scrap</h2>
+            <table t-att-style="table">
+                <tr>
+                    <th t-att-style="th_left">Period</th>
+                    <th t-att-style="th">Amount</th>
+                    <th t-att-style="th">Net kg</th>
+                    <th t-att-style="th">Scrapped kg</th>
+                    <th t-att-style="th">Scrap rate</th>
+                </tr>
+                <tr t-foreach="purchases" t-as="row">
+                    <td t-att-style="td_left"><b t-out="row['name']"/></td>
+                    <td t-att-style="td" t-out="money(row['figures']['amount'])"/>
+                    <td t-att-style="td" t-out="kg(row['figures']['kg'])"/>
+                    <td t-att-style="td" t-out="kg(row['figures']['scrap_kg'])"/>
+                    <td t-att-style="td" t-out="scrap_percent(row['figures'])"/>
+                </tr>
+            </table>
+
+            <h2 t-att-style="h2">Debt</h2>
+            <table t-att-style="table">
+                <tr>
+                    <th t-att-style="th_left"/>
+                    <th t-foreach="balances[0]['values']" t-as="balance" t-att-style="th" t-out="balance[0]"/>
+                    <th t-att-style="th">vs last month</th>
+                    <th t-att-style="th">vs last year</th>
+                </tr>
+                <tr t-foreach="balances" t-as="row">
+                    <td t-att-style="td_left"><b t-out="row['name']"/></td>
+                    <td t-foreach="row['values']" t-as="balance" t-att-style="td" t-out="money(balance[1])"/>
+                    <t t-foreach="row['values'][1:]" t-as="reference">
+                        <t t-set="delta" t-value="change(row['values'][0][1], reference[1])"/>
+                        <td t-att-style="td" t-out="delta[0]"/>
+                    </t>
+                </tr>
+            </table>
+
+            <table t-att-style="table">
+                <tr>
+                    <th t-att-style="th_left">Customers' open debt</th>
+                    <th t-foreach="age_names" t-as="age_name" t-att-style="th" t-out="age_name"/>
+                </tr>
+                <tr>
+                    <td t-att-style="td_left"><b>Overdue</b></td>
+                    <td t-foreach="debt['ages']" t-as="amount"
+                        t-att-style="td + ('color:#dc3545;' if amount_index and amount > 0 else '')"
+                        t-out="money(amount)"/>
+                </tr>
+            </table>
+
+            <table t-if="debt['top']" t-att-style="table">
+                <tr>
+                    <th t-att-style="th_left">Customers that owe the most</th>
+                    <th t-att-style="th">Debt</th>
+                    <th t-att-style="th">Overdue</th>
+                </tr>
+                <tr t-foreach="debt['top']" t-as="debtor">
+                    <td t-att-style="td_left" t-out="debtor[0].name or '—'"/>
+                    <td t-att-style="td" t-out="money(debtor[1])"/>
+                    <td t-att-style="td + ('color:#dc3545;' if debtor[2] > 0 else '')" t-out="money(debtor[2])"/>
+                </tr>
+            </table>
+
+            <h2 t-att-style="h2">Pending</h2>
+            <table t-att-style="table">
+                <tr>
+                    <th t-att-style="th_left"/>
+                    <th t-att-style="th">Number</th>
+                    <th t-att-style="th">Amount</th>
+                </tr>
+                <tr>
+                    <td t-att-style="td_left">Customers with sales not invoiced yet</td>
+                    <td t-att-style="td" t-out="to_invoice['customers']"/>
+                    <td t-att-style="td"><b t-out="money(to_invoice['amount'])"/></td>
+                </tr>
+                <tr>
+                    <td t-att-style="td_left">Sold out lots to settle with their suppliers (estimated)</td>
+                    <td t-att-style="td" t-out="lots_to_settle['count']"/>
+                    <td t-att-style="td"><b t-out="money(lots_to_settle['amount'])"/></td>
+                </tr>
+            </table>
+
+            <h2 t-att-style="h2">Payments collected on the day</h2>
+            <table t-att-style="table">
+                <tr t-foreach="payments" t-as="payment">
+                    <td t-att-style="td_left" t-out="payment[0]"/>
+                    <td t-att-style="td" t-out="money(payment[1])"/>
+                </tr>
+                <tr>
+                    <td t-att-style="td_left"><b>Total</b></td>
+                    <td t-att-style="td"><b t-out="money(payments_total)"/></td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <record id="view_mercas_management_dashboard_form" model="ir.ui.view">
+        <field name="name">mercas.management.dashboard.form</field>
+        <field name="model">mercas.management.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Management" create="0" delete="0">
+                <header>
+                    <button name="action_send_mail" string="Send by Email" type="object" class="btn-secondary"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <field name="chart_data" widget="mercas_management_charts" nolabel="1"/>
+                    <field name="summary_html" readonly="1" nolabel="1"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mercas_management_dashboard" model="ir.actions.act_window">
+        <field name="name">Management</field>
+        <field name="res_model">mercas.management.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="menu_mercas_management"
+        name="Management"
+        parent="menu_mercas_root"
+        action="action_mercas_management_dashboard"
+        groups="group_mercas_management"
+        sequence="5"
+    />
+
+</odoo>

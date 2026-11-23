@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from odoo import Command, api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools import float_round
+from odoo.tools import float_round, html2plaintext
 from odoo.tools.sql import escape_like_value
 
 from odoo.addons.web.controllers.utils import clean_action
@@ -32,6 +32,10 @@ MAX_NOTE_LENGTH = 500
 LOTS_CHANGED = 'mercas_touch/lots_changed'
 # Most pallets of a sale
 MAX_PALLETS = 100
+# Lots and products of each list of the home dashboard
+HOME_LIST_LIMIT = 30
+# Characters of the messages shown on the home screen
+MESSAGE_PREVIEW = 200
 # Ways of invoicing lots to their supplier, as the buttons of the settlement wizard
 LOT_INVOICE_MODES = ('settle', 'advance', 'firm')
 
@@ -123,6 +127,174 @@ class MercasTouch(models.AbstractModel):
             'can_compensate': bool(company.compensation_journal_id),
         }
 
+    @api.model
+    def get_home_dashboard(self):
+        """ What the counter has to know at a glance, on the home screen: the sales of the day,
+        the products on promotion (favourite ones) with stock, the lots that expire soon or
+        have no expiry date yet, and the sales to finish or to deliver. """
+        company = self.env.company
+        today = fields.Date.context_today(self)
+        quants = self.env['stock.quant']._read_group(
+            [
+                ('location_id.usage', '=', 'internal'),
+                ('company_id', '=', company.id),
+                ('quantity', '>', 0),
+                ('product_id.is_box', '=', False),
+            ],
+            ['product_id', 'lot_id'], ['quantity:sum', 'reserved_quantity:sum'],
+        )
+        available = defaultdict(float)
+        lots_stock = {}
+        for product, lot, quantity, reserved in quants:
+            available[product] += quantity - reserved
+            if lot:
+                lots_stock[lot] = lots_stock.get(lot, 0.0) + quantity
+        return {
+            'sales': self.env['mercas.management.dashboard']._mercas_sales_figures(today, today),
+            'promotion': self._get_promotion_data(available),
+            'expiring': self._get_expiring_lots(lots_stock, today),
+            'undated': self._get_undated_lots(lots_stock),
+            'pending': self._get_pending_sales(),
+            'messages': self._get_unread_messages(),
+        }
+
+    def _get_promotion_data(self, available):
+        products = sorted(
+            (product for product, qty in available.items()
+             if product.is_favorite and product.sale_ok and product.uom_id.round(qty) > 0),
+            key=lambda product: (product.default_code or '', product.name),
+        )
+        return [{
+            'id': product.id,
+            'name': product.display_name,
+            'available': product.uom_id.round(available[product]),
+            'uom': product.uom_id.name,
+            'price': product.lst_price,
+        } for product in products[:HOME_LIST_LIMIT]]
+
+    def _get_home_lot_data(self, lot, qty, today=None):
+        expiration = lot.expiration_date
+        return {
+            'id': lot.id,
+            'name': lot.name,
+            'product': lot.product_id.display_name,
+            'qty': lot.product_id.uom_id.round(qty),
+            'uom': lot.product_id.uom_id.name,
+            'supplier': lot.partner_id.name or '',
+            'date': fields.Datetime.to_string(lot.create_date),
+            'expiration_date': fields.Datetime.to_string(expiration) if expiration else False,
+            # Negative when it has expired
+            'days_left': (fields.Datetime.context_timestamp(self, expiration).date() - today).days
+            if expiration and today else False,
+        }
+
+    def _get_expiring_lots(self, lots_stock, today):
+        """ Lots in stock whose expiry alert has been reached (the expired ones too), the first
+        to expire first. The alert is native: the alert date of the lot when it has one (products
+        that use expiration dates), else the alert days of the product before its expiry date. """
+        lots = sorted(
+            (lot for lot in lots_stock if self._lot_in_expiry_alert(lot, today)),
+            key=lambda lot: (lot.expiration_date, lot.id),
+        )
+        return [self._get_home_lot_data(lot, lots_stock[lot], today) for lot in lots[:HOME_LIST_LIMIT]]
+
+    def _lot_in_expiry_alert(self, lot, today):
+        """ Whether the lot is about to expire (or has expired): from the alert date of the lot
+        when it has one, else the alert days of the product before its expiry date. """
+        if not lot.expiration_date:
+            return False
+        if lot.alert_date:
+            return fields.Datetime.context_timestamp(self, lot.alert_date).date() <= today
+        expiry_day = fields.Datetime.context_timestamp(self, lot.expiration_date).date()
+        return (expiry_day - today).days <= lot.product_id.alert_time
+
+    def _get_undated_lots(self, lots_stock):
+        """ Lots in stock without an expiry date that aren't marked as lots that don't expire,
+        the oldest first: someone has to set one or the other. """
+        lots = sorted(
+            (lot for lot in lots_stock if not lot.expiration_date and not lot.mercas_no_expiration),
+            key=lambda lot: (lot.create_date, lot.id),
+        )
+        return {
+            'count': len(lots),
+            'lots': [self._get_home_lot_data(lot, lots_stock[lot]) for lot in lots[:HOME_LIST_LIMIT]],
+        }
+
+    def _unread_channel_members(self):
+        """ Memberships of the user in the channels and direct chats with messages unread, as
+        the messaging menu of the top bar counts them. """
+        members = self.env['discuss.channel.member'].search([
+            ('partner_id', '=', self.env.user.partner_id.id),
+            ('channel_id.channel_type', 'in', ('channel', 'chat', 'group')),
+        ])
+        return members.filtered(lambda member: member.message_unread_counter > 0)
+
+    def _get_unread_messages(self):
+        """ Channels and direct chats with messages unread, the last message of each, the most
+        recent first. """
+        partner = self.env.user.partner_id
+        result = []
+        for member in self._unread_channel_members():
+            channel = member.channel_id
+            message = self.env['mail.message'].search([
+                ('model', '=', 'discuss.channel'),
+                ('res_id', '=', channel.id),
+                ('message_type', 'not in', ('notification', 'user_notification')),
+                ('id', '>=', member.new_message_separator),
+            ], order='id desc', limit=1)
+            if not message:
+                continue
+            if channel.channel_type == 'chat':
+                name = ', '.join((channel.channel_member_ids.partner_id - partner).mapped('name')) or channel.name
+            else:
+                name = channel.name
+            body = html2plaintext(message.body or '').strip()
+            if not body and message.attachment_ids:
+                body = ', '.join(message.attachment_ids.mapped('name'))
+            result.append({
+                'id': channel.id,
+                'name': name,
+                'type': channel.channel_type,
+                'unread': member.message_unread_counter,
+                'author': message.author_id.name or '',
+                'body': body if len(body) <= MESSAGE_PREVIEW else body[:MESSAGE_PREVIEW].rstrip() + '…',
+                'date': fields.Datetime.to_string(message.date),
+                'message_id': message.id,
+            })
+        result.sort(key=lambda item: item['message_id'], reverse=True)
+        return result[:HOME_LIST_LIMIT]
+
+    @api.model
+    def mark_messages_read(self, channel_ids=None):
+        """ Mark as read the messages of the channels (all with unread messages if none), as
+        the messaging menu does: the other screens and the top bar are told by the bus. """
+        if channel_ids is not None and (
+            not isinstance(channel_ids, list) or not all(is_record_id(cid) for cid in channel_ids)
+        ):
+            raise ValidationError(self.env._("Invalid channels."))
+        members = self._unread_channel_members()
+        if channel_ids is not None:
+            members = members.filtered(lambda member: member.channel_id.id in channel_ids)
+        for member in members:
+            last_message = self.env['mail.message'].search([
+                ('model', '=', 'discuss.channel'),
+                ('res_id', '=', member.channel_id.id),
+            ], order='id desc', limit=1)
+            if last_message:
+                member._mark_as_read(last_message.id)
+        return True
+
+    def _get_pending_sales(self):
+        SaleOrder = self.env['sale.order']
+        company_domain = [('company_id', '=', self.env.company.id)]
+        return {
+            'drafts': SaleOrder.search_count([*company_domain, ('state', 'in', ('draft', 'sent'))]),
+            'to_deliver': SaleOrder.search_count([
+                *company_domain, ('state', '=', 'sale'),
+                ('delivery_status', 'in', ('pending', 'started', 'partial')),
+            ]),
+        }
+
     def _can_bill(self):
         """ Whether the user invoices the purchases to their suppliers (bills, settlements,
         advances and firm invoices of lots): only the billing administrators. """
@@ -154,6 +326,8 @@ class MercasTouch(models.AbstractModel):
             'uom': product.uom_id.name,
             'tracking': product.tracking or False,
             'is_box': product.is_box,
+            # On promotion: first in its category, with a star
+            'is_favorite': product.is_favorite,
             'sale_ok': product.sale_ok,
             'purchase_ok': product.purchase_ok,
             'box_product_id': product.product_tmpl_id.box_product_id.id,
@@ -397,7 +571,13 @@ class MercasTouch(models.AbstractModel):
 
     def _get_lot_data(self, lot, available):
         origin = ', '.join(name for name in (lot.origin_state_id.name, lot.origin_country_id.name) if name)
+        today = fields.Date.context_today(self)
+        expiry_alert = self._lot_in_expiry_alert(lot, today)
         return {
+            # To warn before selling a lot that has expired or is about to
+            'expiry_alert': expiry_alert,
+            'days_left': (fields.Datetime.context_timestamp(self, lot.expiration_date).date() - today).days
+            if expiry_alert else False,
             'id': lot.id,
             'name': lot.name,
             'product_id': lot.product_id.id,

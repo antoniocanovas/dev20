@@ -120,8 +120,8 @@ class StockPicking(models.Model):
     def _mercas_validate(self):
         """Validate the transfers of the automatic flows ("Sold & Sent",
         "Purchase & Receive", boxes) without the dialogs of the standard
-        validation: immediate transfer, backorder and, with stock_sms, the
-        confirmation of the SMS of the delivery.
+        validation: immediate transfer, backorder, expired lots and, with
+        stock_sms, the confirmation of the SMS of the delivery.
 
         A dialog the flow doesn't know would leave the transfer as it was while
         the order looks done, so a transfer still not done is an error."""
@@ -129,6 +129,9 @@ class StockPicking(models.Model):
             skip_immediate=True,
             skip_backorder=True,
             skip_sms=True,
+            # product_expiry asks to confirm the lots that have expired: the counter screen
+            # warns of them when the lot is chosen
+            skip_expired=True,
         ).button_validate()
         not_done = self.filtered(lambda picking: picking.state != "done")
         if not_done:

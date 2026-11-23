@@ -17,6 +17,12 @@ class ProductTemplate(models.Model):
         domain=[("is_box", "=", True)],
     )
 
+    mercas_no_expiration = fields.Boolean(
+        string="No Expiry Date",
+        help="Its lots don't expire: they aren't listed as lots without an "
+             "expiry date on the counter screen.",
+    )
+
     def _mercas_any_box_product_exists(self):
         return bool(self.env["product.template"].search_count(
             [("is_box", "=", True)], limit=1

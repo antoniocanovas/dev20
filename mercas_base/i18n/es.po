@@ -2082,3 +2082,417 @@ msgid ""
 "balance of the customer. Leave it empty for single-use pallets. The tare of "
 "the boxes is the weight of their box product."
 msgstr "Envase retornable de este tipo de palet: cada palet de una venta añade una unidad de este producto a la venta, como las cajas, así que cuenta en el saldo de envases del cliente. Déjalo vacío para los palets de un solo uso. La tara de las cajas es el peso de su producto envase."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "%(company)s · Summary of %(date)s"
+msgstr "%(company)s · Resumen del %(date)s"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "%(from)s-%(to)s days"
+msgstr "%(from)s-%(to)s días"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "1-%s days"
+msgstr "1-%s días"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "<b>Overdue</b>"
+msgstr "<b>Vencido</b>"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "<b>Total</b>"
+msgstr "<b>Total</b>"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "A year ago"
+msgstr "Hace un año"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Customers owe us"
+msgstr "Nos deben los clientes"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Customers that owe the most"
+msgstr "Clientes que más deben"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Customers with sales not invoiced yet"
+msgstr "Clientes con ventas sin facturar"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Customers' open debt"
+msgstr "Deuda pendiente de clientes"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Day"
+msgstr "Día"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Debt"
+msgstr "Deuda"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "End of last month"
+msgstr "Fin del mes anterior"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_form_mercas
+msgid "Expiry Date"
+msgstr "Fecha de caducidad"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_product_template_form_mercas
+msgid "Expiry Warning (days)"
+msgstr "Aviso de caducidad (días)"
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_product_product__mercas_no_expiration model:ir.model.fields,help:mercas_base.field_product_template__mercas_no_expiration
+msgid "Its lots don't expire: they aren't listed as lots without an expiry date on the counter screen."
+msgstr "Sus lotes no caducan: no aparecen como lotes sin fecha de caducidad en el Mostrador."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+#: model:ir.actions.act_window,name:mercas_base.action_mercas_management_dashboard
+#: model:ir.ui.menu,name:mercas_base.menu_mercas_management
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_mercas_management_dashboard_form
+msgid "Management"
+msgstr "Dirección"
+
+#. module: mercas_base
+#: model:ir.model,name:mercas_base.model_mercas_management_dashboard
+msgid "Mercas Management Dashboard"
+msgstr "Cuadro de mando de dirección de Mercas"
+
+#. module: mercas_base
+#: model:res.groups,name:mercas_base.group_mercas_management
+msgid "Mercas: Management"
+msgstr "Mercas: Dirección"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Month"
+msgstr "Mes"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Net kg"
+msgstr "Kg netos"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_product_product__mercas_no_expiration model:ir.model.fields,field_description:mercas_base.field_product_template__mercas_no_expiration model:ir.model.fields,field_description:mercas_base.field_stock_lot__mercas_no_expiration model_terms:ir.ui.view,arch_db:mercas_base.view_product_template_search_mercas
+msgid "No Expiry Date"
+msgstr "Sin caducidad"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "No user receiving the management summary by email has an email address."
+msgstr "Ningún usuario que recibe el resumen de dirección por correo tiene correo electrónico."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Not due"
+msgstr "Sin vencer"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Number"
+msgstr "Número"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Over %s days"
+msgstr "Más de %s días"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Overdue"
+msgstr "Vencido"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Payments collected on the day"
+msgstr "Cobros del día"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Pending"
+msgstr "Pendiente"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Period"
+msgstr "Periodo"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Price/kg"
+msgstr "Precio/kg"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Purchases and scrap"
+msgstr "Compras y mermas"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Scrapped kg"
+msgstr "Kg desechados"
+
+#. module: mercas_base
+#: model:res.groups,comment:mercas_base.group_mercas_management
+msgid ""
+"Sees the management summary (Mercas > Management): sales and\n"
+"            purchases in amount and kg, scrap, debt and payments."
+msgstr "Ve el resumen de dirección (Mercas > Dirección): ventas y compras en importe y kg, mermas, deuda y cobros."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_mercas_management_dashboard_form
+msgid "Send by Email"
+msgstr "Enviar por correo"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Sold out lots to settle with their suppliers (estimated)"
+msgstr "Lotes agotados por liquidar a sus proveedores (estimado)"
+
+#. module: mercas_base
+#: model:ir.model.fields,field_description:mercas_base.field_mercas_management_dashboard__summary_html
+msgid "Summary Html"
+msgstr "Resumen HTML"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Last year: the day is the same weekday of the week with the same number, and the week the whole week with that number."
+msgstr "Año pasado: el día es el mismo día de la semana con el mismo número de semana, y la semana es esa semana completa."
+
+#. module: mercas_base
+#: model:ir.model.fields,help:mercas_base.field_stock_lot__mercas_no_expiration
+msgid "The lot doesn't expire: it isn't listed as a lot without an expiry date on the counter screen. Taken from its product."
+msgstr "El lote no caduca: no aparece como lote sin fecha de caducidad en el Mostrador. Se toma de su producto."
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_product_template_form_mercas
+msgid "The lots in stock are shown on the counter screen as about to expire these days before their expiry date (0: on the same day)."
+msgstr "Los lotes con stock se muestran en el Mostrador como a punto de caducar estos días antes de su fecha de caducidad (0: el mismo día)."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "The summary has been sent."
+msgstr "Se ha enviado el resumen."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Today"
+msgstr "Hoy"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Untaxed amounts; net kg, without the boxes."
+msgstr "Importes sin impuestos; kg netos, sin las cajas."
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "We owe suppliers"
+msgstr "Debemos a proveedores"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Week"
+msgstr "Semana"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.view_stock_lot_search_mercas
+msgid "Without Expiry Date"
+msgstr "Sin fecha de caducidad"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Year"
+msgstr "Año"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "vs last month"
+msgstr "vs mes anterior"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "vs last year"
+msgstr "vs año anterior"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "vs previous"
+msgstr "vs anterior"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Scrap rate"
+msgstr "% merma"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "A month ago"
+msgstr "Hace un mes"
+
+#. module: mercas_base
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Now"
+msgstr "Ahora"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+#: model_terms:ir.ui.view,arch_db:mercas_base.management_summary
+msgid "Last year"
+msgstr "Año pasado"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "%(current)s up to today · at this pace, closing at %(forecast)s"
+msgstr "%(current)s hasta hoy · a este ritmo, cerramos en %(forecast)s"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "(%(arrow)s %(change)s on last year)"
+msgstr "(%(arrow)s %(change)s sobre el año pasado)"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Last year: %(point)s at this point, %(total)s in all"
+msgstr "Año pasado: %(point)s a estas alturas, %(total)s en total"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Same day last week"
+msgstr "Mismo día sem. anterior"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Last week"
+msgstr "Semana anterior"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Last month"
+msgstr "Mes anterior"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "%s reached"
+msgstr "llevamos el %s"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Week, day by day"
+msgstr "Semana, día a día"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "This week"
+msgstr "Esta semana"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Same week last year"
+msgstr "Misma semana del año pasado"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Month, accumulated"
+msgstr "Mes, acumulado"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "This month"
+msgstr "Este mes"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Same month last year"
+msgstr "Mismo mes del año pasado"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Forecast"
+msgstr "Previsión"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "Year, accumulated by month"
+msgstr "Año, acumulado por meses"
+
+#. module: mercas_base
+#. odoo-python
+#: code:addons/mercas_base/models/mercas_management_dashboard.py:0
+msgid "This year"
+msgstr "Este año"
+
+#. module: mercas_base
+#. odoo-javascript
+#: code:addons/mercas_base/static/src/management/management_charts.xml:0
+msgid "No customer owes us anything."
+msgstr "Ningún cliente nos debe nada."
+
+#. module: mercas_base
+#: model:res.groups.privilege,name:mercas_base.res_groups_privilege_mercas_summary_mail
+msgid "Management Summary by Email"
+msgstr "Resumen de Dirección por correo"
+
+#. module: mercas_base
+#: model:res.groups,name:mercas_base.group_mercas_summary_mail
+msgid "Every Evening"
+msgstr "Cada tarde"
+
+#. module: mercas_base
+#: model:res.groups,comment:mercas_base.group_mercas_summary_mail
+msgid "Receives the management summary of the day by email each evening."
+msgstr "Recibe por correo cada tarde el resumen de dirección del día."

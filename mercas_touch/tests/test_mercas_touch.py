@@ -1,6 +1,9 @@
 import uuid
+from datetime import timedelta
 
-from odoo import Command
+from markupsafe import Markup
+
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError, ValidationError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
@@ -1198,3 +1201,107 @@ class TestMercasTouch(MercasTouchCommon):
         self.assertEqual(summary['invoice_count'], 2)
         with self.assertRaises(UserError):
             self.Touch.invoice_purchase(order['id'])
+
+
+@tagged('post_install', '-at_install')
+class TestMercasTouchHome(MercasTouchCommon):
+    """ Dashboard of the main menu of the counter. """
+
+    def _lot(self, name, qty, expiration=None):
+        result = self._buy(qty, 1.0, lot_name=name)
+        lot = self.env['stock.lot'].search([('name', '=', name), ('product_id', '=', self.pear.id)])
+        self.assertTrue(lot, result)
+        if expiration is not None:
+            lot.expiration_date = expiration
+        return lot
+
+    def test_promotion_with_stock(self):
+        self.assertNotIn(self.pear.id, [p['id'] for p in self.Touch.get_home_dashboard()['promotion']])
+        self.pear.is_favorite = True
+        self.assertNotIn(self.pear.id, [p['id'] for p in self.Touch.get_home_dashboard()['promotion']],
+                         "On promotion, but without stock")
+        self._lot('HOME-PROMO', 50.0)
+        promotion = self.Touch.get_home_dashboard()['promotion']
+        pear = next(p for p in promotion if p['id'] == self.pear.id)
+        self.assertEqual(pear['available'], 50.0)
+        products = {p['id']: p for p in self.Touch.get_screen_data()['products']}
+        self.assertTrue(products[self.pear.id]['is_favorite'])
+        self.assertFalse(products[self.lettuce.id]['is_favorite'])
+
+    def test_expiring_and_undated_lots(self):
+        self.pear.alert_time = 3
+        now = fields.Datetime.now()
+        soon = self._lot('HOME-SOON', 10.0, now + timedelta(days=2))
+        expired = self._lot('HOME-EXPIRED', 10.0, now - timedelta(days=1))
+        later = self._lot('HOME-LATER', 10.0, now + timedelta(days=10))
+        undated = self._lot('HOME-UNDATED', 10.0)
+        not_expiring = self._lot('HOME-NEVER', 10.0)
+        not_expiring.mercas_no_expiration = True
+        home = self.Touch.get_home_dashboard()
+        mine = (soon | expired | later).ids
+        expiring = [lot for lot in home['expiring'] if lot['id'] in mine]
+        self.assertEqual([lot['id'] for lot in expiring], [expired.id, soon.id], "The expired one first")
+        self.assertEqual([lot['days_left'] for lot in expiring], [-1, 2])
+        undated_ids = [lot['id'] for lot in home['undated']['lots']]
+        self.assertIn(undated.id, undated_ids)
+        self.assertNotIn(not_expiring.id, undated_ids, "Marked as a lot that doesn't expire")
+        self.assertNotIn(soon.id, undated_ids)
+        self.pear.alert_time = 15
+        self.assertIn(later.id, [lot['id'] for lot in self.Touch.get_home_dashboard()['expiring']])
+        later.alert_date = now + timedelta(days=12)
+        self.assertNotIn(later.id, [lot['id'] for lot in self.Touch.get_home_dashboard()['expiring']],
+                         "The alert date of the lot, when it has one")
+
+    def test_sell_expired_lot(self):
+        """ An expired lot is shown as such when it is chosen, and selling it delivers it
+        without the confirmation of product_expiry. """
+        lot = self._lot('HOME-OLD', 30.0, fields.Datetime.now() - timedelta(hours=1))
+        data = next(item for item in self.Touch.get_product_lots(self.pear.id) if item['id'] == lot.id)
+        self.assertTrue(data['expiry_alert'])
+        self.assertLessEqual(data['days_left'], 0)
+        result = self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'lines': [{
+            'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 10.0, 'price_unit': 2.0,
+        }]})
+        order = self.env['sale.order'].browse(result['order']['id'])
+        self.assertEqual(order.picking_ids.mapped('state'), ['done'])
+
+    def test_unread_messages(self):
+        """ The messages of a direct chat and of a channel, unread until marked as read. """
+        colleague = self.env['res.users'].create({
+            'name': 'Home Colleague', 'login': 'home_colleague',
+            'group_ids': [Command.link(self.env.ref('base.group_user').id)],
+        })
+        me = self.Touch.env.user
+        chat = self.env['discuss.channel'].with_user(colleague)._get_or_create_chat([me.partner_id.id])
+        chat.with_user(colleague).message_post(body="Hay que cargar el camión", message_type='comment')
+        channel = self.env['discuss.channel']._create_channel(name="Home Counter", group_id=None)
+        channel._add_members(users=me | colleague)
+        channel.with_user(colleague).message_post(body=Markup("<p>Llega el tomate</p>"), message_type='comment')
+        messages = {message['id']: message for message in self.Touch.get_home_dashboard()['messages']}
+        self.assertEqual(messages[chat.id]['name'], colleague.name)
+        self.assertEqual(messages[chat.id]['type'], 'chat')
+        self.assertEqual(messages[chat.id]['body'], "Hay que cargar el camión")
+        self.assertEqual(messages[channel.id]['body'], "Llega el tomate")
+        self.assertEqual(messages[channel.id]['author'], colleague.name)
+        self.assertEqual(messages[channel.id]['unread'], 1)
+        self.Touch.mark_messages_read([chat.id])
+        ids = [message['id'] for message in self.Touch.get_home_dashboard()['messages']]
+        self.assertNotIn(chat.id, ids)
+        self.assertIn(channel.id, ids)
+        self.Touch.mark_messages_read()
+        self.assertNotIn(channel.id, [message['id'] for message in self.Touch.get_home_dashboard()['messages']])
+        with self.assertRaises(ValidationError):
+            self.Touch.mark_messages_read(["x"])
+
+    def test_sales_of_the_day(self):
+        before = self.Touch.get_home_dashboard()
+        lot = self._lot('HOME-SALE', 50.0)
+        self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'lines': [{
+            'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 12.0, 'price_unit': 2.5,
+            'box_qty': 2, 'box_product_id': self.box.id,
+        }]})
+        after = self.Touch.get_home_dashboard()
+        self.assertAlmostEqual(after['sales']['amount'] - before['sales']['amount'], 30.0)
+        self.assertAlmostEqual(after['sales']['kg'] - before['sales']['kg'], 12.0)
+        self.assertEqual(after['sales']['count'] - before['sales']['count'], 1)
+        self.assertEqual(after['sales']['boxes'] - before['sales']['boxes'], 2)

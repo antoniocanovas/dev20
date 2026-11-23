@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="mercas_base.ManagementCharts">
+        <div t-if="this.data" class="row g-3 mb-3 o_mercas_management_charts">
+            <div class="col-12 col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <h6 class="mb-2" t-out="this.data.week.title"/>
+                    <div class="o_mercas_management_chart"><canvas t-ref="this.weekChart.ref"/></div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <h6 class="mb-2" t-out="this.data.month.title"/>
+                    <div class="o_mercas_management_chart"><canvas t-ref="this.monthChart.ref"/></div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <h6 class="mb-2" t-out="this.data.year.title"/>
+                    <div class="o_mercas_management_chart"><canvas t-ref="this.yearChart.ref"/></div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="border rounded p-3 h-100">
+                    <h6 class="mb-2">
+                        <t t-out="this.data.debt.title"/>
+                        <span class="float-end fw-normal text-muted" t-out="this.money(this.data.debt.total)"/>
+                    </h6>
+                    <div t-if="this.hasDebt" class="o_mercas_management_chart"><canvas t-ref="this.debtChart.ref"/></div>
+                    <div t-else="" class="text-muted">No customer owes us anything.</div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

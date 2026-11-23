@@ -22,6 +22,14 @@ class StockLot(models.Model):
         string="State of Origin",
         domain="[('country_id', '=', origin_country_id)]",
     )
+    mercas_no_expiration = fields.Boolean(
+        string="No Expiry Date",
+        compute="_compute_mercas_no_expiration",
+        store=True,
+        readonly=False,
+        help="The lot doesn't expire: it isn't listed as a lot without an "
+             "expiry date on the counter screen. Taken from its product.",
+    )
     purchase_line_ids = fields.One2many(
         comodel_name="purchase.order.line",
         inverse_name="lot_id",
@@ -510,6 +518,11 @@ class StockLot(models.Model):
         if qty == int(qty):
             return str(int(qty))
         return "%.2f" % qty
+
+    @api.depends("product_id")
+    def _compute_mercas_no_expiration(self):
+        for lot in self:
+            lot.mercas_no_expiration = lot.product_id.mercas_no_expiration
 
     @api.depends("product_qty")
     def _compute_completed(self):

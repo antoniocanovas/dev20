@@ -48,6 +48,15 @@
                 <field name="origin_state_id"/>
             </xpath>
 
+            <!-- Expiry date of any lot, also of products that don't manage
+                 them (product_expiry shows it only on those); or marked as
+                 a lot that doesn't expire -->
+            <xpath expr="//field[@name='origin_state_id']" position="after">
+                <field name="expiration_date" string="Expiry Date"
+                       invisible="use_expiration_date or mercas_no_expiration"/>
+                <field name="mercas_no_expiration" widget="boolean_toggle"/>
+            </xpath>
+
             <!-- Traceability notebook at the end of the sheet -->
             <xpath expr="//sheet" position="inside">
                 <notebook>
@@ -162,10 +171,17 @@
         <field name="name">stock.lot.list.mercas</field>
         <field name="model">stock.lot</field>
         <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <!-- After the product_expiry view, which adds the expiration_date column -->
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <xpath expr="//list/field[@name='product_id']" position="after">
                 <field name="partner_id" optional="show"/>
                 <field name="mercas_firm_negotiation" optional="show"/>
+                <field name="mercas_no_expiration" optional="hide"/>
+            </xpath>
+            <!-- Added by product_expiry, hidden by default -->
+            <xpath expr="//list/field[@name='expiration_date']" position="attributes">
+                <attribute name="optional">show</attribute>
             </xpath>
             <xpath expr="//list/field[last()]" position="after">
                 <field name="completed" optional="show"/>
@@ -213,6 +229,12 @@
                     string="Firm Negotiation"
                     name="firm_negotiation"
                     domain="[('mercas_firm_negotiation', '=', True)]"
+                />
+                <separator/>
+                <filter
+                    string="Without Expiry Date"
+                    name="mercas_without_expiry"
+                    domain="[('expiration_date', '=', False), ('mercas_no_expiration', '=', False)]"
                 />
                 <separator/>
                 <filter
