@@ -68,6 +68,7 @@ La mercancía se pesa por línea en la báscula con sus cajas. La **cantidad** d
 
 - **Tara** (`mercas_tare`, en la línea de venta y de compra): cajas × **Peso** del producto envase. Se calcula al cambiar las cajas o el tipo de caja y se guarda, así que un cambio posterior del peso de la caja no cambia lo ya pesado; se puede corregir a mano.
 - **Bruto** (`mercas_gross_weight`): neto + tara. En las líneas en una unidad de peso, al escribir el bruto se calcula el neto (bruto − tara). En las que se venden por unidades, el neto sale del peso del producto y el bruto es solo de lectura.
+- En las listas de líneas del pedido de venta y de compra, **Bruto** y **Tara** son columnas opcionales ocultas por defecto; se muestran desde el selector de columnas.
 - **Factura** (venta, proveedor y autofactura): la línea guarda sus **Cajas** y su **Tara** (`account.move.line.box_qty` y `mercas_tare`), tomadas de la línea de pedido, en proporción si se factura solo una parte. Si alguna línea de mercancía tiene cajas o tara, el PDF muestra **Cajas · Bruto · Tara · Neto · Precio · Importe**; si no (una liquidación de lote, un servicio…), las columnas estándar.
 - **Pedido de venta, pedido de compra y solicitud de presupuesto**: las mismas columnas que la factura (**Cajas · Bruto · Tara**, y la cantidad como **Neto**) cuando alguna línea de mercancía tiene cajas o tara (`_mercas_order_weights` del mixin de pedidos). Los envases siguen en su sección *Envases* del pedido.
 - **Albarán**: valorado para todos los clientes (dependencia `stock_picking_report_valued` de OCA, que marca *Albarán valorado* en los contactos al instalarse). Una vez hecho, con las mismas columnas por línea del albarán: las cajas de cada línea de venta se reparten en cajas enteras entre sus líneas de albarán (lotes, palets), en proporción a su cantidad. Debajo, los totales: cajas, peso neto, tara de las cajas, **tara de los palets** (el peso de su tipo) y peso bruto; un palet pesado (*Peso de envío* de su paquete) cuenta con su peso, igual que en el packing list.
@@ -177,6 +178,8 @@ Una vez el pedido de compra está confirmado y es de devolución de envases, apa
 3. Se genera y valida automáticamente la factura de proveedor (nota de crédito al cliente por el depósito).
 4. Se abre la factura para revisión.
 
+El importe de la factura se le debe al cliente: se salda con **Compensar** (saldo a favor para sus próximas facturas, ver *Contabilidad — Compensación de facturas*) o con un pago normal. Desde `mercas_touch` se elige al devolver las cajas: *Saldo para próximas facturas* o *Pagar ahora* con un diario de banco o caja.
+
 El botón **Purchase & Receive** (atajo de "confirmar y procesar todo") también ejecuta este flujo automáticamente si el pedido es de devolución de envases, ya que es en sí mismo una acción explícita de "hazlo todo ahora".
 
 ### Compras — Entrega de cajas a proveedor
@@ -203,6 +206,8 @@ El botón **Compensar** en facturas de proveedor (`in_invoice`) en estado public
 2. Valida y concilia el asiento con la línea a pagar de la factura de proveedor.
 3. El crédito resultante aparece como **crédito pendiente** en las facturas de cliente del mismo partner y puede aplicarse directamente desde ellas.
 
+En `mercas_touch`, ese saldo a favor se ofrece en **Cobros** (F5) del cliente: se marca y se aplica a las facturas que paga, solo o junto con un cobro por el resto.
+
 ### Contabilidad — Aviso de líneas vacías en facturas de proveedor
 
 Odoo 19 y 20 avisan de *líneas vacías* en una factura de compra con dos o más líneas a total 0, contando las secciones; una factura con las secciones PRODUCTOS y Envases lo mostraba siempre, y su botón las borraba. `account.move._get_alerts` solo cuenta las líneas de producto.
@@ -224,9 +229,10 @@ Las categorías de producto tienen la casilla **Mercancía de mercado** (`produc
 
 ### Maestros — Producto: caja/envase
 
-En la ficha de producto (`product.template`) hay dos campos junto a la cantidad disponible:
+En la ficha de producto (`product.template`) hay dos campos junto a la cantidad disponible, y el peso del envase:
 
 - **Es caja/envase** (`is_box`, booleano): marca el producto como caja/envase. Es el campo que usan todos los filtros y detecciones relacionadas con cajas del módulo (devolución/entrega de envases, exclusión en la impresión de etiquetas, cálculo de cajas por contacto) — global, no por compañía.
+- **Peso** (campo estándar `weight`, en los productos caja): tara de una caja; con él se calculan la tara y el bruto de las líneas y del packing list (ver *Pesos: bruto, tara y neto*).
 - **Caja** (`box_product_id`): producto de envase por defecto a usar al vender/comprar *este* producto (p. ej., "Caja1" para Manzana). Solo admite productos marcados como caja/envase (dominio `is_box = True`), y se oculta si el propio producto ya está marcado como caja (una caja no necesita su propia caja). Si se crea un producto nuevo directamente desde este campo (crear y editar / creación rápida), la vista pasa `context="{'default_is_box': True}"` para que el producto recién creado nazca ya marcado como caja/envase — si no, no cumpliría el propio dominio (`is_box = True`) que exige el campo y no volvería a aparecer al buscarlo.
 
 ### Maestros — País y Provincia de origen
