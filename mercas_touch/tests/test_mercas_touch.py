@@ -1068,7 +1068,7 @@ class TestMercasTouch(MercasTouchCommon):
         summary = self.Touch.get_order_summary('sale', sold['id'])
         self.assertEqual(summary['lines'][0]['product'], self.lettuce.display_name)
         self.assertEqual(summary['lines'][0]['subtotal'], 6.0)
-        self.assertFalse(summary['invoice'])
+        self.assertIs(summary['invoice'], False)
         invoice = self.Touch.invoice_sale(sold['id'])
         self.assertEqual(invoice['order']['invoice_status'], 'invoiced')
         self.assertNotIn(sold['id'], ids('to_invoice'))

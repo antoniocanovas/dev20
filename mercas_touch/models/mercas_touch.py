@@ -610,7 +610,8 @@ class MercasTouch(models.AbstractModel):
         else:
             invoices = self._get_purchase_invoices(order).filtered(lambda move: move.move_type == 'in_invoice')
         invoice = invoices.filtered(lambda move: move.state == 'posted').sorted('id')[-1:]
-        return invoice and self._get_invoice_result(invoice)
+        # False, not an empty recordset: it reaches the screen as [], which is truthy
+        return self._get_invoice_result(invoice) if invoice else False
 
     def _get_purchase_invoices(self, order):
         """ The bills and refunds of a purchase: the standard ones, made from its lines, and the
