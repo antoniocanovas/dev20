@@ -29,17 +29,37 @@ BOX_PRICES = {
 
 # Quotation with its boxes on pallets, to try the packing list
 PALLET_SALE_REF = "Demo palets"
+# Sale whose boxes come back offset: a credit of the customer to apply in the payments
+BOX_CREDIT_SALE_REF = "Demo cajas compensadas"
 
 
 def post_init_hook(env):
-    """Setup on install: lot tracking, company defaults, taxes, prices and the
-    quotation of the pallets."""
+    """Setup on install: lot tracking, company defaults, prices, and what
+    needs the chart of accounts (see _setup_accounting)."""
     _activate_lot_tracking(env)
     _configure_company(env)
+    _assign_prices(env)
+    # On a new database the chart of accounts of the company is loaded by
+    # `account` once every module is installed (registry._auto_install_template,
+    # run from ir.module.module._register_hook): without it there are no
+    # journals or taxes yet, so the steps that need them go after it
+    pending = getattr(env.registry, "_auto_install_template", None)
+    if pending:
+        def load_chart_then_setup(env):
+            pending(env)
+            _setup_accounting(env)
+        env.registry._auto_install_template = load_chart_then_setup
+    else:
+        _setup_accounting(env)
+
+
+def _setup_accounting(env):
+    """Compensation journal, taxes, the quotation of the pallets (its lines
+    take the taxes of the products) and the boxes given back and offset."""
     _assign_compensation_journal(env)
     _assign_taxes(env)
-    _assign_prices(env)
     _create_pallet_sale(env)
+    _create_box_credit(env)
 
 
 def _activate_lot_tracking(env):
@@ -242,3 +262,43 @@ def _receive_pallet_stock(env, lines):
         line.mercas_gross_weight = gross_weights[line.product_id]
     purchase.button_purchase_and_receive()
     return lots
+
+
+def _create_box_credit(env):
+    """Cliente2 buys tomatoes in 4 Caja2 (sold, delivered and invoiced, the
+    invoice still to collect) and gives the 4 boxes back: the bill of the
+    boxes is offset ("Compensate"), so their amount stays as a credit of the
+    customer, to apply when collecting the invoice ("Cobros" of mercas_touch).
+    Created once, after the pallet quotation (its tomato lot)."""
+    customer = env.ref("mercas_demo.res_partner_cliente2", raise_if_not_found=False)
+    if not customer or not env.company.compensation_journal_id:
+        return
+    SaleOrder = env["sale.order"]
+    if SaleOrder.search_count([("client_order_ref", "=", BOX_CREDIT_SALE_REF)], limit=1):
+        return
+    tomato = env.ref("mercas_demo.product_template_tomate").product_variant_ids[:1]
+    caja2 = env.ref("mercas_demo.product_caja2")
+    lot = env["stock.lot"].search([("name", "=", "DEMO-TOMATE"), ("product_id", "=", tomato.id)], limit=1)
+    if not lot:
+        return
+    order = SaleOrder.create({
+        "partner_id": customer.id,
+        "client_order_ref": BOX_CREDIT_SALE_REF,
+        "order_line": [(0, 0, {
+            "product_id": tomato.id, "box_qty": 4, "box_product_id": caja2.id, "lot_id": lot.id,
+        })],
+    })
+    # Weighed on the scale: 42.2 kg gross, 4 × 0.8 kg of boxes, 39 kg net
+    order._mercas_product_lines().mercas_gross_weight = 42.2
+    order.button_sold_and_sent()
+    order._create_invoices().action_post()
+    # The 4 boxes given back, with the box return flow of mercas_base, and offset
+    box_return = env["purchase.order"].create({
+        "partner_id": customer.id,
+        "order_line": [(0, 0, {"product_id": caja2.id, "product_qty": 4})],
+    })
+    box_return.button_purchase_and_receive()
+    for bill in box_return.invoice_ids.filtered(
+        lambda move: move.state == "posted" and move.payment_state in ("not_paid", "partial")
+    ):
+        bill.action_compensate()
