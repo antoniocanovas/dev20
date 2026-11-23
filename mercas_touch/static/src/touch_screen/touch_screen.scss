@@ -49,6 +49,13 @@
         }
     }
 
+    // Boxes and total of the order (ticket and bar of the phone): a grey that stands out from
+    // the white of the screen; the dark theme recompiles $gray-* for its own grey
+    .o_mercas_touch_summary {
+        background-color: $gray-300;
+        border: 1px solid $gray-400;
+    }
+
     .o_mercas_touch_line_note {
         white-space: pre-line;
     }

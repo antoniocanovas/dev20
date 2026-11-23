@@ -163,24 +163,30 @@ def _create_pallet_sale(env):
     banana = variant("mercas_demo.product_template_platano")
     caja1 = env.ref("mercas_demo.product_caja1")
     caja2 = env.ref("mercas_demo.product_caja2")
+    # Gross weights of the scale: the net (the quantity) is gross - boxes × weight of the box
     lots = _receive_pallet_stock(env, [
-        (tomato, 200.0, 20, caja2, "DEMO-TOMATE"),
-        (pear, 100.0, 10, caja1, "DEMO-PERA"),
-        (banana, 100.0, 10, caja2, "DEMO-PLATANO"),
+        (tomato, 218.4, 20, caja2, "DEMO-TOMATE"),
+        (pear, 106.2, 10, caja1, "DEMO-PERA"),
+        (banana, 109.6, 10, caja2, "DEMO-PLATANO"),
     ])
+    sale_lines = [
+        (tomato, 163.5, 15, caja2),
+        (pear, 85.3, 8, caja1),
+        (banana, 66.2, 6, caja2),
+    ]
     order = SaleOrder.create({
         "partner_id": customer.id,
         "client_order_ref": PALLET_SALE_REF,
         "order_line": [
-            (0, 0, {"product_id": tomato.id, "product_uom_qty": 150.0, "box_qty": 15, "box_product_id": caja2.id,
-                    "lot_id": lots.get(tomato, env["stock.lot"]).id}),
-            (0, 0, {"product_id": pear.id, "product_uom_qty": 80.0, "box_qty": 8, "box_product_id": caja1.id,
-                    "lot_id": lots.get(pear, env["stock.lot"]).id}),
-            (0, 0, {"product_id": banana.id, "product_uom_qty": 60.0, "box_qty": 6, "box_product_id": caja2.id,
-                    "lot_id": lots.get(banana, env["stock.lot"]).id}),
+            (0, 0, {"product_id": product.id, "box_qty": boxes, "box_product_id": box.id,
+                    "lot_id": lots.get(product, env["stock.lot"]).id})
+            for product, _gross, boxes, box in sale_lines
         ],
     })
-    tomato_line, pear_line, banana_line = order.order_line
+    line_of = {line.product_id: line for line in order._mercas_product_lines()}
+    for product, gross, _boxes, _box in sale_lines:
+        line_of[product].mercas_gross_weight = gross
+    tomato_line, pear_line, banana_line = line_of[tomato], line_of[pear], line_of[banana]
     order._mercas_set_pallets([
         {
             "package_type_id": euro.id,
@@ -204,7 +210,7 @@ def _receive_pallet_stock(env, lines):
     """Buy and receive from Proveedor1, with "Purchase & Receive", the goods of
     the pallet quotation, each in a lot of its own (with its boxes).
 
-    :param list lines: [(product, kg, boxes, box product, lot name)]
+    :param list lines: [(product, gross kg of the scale, boxes, box product, lot name)]
     :return: {product: its lot}; empty if Proveedor1 is missing
     """
     supplier = env.ref("mercas_demo.res_partner_proveedor1", raise_if_not_found=False)
@@ -213,15 +219,16 @@ def _receive_pallet_stock(env, lines):
     Lot = env["stock.lot"]
     lots = {}
     order_lines = []
-    for product, qty, boxes, box, lot_name in lines:
+    gross_weights = {}
+    for product, gross, boxes, box, lot_name in lines:
         lot = Lot.search([("name", "=", lot_name), ("product_id", "=", product.id)], limit=1) or Lot.create({
             "name": lot_name,
             "product_id": product.id,
         })
         lots[product] = lot
+        gross_weights[product] = gross
         order_lines.append((0, 0, {
             "product_id": product.id,
-            "product_qty": qty,
             "price_unit": product.standard_price,
             "lot_id": lot.id,
             "box_qty": boxes,
@@ -231,5 +238,7 @@ def _receive_pallet_stock(env, lines):
     if europallet:
         order_lines.append((0, 0, {"product_id": europallet.id, "product_qty": 5.0, "price_unit": europallet.standard_price}))
     purchase = env["purchase.order"].create({"partner_id": supplier.id, "order_line": order_lines})
+    for line in purchase._mercas_product_lines().filtered(lambda line: line.product_id in gross_weights):
+        line.mercas_gross_weight = gross_weights[line.product_id]
     purchase.button_purchase_and_receive()
     return lots

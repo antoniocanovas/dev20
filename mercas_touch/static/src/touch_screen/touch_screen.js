@@ -9,6 +9,8 @@ import { _t } from "@web/core/l10n/translation";
 import { deserializeDate, deserializeDateTime, formatDate, formatDateTime } from "@web/core/l10n/dates";
 import { normalize } from "@web/core/l10n/utils";
 import { registry } from "@web/core/registry";
+// Resolución especial para móvil: the breakpoints of the screen
+import { SIZES } from "@web/core/ui/ui_utils";
 import { useBus, useService } from "@web/core/utils/hooks";
 import { formatFloat } from "@web/core/utils/numbers";
 import { imageUrl } from "@web/core/utils/urls";
@@ -22,6 +24,8 @@ const MODEL = "mercas.touch";
 const LOTS_CHANGED = "mercas_touch/lots_changed";
 // Time to wait after typing before searching partners or lots
 const SEARCH_DELAY = 300;
+// Resolución especial para móvil: whether the catalog is hidden, remembered on the device
+const HIDE_CATALOG_KEY = "mercas_touch.hide_catalog";
 // Kinds of box listed at once while looking for the box of a line
 const BOX_CHOICES_LIMIT = 50;
 
@@ -53,6 +57,9 @@ export class TouchScreen extends Component {
         this.notification = useService("notification");
         this.dialog = useService("dialog");
         this.pwa = useService("pwa");
+        // Resolución especial para móvil: the screen size (ui.isSmall, ui.size), followed when
+        // it is turned or resized
+        this.ui = proxy(useService("ui"));
         // The home menu of Odoo Enterprise; Community has none
         this.homeMenu = "home_menu" in this.env.services ? useService("home_menu") : null;
         this.modes = [
@@ -98,6 +105,8 @@ export class TouchScreen extends Component {
             priceEdit: null,
             // Pallets of the sale being arranged (see openPallets)
             pallets: null,
+            // Resolución especial para móvil: catalog hidden to reach the ticket and its buttons
+            hideCatalog: this.loadHideCatalog(),
             // Result of the last operation, shown until the next one starts
             done: null,
             // Boxes
@@ -1223,6 +1232,57 @@ export class TouchScreen extends Component {
         return this.state.lines.reduce((total, line) => total + this.lineSubtotal(line), 0);
     }
 
+    // ------------------------------------------------------------------
+    // Resolución especial para móvil
+    // ------------------------------------------------------------------
+
+    /** A phone (under 768 px): no on-screen numpad, the keyboard of the phone instead. */
+    isMobile() {
+        return this.ui.isSmall;
+    }
+
+    /** The ticket under the products, not on their right: the screen is narrower than the
+     * lg breakpoint (992 px) of the order (flex-lg-row), as a phone, turned or not, or a
+     * small tablet upright. The products can be hidden then, and the total and buttons of
+     * the order go to the bar at the bottom. */
+    isStacked() {
+        return this.ui.size < SIZES.LG;
+    }
+
+    catalogHidden() {
+        return this.isStacked() && this.state.hideCatalog;
+    }
+
+    showMobileOrderBar() {
+        const state = this.state;
+        return (
+            this.isStacked() &&
+            (state.mode === "sale" || state.mode === "purchase") &&
+            Boolean(state.partner) &&
+            !state.pallets &&
+            !state.done &&
+            !state.entry &&
+            !state.priceEdit
+        );
+    }
+
+    loadHideCatalog() {
+        try {
+            return browser.localStorage.getItem(HIDE_CATALOG_KEY) === "1";
+        } catch {
+            return false;
+        }
+    }
+
+    onToggleCatalog() {
+        this.state.hideCatalog = !this.state.hideCatalog;
+        try {
+            browser.localStorage.setItem(HIDE_CATALOG_KEY, this.state.hideCatalog ? "1" : "0");
+        } catch {
+            // Without the storage of the browser it isn't remembered
+        }
+    }
+
     linesBoxes() {
         return this.state.lines.reduce((total, line) => total + (line.boxQty || 0), 0);
     }
@@ -1352,6 +1412,16 @@ export class TouchScreen extends Component {
         }
         const from = pallets.pallets.find((pallet) => pallet.key === selected.from);
         return from ? from.items[selected.lineId] || 0 : this.looseBoxes(this.palletLine(selected.lineId));
+    }
+
+    /** Resolución especial para móvil: the boxes to move typed with the keyboard of the phone. */
+    onMoveQtyInput(ev) {
+        const pallets = this.state.pallets;
+        const qty = parseInt(ev.target.value || "0", 10) || 0;
+        pallets.moveQty = qty > 0 ? String(Math.min(this.selectedAvailable(), qty)) : "";
+        pallets.moveFresh = false;
+        // Owl doesn't patch the value when the clamped quantity is the one there was
+        ev.target.value = pallets.moveQty;
     }
 
     onMoveStep(step) {

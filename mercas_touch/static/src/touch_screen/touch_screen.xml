@@ -54,6 +54,24 @@
                     <t t-elif="this.state.mode === 'boxes'" t-call="mercas_touch.TouchScreenBoxes"/>
                     <t t-elif="this.state.mode === 'payment'" t-call="mercas_touch.TouchScreenPayment"/>
                 </div>
+                <!-- Resolución especial para móvil: the total and the buttons of the order always at
+                     hand, without going down past the products and the lines -->
+                <div t-if="this.showMobileOrderBar()" class="o_mercas_touch_mobile_bar border-top bg-view px-3 py-2">
+                    <!-- Grey row as the total of the ticket, apart from the buttons of the order; "Show
+                         products" stands out while the catalog is hidden -->
+                    <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded o_mercas_touch_summary o_mercas_touch_mobile_summary">
+                        <button t-att-class="'btn o_mercas_touch_toggle_catalog ' + (this.state.hideCatalog ? 'btn-warning fw-bold' : 'btn-light border')"
+                                t-on-click="this.onToggleCatalog">
+                            <t t-if="this.state.hideCatalog"><i class="oi" data-icon="visibility"/> Show products</t>
+                            <t t-else=""><i class="oi" data-icon="visibility_off"/> Hide products</t>
+                        </button>
+                        <span class="ms-auto text-muted text-nowrap">Boxes <span class="o_mercas_touch_mobile_boxes" t-out="this.linesBoxes()"/></span>
+                        <span class="fs-4 fw-bold text-nowrap o_mercas_touch_mobile_total" t-out="this.formatAmount(this.linesTotal())"/>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <t t-call="mercas_touch.TouchScreenOrderActions"/>
+                    </div>
+                </div>
             </t>
         </div>
     </t>
@@ -166,6 +184,11 @@
                 <t t-if="this.state.priceEdit" t-call="mercas_touch.TouchScreenPriceEdit"/>
                 <t t-elif="this.state.entry" t-call="mercas_touch.TouchScreenEntry"/>
                 <t t-elif="this.state.product" t-call="mercas_touch.TouchScreenProductLots"/>
+                <!-- Resolución especial para móvil: the catalog hidden, to reach the ticket -->
+                <button t-elif="this.catalogHidden()" class="btn btn-secondary btn-lg w-100 o_mercas_touch_show_catalog"
+                        t-on-click="this.onToggleCatalog">
+                    <i class="oi" data-icon="add"/> Add product
+                </button>
                 <t t-else="" t-call="mercas_touch.TouchScreenCatalog"/>
             </div>
             <div class="o_mercas_touch_ticket d-flex flex-column border rounded p-2">
@@ -403,7 +426,8 @@
                     </div>
                 </div>
                 <label class="form-label mb-0">Price per <t t-out="line.product.uom"/></label>
-                <input type="text" inputmode="none" autocomplete="off"
+                <!-- Resolución especial para móvil: the keyboard of the phone, without the numpad -->
+                <input type="text" t-att-inputmode="this.isMobile() ? 'decimal' : 'none'" autocomplete="off"
                        class="form-control form-control-lg fs-2 border-primary border-2 o_mercas_touch_price_edit_input"
                        t-att-value="this.state.priceEdit.value" t-on-input="this.onPriceInput"
                        t-on-change="() => this.onFloatChange(this.state.priceEdit, 'value')"
@@ -475,11 +499,14 @@
             </div>
         </div>
         <div class="border-top pt-2 mt-2">
-            <div class="d-flex justify-content-between">
-                <span>Boxes</span><span class="o_mercas_touch_total_boxes" t-out="this.linesBoxes()"/>
-            </div>
-            <div class="d-flex justify-content-between fs-4 fw-bold">
-                <span>Total</span><span class="o_mercas_touch_total" t-out="this.formatAmount(this.linesTotal())"/>
+            <!-- Boxes and total on a grey background, apart from the lines and the buttons -->
+            <div class="o_mercas_touch_summary rounded px-2 py-1 mb-1">
+                <div class="d-flex justify-content-between">
+                    <span>Boxes</span><span class="o_mercas_touch_total_boxes" t-out="this.linesBoxes()"/>
+                </div>
+                <div class="d-flex justify-content-between fs-4 fw-bold">
+                    <span>Total</span><span class="o_mercas_touch_total" t-out="this.formatAmount(this.linesTotal())"/>
+                </div>
             </div>
             <div class="small text-muted mb-2">Without taxes. The order computes the final amounts.</div>
             <div t-if="this.state.mode === 'sale' and this.isOverLimit()"
@@ -491,30 +518,37 @@
                     (<strong t-out="this.formatAmount(credit.used)"/><span class="opacity-75"> / <t t-out="this.formatAmount(credit.limit)"/></span>)
                 </span>
             </div>
-            <div class="d-flex gap-2">
-                <button class="btn btn-secondary btn-lg o_mercas_touch_clear"
-                        t-att-title="this.clearTitle()"
-                        t-att-disabled="this.state.sending or (!this.state.lines.length and !this.state.order)"
-                        t-on-click="this.onClearOperation">
-                    <i class="oi" data-icon="clear_all"/>
-                </button>
-                <button t-if="this.state.mode === 'sale' and this.linesBoxes()" class="btn btn-secondary btn-lg o_mercas_touch_open_pallets"
-                        title="Pallets" t-att-disabled="this.state.sending or this.state.entry"
-                        t-on-click="this.onOpenPallets">
-                    <i class="oi" data-icon="grid_view"/><span class="d-none d-xl-inline"> Pallets</span>
-                </button>
-                <button t-if="this.state.mode === 'sale'" class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_sell"
-                        t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
-                        t-on-click="this.onSell">
-                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Sell and deliver
-                </button>
-                <button t-else="" class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_purchase"
-                        t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
-                        t-on-click="this.onPurchase">
-                    <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Purchase and receive
-                </button>
+            <!-- Resolución especial para móvil: with the ticket under the products the buttons are in the bar at the bottom -->
+            <div t-if="!this.isStacked()" class="d-flex gap-2">
+                <t t-call="mercas_touch.TouchScreenOrderActions"/>
             </div>
         </div>
+    </t>
+
+    <!-- The buttons of the order: in the ticket, or in the bar at the bottom (isStacked) -->
+    <t t-name="mercas_touch.TouchScreenOrderActions">
+        <button class="btn btn-secondary btn-lg o_mercas_touch_clear"
+                t-att-title="this.clearTitle()"
+                t-att-disabled="this.state.sending or (!this.state.lines.length and !this.state.order)"
+                t-on-click="this.onClearOperation">
+            <i class="oi" data-icon="clear_all"/>
+        </button>
+        <button t-if="this.state.mode === 'sale' and this.linesBoxes()" class="btn btn-secondary btn-lg o_mercas_touch_open_pallets"
+                title="Pallets" t-att-disabled="this.state.sending or this.state.entry"
+                t-on-click="this.onOpenPallets">
+            <!-- Resolución especial para móvil: the label also in the bar at the bottom -->
+            <i class="oi" data-icon="grid_view"/><span t-att-class="this.isStacked() ? '' : 'd-none d-xl-inline'"> Pallets</span>
+        </button>
+        <button t-if="this.state.mode === 'sale'" class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_sell"
+                t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
+                t-on-click="this.onSell">
+            <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Sell and deliver
+        </button>
+        <button t-else="" class="btn btn-primary btn-lg flex-grow-1 o_mercas_touch_purchase"
+                t-att-disabled="this.state.sending or !this.state.lines.length or this.state.entry"
+                t-on-click="this.onPurchase">
+            <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>Purchase and receive
+        </button>
     </t>
 
     <!-- Result of the last operation, with what can be printed -->
@@ -855,8 +889,10 @@
                     <label class="form-label mb-0">Boxes to move</label>
                     <div class="input-group input-group-lg">
                         <button class="btn btn-secondary" t-on-click="() => this.onMoveStep(-1)"><i class="oi" data-icon="remove"/></button>
-                        <input type="text" inputmode="none" readonly="readonly" class="form-control fs-3 text-center o_mercas_touch_pallets_move_qty"
-                               t-att-value="p.moveQty"/>
+                        <!-- Resolución especial para móvil: typed with the keyboard of the phone -->
+                        <input type="text" class="form-control fs-3 text-center o_mercas_touch_pallets_move_qty"
+                               t-att-inputmode="this.isMobile() ? 'numeric' : 'none'" t-att-readonly="!this.isMobile()"
+                               t-att-value="p.moveQty" t-on-input="this.onMoveQtyInput"/>
                         <button class="btn btn-secondary" t-on-click="() => this.onMoveStep(1)"><i class="oi" data-icon="add"/></button>
                     </div>
                     <div class="small text-muted">Tap the pallet to put them on, or "Not on a pallet".</div>
@@ -1113,7 +1149,9 @@
     <t t-name="mercas_touch.TouchNumpad">
         <!-- 3 columns of digits and 1 of operators, disabled (not hidden) without decimals so the
              keypad keeps its size when the field changes -->
-        <div t-att-class="'o_mercas_touch_numpad d-grid gap-2' + (this.props.calculator ? ' o_mercas_touch_numpad_calculator' : '')">
+        <!-- Resolución especial para móvil: hidden under 768 px (md), where the keyboard of the
+             phone is used -->
+        <div t-att-class="'o_mercas_touch_numpad d-none d-md-grid gap-2' + (this.props.calculator ? ' o_mercas_touch_numpad_calculator' : '')">
             <t t-foreach="this.rows" t-as="row" t-key="row_index">
                 <t t-foreach="row" t-as="key" t-key="key">
                     <button t-if="!this.isOperator(key)" class="btn btn-secondary btn-lg o_mercas_touch_numpad_key"

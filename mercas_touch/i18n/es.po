@@ -885,6 +885,24 @@ msgstr "Selecciona los lotes a facturar."
 #. module: mercas_touch
 #. odoo-javascript
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Add product"
+msgstr "Añadir producto"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Hide products"
+msgstr "Ocultar productos"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Show products"
+msgstr "Ver productos"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "Sell and deliver"
 msgstr "Vender y entregar"
 

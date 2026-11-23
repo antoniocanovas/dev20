@@ -18,6 +18,7 @@ Depende de `mercas_base` (y con él de los módulos de lotes de OCA), de `barcod
 Sigue el mismo criterio que *Despiece cárnico* (`meat_cutting`) y *Ruta de venta* (`sale_route_offline`):
 
 - **Tarjetas grandes y teclado numérico en pantalla**, sin formularios ni listas del backend.
+- **Cajas y total sobre fondo gris** en el ticket (todas las resoluciones), para distinguirlos de las líneas y de los botones.
 - **Calculadora en el teclado numérico.** Columna de operadores (÷ × − +) y tecla `=`: el campo muestra la operación (`12,5×3`) y se calcula con `=` o al confirmar, multiplicación y división primero. En los campos de cajas los operadores se desactivan y en el teclado de palets no aparecen. En los campos decimales (cantidad y precio de la línea, precio del cambio rápido, altura del palet, cantidad a desechar e importe a cobrar) también se puede escribir la operación con el teclado del dispositivo (`50*2-3`, `12,5x3`): se sustituye por su resultado al pulsar Intro o salir del campo. Se admite además el `=` de Odoo (`=(2+3)^2`).
 - **Se guarda mientras se trabaja.** La venta y la compra en curso se guardan como borrador (presupuesto o petición de presupuesto) con cada cambio, en segundo plano. Se puede dejar una a medias, pasar a otra y retomarla después, en el mismo puesto, en otro o desde el backend, sin perder nada.
 - **Una llamada por operación.** Cada botón final (*Vender y entregar*, *Comprar y recibir*, *Recibir y abonar*, *Cobrar*…) es un único método del servidor que valida lo que recibe y ejecuta el flujo de `mercas_base`. La pantalla no depende de onchanges ni manipula el DOM del backend.
@@ -111,6 +112,22 @@ Para reponer las etiquetas de una caja cuya etiqueta se ha estropeado. El campo 
 - **Escribirlo**, si la etiqueta no se puede leer: el lote impreso, o parte de él, el producto o el proveedor, e **Intro** o *Buscar*. Si un lote se llama exactamente así (sin distinguir mayúsculas), se abren sus etiquetas; si no, se muestran los lotes que coinciden, y se toca el que sea. Sin escribir nada se ven los últimos recibidos.
 
 Salen todos los lotes, también los ya facturados al proveedor. Las etiquetas se imprimen con el asistente de `mercas_base`, que propone tantas como cajas se compraron del lote: se puede cambiar el número (por ejemplo, 1 para la caja dañada) y el formato.
+
+## Resolución especial para móvil
+
+Dos cortes distintos, para no tener que bajar varias páginas hasta los botones del pedido:
+
+- **Ticket debajo de los productos** (pantalla de menos de 992 px, el mismo corte `lg` en el que el ticket deja de caber a la derecha de los productos: un móvil, también en horizontal, o una tablet pequeña en vertical): barra fija al pie, *Ocultar productos* y la etiqueta *Palets* del botón.
+- **Móvil** (menos de 768 px, el corte `ui.isSmall` de Odoo): además, sin teclado numérico en pantalla.
+
+Qué cambia:
+
+- **Sin teclado numérico en pantalla (móvil):** se usa el teclado del móvil (Android o iOS), que ya sale al tocar los campos. En tablet y escritorio el teclado numérico sigue igual. Al no estar, en el móvil no hay calculadora: el teclado decimal del sistema no tiene operadores.
+- **Campos que solo usaban el teclado numérico (móvil):** el precio del *Cambio rápido de precios* y las *Cajas a mover* entre palets abren en el móvil el teclado numérico del sistema (en tablet siguen bloqueados para que no salga, y las cajas se cambian con − / + o el teclado numérico).
+- **Barra fija al pie** (ticket debajo de los productos) en la venta y la compra: una fila en gris (el mismo que el de cajas y total del ticket) con **Ocultar productos / Ver productos** (este en color destacado, ámbar), cajas y total; debajo, la goma, **Palets** (con su etiqueta, si la venta tiene cajas) y **Vender y entregar** o **Comprar y recibir**, siempre a la vista. Sustituye a los botones del pie del ticket, y se oculta mientras se edita una línea o un precio (para no tapar los campos con el teclado del móvil: la línea tiene sus propios botones).
+- **Ocultar productos:** quita el buscador, las categorías y los productos para dejar arriba el ticket; en su lugar queda **Añadir producto** para volver a verlos. Tocar una línea del ticket abre su edición igualmente. El dispositivo recuerda la elección.
+
+Para quitarlo, todo lo que hace está marcado con el comentario *Resolución especial para móvil* en `touch_screen.js` (`isMobile`, `isStacked` e import de `SIZES`, `catalogHidden`, `showMobileOrderBar`, `onToggleCatalog`, `onMoveQtyInput`, estado `hideCatalog` y servicio `ui`) y `touch_screen.xml` (barra `o_mercas_touch_mobile_bar`, botón `o_mercas_touch_show_catalog`, plantilla `TouchScreenOrderActions` y etiqueta de *Palets*, `inputmode` de los dos campos y `d-none d-md-grid` del teclado numérico).
 
 ## Permisos
 
