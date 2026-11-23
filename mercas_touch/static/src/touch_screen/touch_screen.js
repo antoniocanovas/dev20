@@ -113,6 +113,10 @@ export class TouchScreen extends Component {
             boxDirection: "return",
             boxQty: {},
             boxListSearch: "",
+            // Boxes given back by a customer: "compensate" (a credit for the next invoices) or
+            // "pay" (paid now from boxJournalId); chosen when they give them back
+            boxSettle: false,
+            boxJournalId: false,
             // Lots
             lotSearch: "",
             lotList: [],
@@ -123,6 +127,8 @@ export class TouchScreen extends Component {
             labelLots: [],
             // Payments
             invoiceIds: [],
+            // Credits of the customer applied first to the invoices chosen
+            creditIds: [],
             amount: "",
             journalId: false,
             memo: "",
@@ -233,7 +239,9 @@ export class TouchScreen extends Component {
         this.state.boxQty = {};
         this.state.boxListSearch = "";
         this.state.boxDirection = "return";
+        this.state.boxSettle = false;
         this.state.invoiceIds = [];
+        this.state.creditIds = [];
         this.state.amount = "";
         this.state.memo = "";
         this.state.scrap = null;
@@ -1946,6 +1954,29 @@ export class TouchScreen extends Component {
         this.state.boxQty = {};
     }
 
+    /** How the boxes given back by a customer are settled: chosen by the counter each time. */
+    onBoxSettle(settle) {
+        this.state.boxSettle = settle;
+        if (settle === "pay" && !this.state.boxJournalId) {
+            this.state.boxJournalId = this.state.journalId;
+        }
+    }
+
+    onSelectBoxJournal(journalId) {
+        this.state.boxJournalId = journalId;
+    }
+
+    boxesReady() {
+        const state = this.state;
+        if (!this.boxTotal()) {
+            return false;
+        }
+        if (state.boxDirection !== "return") {
+            return true;
+        }
+        return state.boxSettle === "compensate" || (state.boxSettle === "pay" && Boolean(state.boxJournalId));
+    }
+
     /**
      * Boxes of the tab, filtered by what is typed; those with a quantity typed stay in sight
      * so that what is going to be moved is always seen. The kinds the partner holds go first.
@@ -1987,15 +2018,18 @@ export class TouchScreen extends Component {
         const lines = Object.entries(this.state.boxQty)
             .filter(([, qty]) => qty > 0)
             .map(([productId, qty]) => ({ product_id: parseInt(productId, 10), qty }));
-        if (!lines.length) {
+        if (!lines.length || !this.boxesReady()) {
             return;
         }
+        const giveBack = this.state.boxDirection === "return";
         const result = await this.run("move_boxes", [
             {
                 uuid: this.newUuid(),
                 partner_id: this.state.partner.id,
                 direction: this.state.boxDirection,
                 lines,
+                ...(giveBack && { settle: this.state.boxSettle }),
+                ...(giveBack && this.state.boxSettle === "pay" && { journal_id: this.state.boxJournalId }),
             },
         ]);
         if (!result) {
@@ -2181,10 +2215,27 @@ export class TouchScreen extends Component {
             ? this.state.invoiceIds.filter((id) => id !== invoice.id)
             : [...this.state.invoiceIds, invoice.id];
         this.state.invoiceIds = ids;
-        // Propose the amount of the invoices chosen
+        this.proposePaymentAmount();
+    }
+
+    toggleCredit(credit) {
+        const ids = this.state.creditIds;
+        this.state.creditIds = ids.includes(credit.id) ? ids.filter((id) => id !== credit.id) : [...ids, credit.id];
+        this.proposePaymentAmount();
+    }
+
+    /** Credits chosen, applied to the invoices: a positive amount. */
+    creditTotal() {
+        return -(this.state.partner.credits || [])
+            .filter((credit) => this.state.creditIds.includes(credit.id))
+            .reduce((sum, credit) => sum + credit.residual, 0);
+    }
+
+    /** Propose the amount of the invoices chosen, less the credits chosen. */
+    proposePaymentAmount() {
         const total = this.state.partner.invoices
-            .filter((inv) => ids.includes(inv.id))
-            .reduce((sum, inv) => sum + inv.residual, 0);
+            .filter((inv) => this.state.invoiceIds.includes(inv.id))
+            .reduce((sum, inv) => sum + inv.residual, 0) - this.creditTotal();
         this.state.amount = total > 0 ? this.formatInput(total) : "";
     }
 
@@ -2201,12 +2252,17 @@ export class TouchScreen extends Component {
     }
 
     async onRegisterPayment() {
-        const amount = this.parseNumber(this.state.amount);
-        if (!(amount > 0)) {
+        const credits = this.state.creditIds;
+        const amount = this.parseNumber(this.state.amount) || 0;
+        if (!(amount > 0) && !(credits.length && amount === 0)) {
             this.notification.add(_t("Enter the amount."), { type: "warning" });
             return;
         }
-        if (!this.state.journalId) {
+        if (credits.length && !this.state.invoiceIds.length) {
+            this.notification.add(_t("Choose the invoices to apply the credit to."), { type: "warning" });
+            return;
+        }
+        if (amount > 0 && !this.state.journalId) {
             this.notification.add(_t("Choose a journal."), { type: "warning" });
             return;
         }
@@ -2217,6 +2273,7 @@ export class TouchScreen extends Component {
                 amount,
                 journal_id: this.state.journalId,
                 invoice_ids: this.state.invoiceIds,
+                credit_line_ids: credits,
                 memo: this.state.memo,
             },
         ]);

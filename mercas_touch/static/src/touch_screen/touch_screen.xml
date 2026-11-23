@@ -600,7 +600,17 @@
                 </t>
                 <t t-elif="done.kind === 'purchase'">Purchase <t t-out="done.name"/> received</t>
                 <t t-elif="done.kind === 'boxes'">Boxes registered in <t t-out="done.name"/></t>
-                <t t-elif="done.kind === 'payment'">Payment <t t-out="done.name"/> of <t t-out="this.formatAmount(done.amount)"/> registered</t>
+                <t t-elif="done.kind === 'payment' and done.id">Payment <t t-out="done.name"/> of <t t-out="this.formatAmount(done.amount)"/> registered</t>
+                <t t-elif="done.kind === 'payment'">Credit applied</t>
+            </div>
+            <div t-if="done.kind === 'boxes' and done.amount" class="fs-5 o_mercas_touch_done_box_settle">
+                <t t-out="this.formatAmount(done.amount)"/>:
+                <t t-if="done.settled === 'compensate'">credit for the next invoices</t>
+                <t t-elif="done.settled === 'pay'">paid to the customer</t>
+                <t t-else="">to pay</t>
+            </div>
+            <div t-if="done.kind === 'payment' and done.credit" class="fs-5 o_mercas_touch_done_credit">
+                Credit applied: <t t-out="this.formatAmount(done.credit)"/>
             </div>
             </t>
             <div t-if="done.amount_total" class="fs-5 text-muted" t-out="this.formatAmount(done.amount_total)"/>
@@ -964,10 +974,36 @@
                 </div>
             </div>
         </div>
+        <!-- Boxes given back by a customer: their amount, as a credit for the next invoices or
+             paid now; the counter chooses each time -->
+        <div t-if="this.state.boxDirection === 'return'" class="border rounded p-2 mt-3 o_mercas_touch_box_settle">
+            <div class="fw-bold mb-2">Amount of the boxes</div>
+            <div class="btn-group w-100" role="group">
+                <button t-att-class="'btn btn-lg o_mercas_touch_box_compensate ' + (this.state.boxSettle === 'compensate' ? 'btn-primary' : 'btn-secondary')"
+                        t-att-disabled="!this.state.data.can_compensate"
+                        t-on-click="() => this.onBoxSettle('compensate')">
+                    <i class="oi" data-icon="swap_horiz"/> Credit for next invoices
+                </button>
+                <button t-att-class="'btn btn-lg o_mercas_touch_box_pay ' + (this.state.boxSettle === 'pay' ? 'btn-primary' : 'btn-secondary')"
+                        t-on-click="() => this.onBoxSettle('pay')">
+                    <i class="oi" data-icon="payments"/> Pay now
+                </button>
+            </div>
+            <div t-if="!this.state.data.can_compensate" class="small text-muted mt-1">
+                To leave it as a credit, set the offsetting journal on the Mercas tab of the company.
+            </div>
+            <div t-if="this.state.boxSettle === 'pay'" class="d-flex flex-wrap gap-2 mt-2 o_mercas_touch_box_journals">
+                <button t-foreach="this.state.data.journals" t-as="journal" t-key="journal.id"
+                        t-att-class="'btn btn-lg ' + (journal.id === this.state.boxJournalId ? 'btn-primary' : 'btn-secondary')"
+                        t-on-click="() => this.onSelectBoxJournal(journal.id)">
+                    <i class="oi" t-att-data-icon="journal.type === 'cash' ? 'payments' : 'account_balance'"/> <t t-out="journal.name"/>
+                </button>
+            </div>
+        </div>
         <div class="d-flex justify-content-end align-items-center gap-3 mt-3">
             <span class="fs-5"><t t-out="this.boxTotal()"/> boxes</span>
             <button class="btn btn-primary btn-lg o_mercas_touch_move_boxes"
-                    t-att-disabled="this.state.sending or !this.boxTotal()" t-on-click="this.onMoveBoxes">
+                    t-att-disabled="this.state.sending or !this.boxesReady()" t-on-click="this.onMoveBoxes">
                 <i t-if="this.state.sending" class="spinner-border spinner-border-sm me-1"/>
                 <t t-if="this.state.boxDirection === 'return'">Receive and refund</t>
                 <t t-else="">Deliver and invoice</t>
@@ -1123,6 +1159,21 @@
                     </span>
                     <span class="text-nowrap" t-out="this.formatAmount(invoice.residual)"/>
                 </label>
+                <!-- Credits of the customer (boxes given back, advances…), applied first to the
+                     invoices chosen: the amount proposed is what is left to collect -->
+                <t t-if="this.state.partner.credits?.length">
+                    <div class="fw-bold mt-2">Credit in favour of the customer</div>
+                    <label t-foreach="this.state.partner.credits" t-as="credit" t-key="credit.id"
+                           t-att-class="'d-flex align-items-center gap-2 border rounded p-2 o_mercas_touch_credit ' + (this.state.creditIds.includes(credit.id) ? 'border-success border-2' : '')">
+                        <input type="checkbox" class="form-check-input fs-4 mt-0"
+                               t-att-checked="this.state.creditIds.includes(credit.id)" t-on-change="() => this.toggleCredit(credit)"/>
+                        <span class="flex-grow-1 min-w-0">
+                            <span class="fw-bold" t-out="credit.name"/>
+                            <span class="small text-muted ms-2" t-out="credit.label"/>
+                        </span>
+                        <span class="text-nowrap text-success" t-out="this.formatAmount(credit.residual)"/>
+                    </label>
+                </t>
                 <label class="form-label mb-0 mt-2">Amount</label>
                 <input type="text" inputmode="decimal" autocomplete="off" class="form-control form-control-lg border-primary border-2 o_mercas_touch_amount"
                        t-att-value="this.state.amount" t-on-input="(ev) => this.onAmountInput(ev.target.value)"

@@ -86,7 +86,11 @@ Por línea: kg, precio, cajas, país y provincia de origen (si están activados 
 
 Se elige el contacto y el sentido:
 
-- **El cliente devuelve cajas:** se registra con el flujo de devolución de envases de `mercas_base`, que recibe las cajas y abona la fianza.
+- **El cliente devuelve cajas:** se registra con el flujo de devolución de envases de `mercas_base`, que recibe las cajas y crea y publica la factura de proveedor de la fianza. En cada devolución se elige qué hacer con su importe (el botón *Recibir y abonar* no se activa hasta elegirlo):
+  - **Saldo para próximas facturas:** se compensa (*Compensar* de `mercas_base`, con el diario de compensación de la pestaña Mercas de la compañía; sin él la opción sale desactivada): la factura de proveedor queda pagada y el importe pasa a saldo a favor del cliente, que se aplica en *Cobros* (F5).
+  - **Pagar ahora:** se elige el diario (caja o banco) y se paga la factura de proveedor en el momento.
+
+  La pantalla final muestra el importe y cómo quedó.
 - **Devolvemos cajas al proveedor:** con el flujo de entrega de envases, que entrega las cajas y factura.
 
 Cada tipo de caja muestra cuántas tiene el cliente (o cuántas tenemos del proveedor) y se ajusta con +/−.
@@ -103,6 +107,8 @@ Los lotes pendientes de facturar al proveedor, el último recibido primero, con 
 ### F5 · Cobros
 
 Facturas pendientes del cliente (las vencidas en rojo). Al marcarlas se propone su importe, que se puede cambiar para un cobro parcial. Se elige el diario (banco o caja) y, opcionalmente, un concepto. El cobro se publica y se concilia con las facturas marcadas; sin facturas queda como anticipo del cliente.
+
+Debajo, el **saldo a favor del cliente** (cajas devueltas y compensadas, anticipos, cobros sobrantes; los abonos salen con las facturas). Al marcarlo se aplica primero a las facturas marcadas y se propone solo lo que queda por cobrar: con una factura de 120 € y 30 € de cajas se cobran 90 €. Si el saldo cubre la factura, el importe queda vacío y *Cobrar* solo aplica el saldo; lo que sobra sigue a favor del cliente.
 
 ### F6 · Etiqueta dañada
 
@@ -141,6 +147,7 @@ Se aplican los permisos normales del usuario: la pantalla no salta ninguna regla
 - **Calidad y calibre:** cada producto de `get_screen_data` trae sus `attributes` (los que nunca crean variantes y tienen más de un valor), y las líneas de venta de `save_draft`/`sell` llevan `attribute_value_ids`, que el servidor comprueba (valores del producto, uno por atributo) y guarda en `product_no_variant_attribute_value_ids`.
 - **Facturar las compras:** `_can_bill` (administrador de facturación) va en `get_screen_data` como `can_bill` para los botones de F4 y vacía `bill_pending` y `lot_invoice_modes` del resumen; `invoice_purchase`, `invoice_purchase_lots` e `invoice_lots` lo comprueban con `_check_can_bill` (`AccessError`).
 - **Facturas de la compra:** `_get_purchase_invoices` reúne las del pedido (`invoice_ids`) y las de sus lotes, que no están enlazadas a las líneas del pedido. `_get_purchase_lots_to_invoice` da los lotes por modo (firme, liquidar, adelanto) solo de las líneas que se facturan desde el lote (`_mercas_is_invoiced_from_lot` de `mercas_base`); el resto va con la factura estándar (`invoice_purchase`).
+- **Cajas devueltas y saldo a favor:** `move_boxes` acepta `settle` (`compensate`, con `action_compensate` de `mercas_base`, o `pay`, con `journal_id`) y lo aplica a la factura de proveedor de la devolución en la misma transacción (`_settle_box_bills`). `get_partner_info` trae `credits`: apuntes a cobrar del cliente con saldo pendiente negativo que no son facturas ni abonos (`_open_credit_domain`). `register_payment` acepta `credit_line_ids`: los concilia primero con las facturas marcadas (`js_assign_outstanding_line`) y cobra `amount` del resto; con importe 0 solo aplica el saldo. `get_screen_data` trae `can_compensate`.
 - **Pedidos enviados por la pantalla:** `_browse_order(model, id)` comprueba el id y que el pedido siga existiendo; `is_record_id`/`are_record_ids` validan los ids recibidos.
 - **Pantalla:** acción cliente Owl 3 `mercas_touch.screen` con un componente `TouchNumpad` para el teclado numérico. El teclado solo emite la tecla pulsada; la pantalla la aplica al campo que se está editando.
 - **Escáner:** usa el plugin de `barcodes`; un código escaneado mientras se escribe en un campo va al campo.
@@ -148,7 +155,7 @@ Se aplican los permisos normales del usuario: la pantalla no salta ninguna regla
 
 ## Tests
 
-- **Python:** facturar las compras solo como administrador de facturación (botones y llamadas); pesos de los productos (bruto, neto y tara); filtros *En curso*, *Para facturar* y *Todos*, resumen de un pedido confirmado; factura de proveedor desde la compra (factura estándar con los lotes firmes, las cajas y las secciones; adelanto y liquidación desde el lote con sus cajas; lote firme ya facturado desde el lote fuera de la factura estándar); facturas de la compra (lista, impresión y borrado de borradores); facturar una venta (una sola vez) e imprimir la factura; presupuestos y compras en borrador (crear, actualizar línea a línea, conservar secciones, retomar los del backend, cancelar, vender y comprar desde el borrador, lote de compra por nombre); venta con lote, cajas, precio y texto; venta a granel con calidad y calibre, cambiados después conservando el texto, y valores no válidos; compra con lote nuevo o con nombre y origen; idempotencia; validación de las líneas; lotes con stock y lotes ya facturados; escáner; devolución y entrega de cajas; desechos; liquidación; cobros con y sin facturas; impresión; etiqueta dañada (búsqueda del lote escaneado o escrito y reimpresión); riesgo superado (si está `sale_financial_risk`).
+- **Python:** facturar las compras solo como administrador de facturación (botones y llamadas); pesos de los productos (bruto, neto y tara); filtros *En curso*, *Para facturar* y *Todos*, resumen de un pedido confirmado; factura de proveedor desde la compra (factura estándar con los lotes firmes, las cajas y las secciones; adelanto y liquidación desde el lote con sus cajas; lote firme ya facturado desde el lote fuera de la factura estándar); facturas de la compra (lista, impresión y borrado de borradores); facturar una venta (una sola vez) e imprimir la factura; presupuestos y compras en borrador (crear, actualizar línea a línea, conservar secciones, retomar los del backend, cancelar, vender y comprar desde el borrador, lote de compra por nombre); venta con lote, cajas, precio y texto; venta a granel con calidad y calibre, cambiados después conservando el texto, y valores no válidos; compra con lote nuevo o con nombre y origen; idempotencia; validación de las líneas; lotes con stock y lotes ya facturados; escáner; devolución y entrega de cajas; cajas devueltas pagadas en el momento o como saldo a favor, aplicado después al cobrar una factura (también un saldo mayor que la factura); desechos; liquidación; cobros con y sin facturas; impresión; etiqueta dañada (búsqueda del lote escaneado o escrito y reimpresión); riesgo superado (si está `sale_financial_risk`).
 - **Tours en el navegador:** facturar desde *Para facturar* una venta y una compra ya cerradas (la compra, con un adelanto de su lote en liquidación); venta completa con el teclado numérico, facturada y cobrada desde la propia venta, retomar un presupuesto del backend y dejarlo a medias, pasar de una compra en borrador a otra y volver, cambio rápido de precios línea a línea, compra con lote nuevo, impresión de sus etiquetas y desecho, y cobro parcial.
 
 ```bash

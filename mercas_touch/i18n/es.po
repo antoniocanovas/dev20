@@ -1925,3 +1925,89 @@ msgstr "Neto ("
 #: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
 msgid "· tare"
 msgstr "· tara"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Amount of the boxes"
+msgstr "Importe de las cajas"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Credit for next invoices"
+msgstr "Saldo para próximas facturas"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Pay now"
+msgstr "Pagar ahora"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "To leave it as a credit, set the offsetting journal on the Mercas tab of the company."
+msgstr "Para dejarlo como saldo a favor, configura el diario de compensación en la pestaña Mercas de la compañía."
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Credit applied"
+msgstr "Saldo a favor aplicado"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Credit applied:"
+msgstr "Saldo a favor aplicado:"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "credit for the next invoices"
+msgstr "saldo a favor para próximas facturas"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "paid to the customer"
+msgstr "pagado al cliente"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "to pay"
+msgstr "pendiente de pagar"
+
+#. module: mercas_touch
+#. odoo-javascript
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.xml:0
+msgid "Credit in favour of the customer"
+msgstr "Saldo a favor del cliente"
+
+#. module: mercas_touch
+#. odoo-javascript
+#. odoo-python
+#: code:addons/mercas_touch/static/src/touch_screen/touch_screen.js:0
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Choose the invoices to apply the credit to."
+msgstr "Elige las facturas a las que aplicar el saldo a favor."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid way of settling the boxes."
+msgstr "Forma de liquidar las cajas no válida."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Invalid credits."
+msgstr "Saldos a favor no válidos."
+
+#. module: mercas_touch
+#. odoo-python
+#: code:addons/mercas_touch/models/mercas_touch.py:0
+msgid "Some credits can't be used anymore."
+msgstr "Algún saldo a favor ya no se puede usar."

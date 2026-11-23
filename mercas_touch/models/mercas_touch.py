@@ -119,6 +119,8 @@ class MercasTouch(models.AbstractModel):
             },
             'has_risk': 'risk_exception' in self.env['res.partner']._fields,
             'can_bill': self._can_bill(),
+            # The boxes given back can stay as a credit for the next invoices (see move_boxes)
+            'can_compensate': bool(company.compensation_journal_id),
         }
 
     def _can_bill(self):
@@ -219,6 +221,7 @@ class MercasTouch(models.AbstractModel):
             'firm_negotiation': partner.mercas_firm_negotiation,
             'debt': self._get_debt(partner),
             'invoices': self._get_open_invoices(partner),
+            'credits': self._get_open_credits(partner),
             'boxes': self._get_box_balance(partner),
         }
         # The credit limit and the risk are restricted to accounting users; shown here as information
@@ -279,6 +282,30 @@ class MercasTouch(models.AbstractModel):
             'overdue': bool(move.invoice_date_due and move.invoice_date_due < today),
             'is_refund': move.move_type == 'out_refund',
         } for move in moves]
+
+    def _open_credit_domain(self, partner):
+        """ Receivable of the customer in their favour still to use, out of the credit notes
+        (listed with the invoices): boxes given back and offset, advances, payments left over. """
+        return [
+            ('partner_id', 'child_of', partner.id),
+            ('company_id', '=', self.env.company.id),
+            ('account_type', '=', 'asset_receivable'),
+            ('parent_state', '=', 'posted'),
+            ('reconciled', '=', False),
+            ('amount_residual', '<', 0),
+            ('move_id.move_type', 'not in', ('out_invoice', 'out_refund')),
+        ]
+
+    def _get_open_credits(self, partner):
+        """ Credits of the customer to apply to their invoices, oldest first (negative). """
+        lines = self.env['account.move.line'].sudo().search(self._open_credit_domain(partner), order='date, id')
+        return [{
+            'id': line.id,
+            'name': line.move_id.name,
+            'label': line.move_id.ref or line.name or '',
+            'date': fields.Date.to_string(line.date),
+            'residual': line.amount_residual,
+        } for line in lines]
 
     def _get_box_balance(self, partner):
         """ Boxes of each kind held by the partner as a customer (positive: the customer has
@@ -1069,18 +1096,26 @@ class MercasTouch(models.AbstractModel):
         :param dict vals: {
             'uuid': str, 'partner_id': int, 'direction': 'return' or 'deliver',
             'lines': [{'product_id': int, 'qty': float}],
+            'settle': 'compensate' or 'pay' (optional, boxes given back by a customer: their
+                amount as a credit for the next invoices, or paid now; without it the bill stays
+                to pay),
+            'journal_id': int (bank or cash journal, to pay),
         }
         """
         vals, operation_uuid = self._check_operation(vals)
         direction = vals.get('direction')
         if direction not in ('return', 'deliver'):
             raise ValidationError(self.env._("Invalid box movement."))
+        settle = vals.get('settle') or False
+        if settle and (direction != 'return' or settle not in ('compensate', 'pay')):
+            raise ValidationError(self.env._("Invalid way of settling the boxes."))
         model = 'purchase.order' if direction == 'return' else 'sale.order'
         existing = self.env[model].search([('mercas_touch_uuid', '=', operation_uuid)], limit=1)
         partner = self._get_partner(vals.get('partner_id'))
         if existing:
             return {'order': self._get_box_result(existing), 'boxes': self._get_box_balance(partner)}
         lines = self._prepare_lines(vals.get('lines'), 'box')
+        journal = self._get_payment_journal(vals.get('journal_id')) if settle == 'pay' else None
         result = {}
         if direction == 'return':
             order = self.env['purchase.order'].create({
@@ -1090,6 +1125,8 @@ class MercasTouch(models.AbstractModel):
                                for line in lines],
             })
             order.button_purchase_and_receive()
+            if settle:
+                self._settle_box_bills(order, settle, journal)
         else:
             order = self.env['sale.order'].create({
                 'partner_id': partner.id,
@@ -1103,14 +1140,42 @@ class MercasTouch(models.AbstractModel):
         result.update(order=self._get_box_result(order), boxes=self._get_box_balance(partner))
         return result
 
+    def _settle_box_bills(self, order, settle, journal):
+        """ The bill of the boxes given back by a customer: offset (a credit in their favour for
+        the next invoices, `action_compensate` of `mercas_base`) or paid now from the journal. """
+        bills = order.invoice_ids.filtered(
+            lambda move: move.state == 'posted' and move.move_type == 'in_invoice'
+            and move.payment_state in ('not_paid', 'partial'))
+        for bill in bills:
+            if settle == 'compensate':
+                bill.action_compensate()
+            else:
+                self.env['account.payment.register'].with_context(
+                    active_model='account.move', active_ids=bill.ids,
+                ).create({
+                    'journal_id': journal.id,
+                    'payment_date': fields.Date.context_today(self),
+                })._create_payments()
+
     def _get_box_result(self, order):
-        return {
+        bills = order.invoice_ids.filtered(lambda move: move.state == 'posted' and move.move_type == 'in_invoice')
+        result = {
             'id': order.id,
             'name': order.name,
             'model': order._name,
             'state': order.state,
             'invoice_ids': order.invoice_ids.ids,
         }
+        if bills:
+            # Amount of the boxes given back and how it was settled: offset, paid, or to pay
+            offset = bills.line_ids.matched_debit_ids.debit_move_id.move_id.filtered(
+                lambda move: move.journal_id == order.company_id.compensation_journal_id)
+            result.update(
+                amount=sum(bills.mapped('amount_total')),
+                settled='compensate' if offset else 'pay' if all(
+                    bill.payment_state in ('paid', 'in_payment') for bill in bills) else False,
+            )
+        return result
 
     @api.model
     def scrap_lot(self, lot_id, qty):
@@ -1186,6 +1251,8 @@ class MercasTouch(models.AbstractModel):
         :param dict vals: {
             'uuid': str, 'partner_id': int, 'amount': float, 'journal_id': int,
             'invoice_ids': [int] (optional), 'memo': str (optional),
+            'credit_line_ids': [int] (optional, credits of the customer applied first to the
+                invoices: the amount is what is left to collect, 0 if they cover it),
         }
         """
         vals, operation_uuid = self._check_operation(vals)
@@ -1194,13 +1261,13 @@ class MercasTouch(models.AbstractModel):
         if existing:
             return self._get_payment_result(existing)
         partner = self._get_partner(vals.get('partner_id'))
-        amount = vals.get('amount')
-        if not is_number(amount) or amount <= 0:
+        credit_line_ids = vals.get('credit_line_ids') or []
+        if not isinstance(credit_line_ids, list) or not all(is_record_id(line_id) for line_id in credit_line_ids):
+            raise ValidationError(self.env._("Invalid credits."))
+        amount = vals.get('amount') or 0.0
+        if not is_number(amount) or amount < 0 or (amount == 0 and not credit_line_ids):
             raise ValidationError(self.env._("The amount must be positive."))
-        journal_id = vals.get('journal_id')
-        journal = self.env['account.journal'].browse(journal_id).exists() if is_record_id(journal_id) else None
-        if not journal or journal.type not in ('bank', 'cash'):
-            raise ValidationError(self.env._("Choose a bank or cash journal."))
+        journal = self._get_payment_journal(vals.get('journal_id')) if amount else None
         memo = vals.get('memo') or ''
         if not isinstance(memo, str):
             raise ValidationError(self.env._("Invalid memo."))
@@ -1215,6 +1282,25 @@ class MercasTouch(models.AbstractModel):
             for invoice in invoices
         ):
             raise ValidationError(self.env._("Some invoices can't be paid anymore."))
+        credit = 0.0
+        if credit_line_ids:
+            credits = self.env['account.move.line'].search(
+                [('id', 'in', credit_line_ids), *self._open_credit_domain(partner)], order='date, id')
+            to_pay = invoices.filtered(lambda invoice: invoice.move_type == 'out_invoice')
+            if len(credits) != len(credit_line_ids):
+                raise ValidationError(self.env._("Some credits can't be used anymore."))
+            if not to_pay:
+                raise ValidationError(self.env._("Choose the invoices to apply the credit to."))
+            credit = -sum(credits.mapped('amount_residual'))
+            for line in credits:
+                for invoice in to_pay.filtered(lambda invoice: invoice.amount_residual):
+                    if line.reconciled:
+                        break
+                    invoice.js_assign_outstanding_line(line.id)
+            credit += sum(credits.mapped('amount_residual'))
+            invoices = invoices.filtered(lambda invoice: invoice.payment_state in ('not_paid', 'partial'))
+            if not amount:
+                return {'id': False, 'name': '', 'amount': 0.0, 'state': False, 'credit': credit}
         if invoices:
             wizard = self.env['account.payment.register'].with_context(
                 active_model='account.move', active_ids=invoices.ids,
@@ -1238,10 +1324,16 @@ class MercasTouch(models.AbstractModel):
                 'mercas_touch_uuid': operation_uuid,
             })
             payment.action_post()
-        return self._get_payment_result(payment)
+        return dict(self._get_payment_result(payment), credit=credit)
+
+    def _get_payment_journal(self, journal_id):
+        journal = self.env['account.journal'].browse(journal_id).exists() if is_record_id(journal_id) else None
+        if not journal or journal.type not in ('bank', 'cash'):
+            raise ValidationError(self.env._("Choose a bank or cash journal."))
+        return journal
 
     def _get_payment_result(self, payment):
-        return {'id': payment.id, 'name': payment.name, 'amount': payment.amount, 'state': payment.state}
+        return {'id': payment.id, 'name': payment.name, 'amount': payment.amount, 'state': payment.state, 'credit': 0.0}
 
     @api.model
     def get_deca_action(self, order_id):

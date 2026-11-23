@@ -330,6 +330,87 @@ class TestMercasTouch(MercasTouchCommon):
             self.Touch.move_boxes({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'direction': 'return',
                                    'lines': [{'product_id': self.pear.id, 'qty': 1}]})
 
+    def _cash_journal(self):
+        journal = self.env['account.journal'].search([('type', '=', 'cash'), ('company_id', '=', self.company.id)], limit=1)
+        return journal or self.env['account.journal'].create({'name': 'Counter Cash', 'type': 'cash', 'code': 'TCSH'})
+
+    def _give_back_boxes(self, qty, **settle):
+        """ The customer takes boxes with a sale and gives `qty` of them back. """
+        self._buy(100.0, lot_name='SETTLE-%s' % uuid.uuid4().hex[:6])
+        lot = self.env['stock.lot'].search([('name', 'like', 'SETTLE-')], order='id desc', limit=1)
+        self.Touch.sell({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'lines': [
+            {'product_id': self.pear.id, 'lot_id': lot.id, 'qty': 50.0, 'box_qty': 5, 'box_product_id': self.box.id},
+        ]})
+        return self.Touch.move_boxes({
+            'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'direction': 'return',
+            'lines': [{'product_id': self.box.id, 'qty': qty}], **settle,
+        })
+
+    def test_boxes_given_back_paid_now(self):
+        journal = self._cash_journal()
+        result = self._give_back_boxes(3, settle='pay', journal_id=journal.id)
+        bill = self.env['account.move'].browse(result['order']['invoice_ids'])
+        self.assertIn(bill.payment_state, ('paid', 'in_payment'))
+        self.assertEqual(result['order']['amount'], 3.0)
+        self.assertEqual(result['order']['settled'], 'pay')
+        self.assertFalse(self.Touch.get_partner_info(self.customer.id)['credits'], "Nothing left in their favour")
+        with self.assertRaises(ValidationError):
+            self._give_back_boxes(1, settle='pay')
+        with self.assertRaises(ValidationError):
+            self._give_back_boxes(1, settle='other')
+
+    def test_boxes_given_back_as_credit(self):
+        """ The boxes given back stay as a credit, applied when the customer pays their next
+        invoice at the counter: only the rest is collected. """
+        self.assertFalse(self.Touch.get_screen_data()['can_compensate'])
+        with self.assertRaises(UserError):
+            self._give_back_boxes(3, settle='compensate')
+        self.company.compensation_journal_id = self.env['account.journal'].create(
+            {'name': 'Touch Offsetting', 'type': 'general', 'code': 'TOFF'})
+        self.assertTrue(self.Touch.get_screen_data()['can_compensate'])
+        result = self._give_back_boxes(3, settle='compensate')
+        self.assertEqual(result['order']['settled'], 'compensate')
+        bill = self.env['account.move'].browse(result['order']['invoice_ids'])
+        self.assertIn(bill.payment_state, ('paid', 'in_payment'))
+        info = self.Touch.get_partner_info(self.customer.id)
+        self.assertEqual([credit['residual'] for credit in info['credits']], [-3.0])
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.customer.id,
+            'invoice_line_ids': [Command.create({'product_id': self.lettuce.id, 'quantity': 10, 'price_unit': 1.0})],
+        })
+        invoice.action_post()
+        journal = self._cash_journal()
+        credit_ids = [credit['id'] for credit in info['credits']]
+        with self.assertRaises(ValidationError):
+            self.Touch.register_payment({'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'amount': 0,
+                                         'journal_id': journal.id, 'credit_line_ids': credit_ids})
+        payment = self.Touch.register_payment({
+            'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'amount': 7.0, 'journal_id': journal.id,
+            'invoice_ids': [invoice.id], 'credit_line_ids': credit_ids,
+        })
+        self.assertEqual(payment['credit'], 3.0)
+        self.assertEqual(payment['amount'], 7.0)
+        self.assertIn(invoice.payment_state, ('paid', 'in_payment'))
+        self.assertFalse(self.Touch.get_partner_info(self.customer.id)['credits'])
+        # A credit larger than the invoice: the invoice is paid with it alone, the rest stays
+        self._give_back_boxes(5, settle='compensate')
+        small = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.customer.id,
+            'invoice_line_ids': [Command.create({'product_id': self.lettuce.id, 'quantity': 2, 'price_unit': 1.0})],
+        })
+        small.action_post()
+        credit_ids = [credit['id'] for credit in self.Touch.get_partner_info(self.customer.id)['credits']]
+        payment = self.Touch.register_payment({
+            'uuid': str(uuid.uuid4()), 'partner_id': self.customer.id, 'amount': 0,
+            'invoice_ids': [small.id], 'credit_line_ids': credit_ids,
+        })
+        self.assertFalse(payment['id'], "Nothing collected")
+        self.assertEqual(payment['credit'], 2.0)
+        self.assertEqual(small.payment_state, 'paid')
+        self.assertEqual([c['residual'] for c in self.Touch.get_partner_info(self.customer.id)['credits']], [-3.0])
+
     def test_scrap_lot(self):
         self._buy(40.0, lot_name='SCRAP-1')
         lot = self.env['stock.lot'].search([('name', '=', 'SCRAP-1')])
